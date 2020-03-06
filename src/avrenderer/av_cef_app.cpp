@@ -20,7 +20,7 @@
 
 #include <tools/logging.h>
 
-#include "javascript_renderer.h"#include "javascript_renderer.h"
+#include "javascript_renderer.h"
 
 namespace 
 {
