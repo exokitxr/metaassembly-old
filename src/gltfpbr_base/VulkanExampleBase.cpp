@@ -1492,7 +1492,7 @@ void VulkanExampleBase::initxcbConnection()
 
 	connection = xcb_connect(NULL, &scr);
 	if (connection == NULL) {
-		printf("Could not find a compatible Vulkan ICD!\n");
+		// printf("Could not find a compatible Vulkan ICD!\n");
 		fflush(stdout);
 		exit(1);
 	}
@@ -1638,7 +1638,7 @@ void VulkanExampleBase::setupFrameBuffer()
 		imageCI.usage = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 		imageCI.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		VK_CHECK_RESULT(vkCreateImage(device, &imageCI, nullptr, &multisampleTarget.color.image));
-		printf( "Image 0x%llX function %s\n", (size_t)multisampleTarget.color.image, __FUNCTION__ );
+		// printf( "Image 0x%llX function %s\n", (size_t)multisampleTarget.color.image, __FUNCTION__ );
 
 		VkMemoryRequirements memReqs;
 		vkGetImageMemoryRequirements(device, multisampleTarget.color.image, &memReqs);
@@ -1682,7 +1682,7 @@ void VulkanExampleBase::setupFrameBuffer()
 		imageCI.usage = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 		imageCI.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		VK_CHECK_RESULT(vkCreateImage(device, &imageCI, nullptr, &multisampleTarget.depth.image));
-		printf( "Image 0x%llX function %s\n", (size_t)multisampleTarget.depth.image, __FUNCTION__ );
+		// printf( "Image 0x%llX function %s\n", (size_t)multisampleTarget.depth.image, __FUNCTION__ );
 
 		vkGetImageMemoryRequirements(device, multisampleTarget.depth.image, &memReqs);
 		memAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -1745,7 +1745,7 @@ void VulkanExampleBase::setupFrameBuffer()
 
 	VkMemoryRequirements memReqs;
 	VK_CHECK_RESULT(vkCreateImage(device, &image, nullptr, &depthStencil.image));
-	printf( "Image 0x%llX function %s\n", (size_t)depthStencil.image, __FUNCTION__ );
+	// printf( "Image 0x%llX function %s\n", (size_t)depthStencil.image, __FUNCTION__ );
 
 	vkGetImageMemoryRequirements(device, depthStencil.image, &memReqs);
 	mem_alloc.allocationSize = memReqs.size;
