@@ -45,6 +45,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "out.h"
+
 using namespace aardvark;
 
 VulkanExample::VulkanExample()
@@ -52,7 +54,7 @@ VulkanExample::VulkanExample()
 {
 	title = "Aardvark Renderer";
 #if defined(TINYGLTF_ENABLE_DRACO)
-	std::cout << "Draco mesh compression is enabled" << std::endl;
+	getOut() << "Draco mesh compression is enabled" << std::endl;
 #endif
 }
 
@@ -370,7 +372,7 @@ void VulkanExample::recordCommandsForModels( VkCommandBuffer currentCB, uint32_t
 
 void VulkanExample::loadEnvironment( std::string filename )
 {
-	std::cout << "Loading environment from " << filename << std::endl;
+	getOut() << "Loading environment from " << filename << std::endl;
 	if ( textures.environmentCube.image ) {
 		textures.environmentCube.destroy();
 		textures.irradianceCube.destroy();
@@ -407,7 +409,7 @@ void VulkanExample::loadAssets()
 				sceneFile = args[i];
 			}
 			else {
-				std::cout << "could not load \"" << args[i] << "\"" << std::endl;
+				getOut() << "could not load \"" << args[i] << "\"" << std::endl;
 			}
 		}
 		if ( std::string( args[i] ).find( ".ktx" ) != std::string::npos ) {
@@ -416,7 +418,7 @@ void VulkanExample::loadAssets()
 				envMapFile = args[i];
 			}
 			else {
-				std::cout << "could not load \"" << args[i] << "\"" << std::endl;
+				getOut() << "could not load \"" << args[i] << "\"" << std::endl;
 			}
 		}
 	}
@@ -1232,7 +1234,7 @@ void VulkanExample::generateBRDFLUT()
 
 	auto tEnd = std::chrono::high_resolution_clock::now();
 	auto tDiff = std::chrono::duration<double, std::milli>( tEnd - tStart ).count();
-	std::cout << "Generating BRDF LUT took " << tDiff << " ms" << std::endl;
+	getOut() << "Generating BRDF LUT took " << tDiff << " ms" << std::endl;
 }
 
 /*
@@ -1796,7 +1798,7 @@ void VulkanExample::generateCubemaps()
 
 		auto tEnd = std::chrono::high_resolution_clock::now();
 		auto tDiff = std::chrono::duration<double, std::milli>( tEnd - tStart ).count();
-		std::cout << "Generating cube map with " << numMips << " mip levels took " << tDiff << " ms" << std::endl;
+		getOut() << "Generating cube map with " << numMips << " mip levels took " << tDiff << " ms" << std::endl;
 	}
 }
 
@@ -1993,7 +1995,7 @@ std::shared_ptr<vkglTF::Model> VulkanExample::findOrLoadModel( std::string model
 	auto iModel = m_mapModels.find( modelUri );
 	if ( iModel != m_mapModels.end() )
 	{
-    std::cout << "Parse found" << std::endl;
+    getOut() << "Parse found" << std::endl;
 		return iModel->second;
 	}
 
@@ -2009,12 +2011,12 @@ std::shared_ptr<vkglTF::Model> VulkanExample::loadModelFromMemory(const std::str
   {
     m_mapModels.insert( std::make_pair( modelUri, pModel ) );
     setupDescriptorSetsForModel( pModel );
-    std::cout << "Load ok " << modelUri << std::endl;
+    getOut() << "Load ok " << modelUri << std::endl;
     return pModel;
   }
   else
   {
-    std::cout << "Parse failed" << std::endl;
+    getOut() << "Parse failed" << std::endl;
   }
 
 	return nullptr;
