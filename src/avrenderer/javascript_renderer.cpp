@@ -1,12 +1,12 @@
 #include "javascript_renderer.h"
-#include "av_cef_javascript.h"
+// #include "av_cef_javascript.h"
 #include "aardvark_renderer.h"
 #include "vrmanager.h"
 
 using aardvark::EEndpointType;
 using aardvark::EndpointAddr_t;
 
-extern CefRefPtr<CefV8Value> grabEventToCefEvent( const aardvark::GrabEvent_t & grabEvent );
+/* extern CefRefPtr<CefV8Value> grabEventToCefEvent( const aardvark::GrabEvent_t & grabEvent );
 
 CJavascriptModelInstance::CJavascriptModelInstance( std::unique_ptr<IModelInstance> modelInstance, 
 	std::shared_ptr<IRenderer> renderer )
@@ -139,20 +139,20 @@ bool CJavascriptModelInstance::init( CefRefPtr<CefV8Value > container )
 	} );
 
 	return true;
-}
+} */
 
-CJavascriptRenderer::CJavascriptRenderer( CAardvarkRenderProcessHandler *renderProcessHandler )
+CJavascriptRenderer::CJavascriptRenderer( )
 {
-	m_handler = renderProcessHandler;
+	// m_handler = renderProcessHandler;
 	m_renderer = std::make_unique<VulkanExample>();
 	m_vrManager = std::make_unique<CVRManager>();
 
 }
 
-bool CJavascriptRenderer::hasPermission( const std::string & permission )
+/* bool CJavascriptRenderer::hasPermission( const std::string & permission )
 {
 	return m_handler->hasPermission( permission );
-}
+} */
 
 void CJavascriptRenderer::runFrame()
 {
@@ -163,7 +163,7 @@ void CJavascriptRenderer::runFrame()
 
 	m_vrManager->runFrame();
 
-	if ( m_jsTraverser )
+	/* if ( m_jsTraverser )
 	{
 		// we'll use our local intersections and collisions for callbacks from JS
 		m_intersections.reset();
@@ -171,7 +171,7 @@ void CJavascriptRenderer::runFrame()
 
 		m_jsTraverser->ExecuteFunction( nullptr, CefV8ValueList{} );
 
-	}
+	} */
 
 	m_renderer->processRenderList();
 
@@ -185,12 +185,12 @@ void CJavascriptRenderer::runFrame()
 	if ( shouldQuit )
 	{
 		m_quitting = true;
-		CefRefPtr<CefProcessMessage> msg = CefProcessMessage::Create( "quit" );
-		m_handler->sendBrowserMessage( msg );
+		// CefRefPtr<CefProcessMessage> msg = CefProcessMessage::Create( "quit" );
+		// m_handler->sendBrowserMessage( msg );
 	}
 }
 
-bool endpointAddrFromJs( CefRefPtr< CefV8Value > obj, EndpointAddr_t *addr )
+/* bool endpointAddrFromJs( CefRefPtr< CefV8Value > obj, EndpointAddr_t *addr )
 {
 	if ( !obj || !obj->IsObject() || !addr )
 		return false;
@@ -255,15 +255,15 @@ CefRefPtr<CefV8Value> endpointAddrVectorToJs( const std::vector<EndpointAddr_t> 
 		out->SetValue( i, endpointAddrToJs( addrs[i] ) );
 	}
 	return out;
-}
+} */
 
 
-bool CJavascriptRenderer::init( CefRefPtr<CefV8Value> container )
+bool CJavascriptRenderer::init( )
 {
 	m_vrManager->init();
 	m_renderer->init( nullptr, m_vrManager.get() );
 
-	RegisterFunction( container, "registerTraverser", [this]( const CefV8ValueList & arguments, CefRefPtr<CefV8Value>& retval, CefString& exception )
+	/* RegisterFunction( container, "registerTraverser", [this]( const CefV8ValueList & arguments, CefRefPtr<CefV8Value>& retval, CefString& exception )
 	{
 		if ( arguments.size() != 1 )
 		{
@@ -913,7 +913,7 @@ bool CJavascriptRenderer::init( CefRefPtr<CefV8Value> container )
 		retval->SetValue( "grab", CefV8Value::CreateBool( actionState.grab ), V8_PROPERTY_ATTRIBUTE_NONE );
 		retval->SetValue( "squeeze", CefV8Value::CreateBool( actionState.squeeze ), V8_PROPERTY_ATTRIBUTE_NONE );
 		retval->SetValue( "detach", CefV8Value::CreateBool( actionState.detach ), V8_PROPERTY_ATTRIBUTE_NONE );
-	} );
+	} ); */
 
 
 	return true;

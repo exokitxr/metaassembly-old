@@ -16,10 +16,10 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "include/cef_sandbox_win.h"
-#include "av_cef_app.h"
-#include "av_cef_handler.h"
-#include "uri_request_handler.h"
+// #include "include/cef_sandbox_win.h"
+// #include "av_cef_app.h"
+// #include "av_cef_handler.h"
+// #include "uri_request_handler.h"
 #include <aardvark/irenderer.h>
 
 #include <aardvark/aardvark_scene_graph.h>
@@ -277,7 +277,7 @@ protected:
 	int32_t debugViewEquation = 0;
 	float m_eyeFOV = 115.0f;
 
-	CUriRequestHandler m_uriRequests;
+	// CUriRequestHandler m_uriRequests;
 
 	std::vector< CVulkanRendererModelInstance *> m_modelsToRender;
 

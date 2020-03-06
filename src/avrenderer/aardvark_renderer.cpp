@@ -22,9 +22,9 @@
 #include "VulkanglTFModel.hpp"
 #include "VulkanUtils.hpp"
 
-#include "include/cef_sandbox_win.h"
+// #include "include/cef_sandbox_win.h"
 #include "av_cef_app.h"
-#include "av_cef_handler.h"
+// #include "av_cef_handler.h"
 
 // When generating projects with CMake the CEF_USE_SANDBOX value will be defined
 // automatically if using the required compiler version. Pass -DUSE_SANDBOX=OFF
@@ -1957,8 +1957,35 @@ void VulkanExample::onWindowClose()
 {
 	if ( CAardvarkCefApp::instance() )
 	{
-		CAardvarkCefApp::instance()->CloseAllBrowsers( true );
+		// CAardvarkCefApp::instance()->CloseAllBrowsers( true );
 	}
+}
+
+std::vector<char> readFile(const std::string &filename)
+{
+    // open the file:
+    std::ifstream file(filename, std::ios::binary);
+
+    // Stop eating new lines in binary mode!!!
+    file.unsetf(std::ios::skipws);
+
+    // get its size:
+    std::streampos fileSize;
+
+    file.seekg(0, std::ios::end);
+    fileSize = file.tellg();
+    file.seekg(0, std::ios::beg);
+
+    // reserve capacity
+    std::vector<char> vec;
+    vec.reserve(fileSize);
+
+    // read the data:
+    vec.insert(vec.begin(),
+               std::istream_iterator<char>(file),
+               std::istream_iterator<char>());
+
+    return vec;
 }
 
 std::shared_ptr<vkglTF::Model> VulkanExample::findOrLoadModel( std::string modelUri, std::string *psError)
@@ -1966,53 +1993,25 @@ std::shared_ptr<vkglTF::Model> VulkanExample::findOrLoadModel( std::string model
 	auto iModel = m_mapModels.find( modelUri );
 	if ( iModel != m_mapModels.end() )
 	{
+    std::cout << "Parse found" << std::endl;
 		return iModel->second;
 	}
 
-	// below this point we're definitely going to return nullptr because we need to
-	// make an async request for the model
+	auto pModel = std::make_shared<vkglTF::Model>();
+  std::vector<char> data = readFile(modelUri);
+  bool bLoaded = pModel->loadFromMemory( data.data(), data.size(), vulkanDevice, m_descriptorManager, queue );
 
-	// if we've already failed, just return nullptr and don't keep trying
-	auto failedRequest = m_failedModelRequests.find( modelUri );
-	if (failedRequest != m_failedModelRequests.end())
-	{
-		if (psError)
-		{
-			*psError = failedRequest->second;
-		}
-		return nullptr;
-	}
-
-	// if we already sent a request but are still waiting for the data, just return
-	// null. The caller will call again next frame.
-	if ( m_modelRequestsInProgress.find( modelUri ) != m_modelRequestsInProgress.end() )
-		return nullptr;
-
-	m_modelRequestsInProgress.insert( modelUri );
-
-	m_uriRequests.requestUri( modelUri, [this, modelUri]( CUriRequestHandler::Result_t result )
-	{
-		m_modelRequestsInProgress.erase( modelUri );
-		if ( !result.success )
-		{
-			m_failedModelRequests.insert( std::make_pair( modelUri, "Missing Resource" ) );
-		}
-		else
-		{
-			auto pModel = std::make_shared<vkglTF::Model>();
-			bool bLoaded = pModel->loadFromMemory( result.data.data(), result.data.size(), vulkanDevice, m_descriptorManager, queue );
-
-			if ( bLoaded )
-			{
-				m_mapModels.insert( std::make_pair( modelUri, pModel ) );
-				setupDescriptorSetsForModel( pModel );
-			}
-			else
-			{
-				m_failedModelRequests.insert( std::make_pair( modelUri, "Parse failed" ) );
-			}
-		}
-	} );
+  if ( bLoaded )
+  {
+    m_mapModels.insert( std::make_pair( modelUri, pModel ) );
+    setupDescriptorSetsForModel( pModel );
+    std::cout << "Load ok " << modelUri << std::endl;
+    return pModel;
+  }
+  else
+  {
+    std::cout << "Parse failed" << std::endl;
+  }
 
 	return nullptr;
 }
@@ -2169,7 +2168,7 @@ void VulkanExample::processRenderList()
 		updateUniformBuffers();
 	}
 
-	m_uriRequests.processResults();
+	// m_uriRequests.processResults();
 }
 
 bool VulkanExample::getModelBox( const std::string & uri, AABB_t *pBox, std::string *psError)
@@ -2355,8 +2354,9 @@ void VulkanExample::addToRenderList( IModelInstance *modelInstance )
 	m_modelsToRender.push_back( vulkanModelInstance );
 }
 
+std::shared_ptr<vkglTF::Model> model;
 void VulkanExample::runFrame( bool *shouldQuit, double frameTime )
-{
+{ 
 	bool unusedShouldRender;
 	pumpWindowEvents( shouldQuit, &unusedShouldRender );
 	updateFrameTime( frameTime );
@@ -2369,4 +2369,10 @@ void VulkanExample::init( HINSTANCE hInstance, IVrManager *vrManager )
 	initVulkan();
 	setupWindow( hInstance );
 	prepare();
+  
+  std::string uri("data/models/DamagedHelmet/glTF-Embedded/DamagedHelmet.gltf");
+  std::string err;
+  std::shared_ptr<vkglTF::Model> model = findOrLoadModel(uri, &err);
+  CVulkanRendererModelInstance *vulkanModelInstance = new CVulkanRendererModelInstance( this, uri, model );
+	m_modelsToRender.push_back( vulkanModelInstance );
 }

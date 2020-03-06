@@ -4,7 +4,7 @@ SET(EXAMPLE_NAME "avrenderer")
 file(GLOB SHADERS "${AV_DATA}/shaders/*.vert" "${AV_DATA}/shaders/*.frag" "${AV_DATA}/shaders/*.comp" "${AV_DATA}/shaders/*.geom" "${AV_DATA}/shaders/*.tesc" "${AV_DATA}/shaders/*.tese")
 source_group("Shaders" FILES ${SHADERS})
 
-add_executable(avrenderer 
+add_executable(avrenderer WIN32
 	aardvark_renderer.cpp
 	aardvark_renderer.h
 	avrenderer_main.cpp
@@ -12,22 +12,22 @@ add_executable(avrenderer
 	avserver.h
 	av_cef_app.cpp
 	av_cef_app.h
-	av_cef_handler_win.cpp
-	av_cef_handler.cpp
-	av_cef_handler.h
-	av_cef_javascript.cpp
-	av_cef_javascript.h
-	collision_tester.cpp
-	collision_tester.h
-	intersection_tester.cpp
-	intersection_tester.h
+	# av_cef_handler_win.cpp
+	# av_cef_handler.cpp
+	# av_cef_handler.h
+	# av_cef_javascript.cpp
+	# av_cef_javascript.h
+	# collision_tester.cpp
+	# collision_tester.h
+	# intersection_tester.cpp
+	# intersection_tester.h
 	iapplication.h
-	javascript_object.cpp
-	javascript_object.h
-	javascript_renderer.cpp
+	# javascript_object.cpp
+	# javascript_object.h
+  javascript_renderer.cpp
 	javascript_renderer.h
-	uri_request_handler.cpp
-	uri_request_handler.h
+	# uri_request_handler.cpp
+	# uri_request_handler.h
 	vrmanager.cpp
 	vrmanager.h
 
@@ -68,6 +68,10 @@ set( CEF_TARGET_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/")
 #
 # Windows configuration.
 #
+
+set_target_properties(avrenderer PROPERTIES
+LINK_FLAGS /SUBSYSTEM:CONSOLE
+)
 
 if(OS_WINDOWS)
   # Executable target.

@@ -6,17 +6,21 @@
 
 #include <string>
 
-#include "include/cef_browser.h"
-#include "include/cef_command_line.h"
-#include "include/views/cef_browser_view.h"
-#include "include/views/cef_window.h"
-#include "include/wrapper/cef_helpers.h"
-#include "av_cef_handler.h"
-#include "av_cef_javascript.h"
+// #include "include/cef_browser.h"
+// #include "include/cef_command_line.h"
+// #include "include/views/cef_browser_view.h"
+// #include "include/views/cef_window.h"
+// #include "include/wrapper/cef_helpers.h"
+// #include "av_cef_handler.h"
+// #include "av_cef_javascript.h"
 #include <aardvark/aardvark_gadget_manifest.h>
 
 #include <openvr.h>
 #include <processthreadsapi.h>
+
+#include <tools/logging.h>
+
+#include "javascript_renderer.h"#include "javascript_renderer.h"
 
 namespace 
 {
@@ -25,7 +29,7 @@ namespace
 
 
 
-// When using the Views framework this object provides the delegate
+/* // When using the Views framework this object provides the delegate
 // implementation for the CefWindow that hosts the Views-based browser.
 class SimpleWindowDelegate : public CefWindowDelegate 
 {
@@ -62,13 +66,63 @@ private:
 
 	IMPLEMENT_REFCOUNTING(SimpleWindowDelegate);
 	DISALLOW_COPY_AND_ASSIGN(SimpleWindowDelegate);
-};
+}; */
 
 }  // namespace
 
 CAardvarkCefApp::CAardvarkCefApp() 
 {
 	g_instance = this;
+  
+  vr::EVRInitError err;
+	vr::VR_Init( &err, vr::VRApplication_Overlay );
+	IDXGIAdapter* pAdapter = nullptr;
+	if (err != vr::VRInitError_None)
+	{
+		IDXGIFactory1* pIDXGIFactory;
+		if ( !FAILED(CreateDXGIFactory1( __uuidof(IDXGIFactory1), (void**)&pIDXGIFactory ) ) )
+		{
+			int32_t nAdapterIndex;
+			vr::VRSystem()->GetDXGIOutputInfo(&nAdapterIndex);
+
+			if ( !FAILED( pIDXGIFactory->EnumAdapters( nAdapterIndex, &pAdapter ) ) )
+			{
+				LOG(INFO) << "Using adapter " << nAdapterIndex << " for graphics device" << std::endl;
+			}
+
+		}
+
+		if (pIDXGIFactory)
+		{
+			pIDXGIFactory->Release();
+			pIDXGIFactory = nullptr;
+		}
+	}
+	vr::VR_Shutdown();
+
+	D3D_FEATURE_LEVEL featureLevel[] = { D3D_FEATURE_LEVEL_11_1 };
+	D3D_FEATURE_LEVEL createdFeatureLevel;
+
+	D3D11CreateDevice( pAdapter, D3D_DRIVER_TYPE_HARDWARE, nullptr, 
+		D3D11_CREATE_DEVICE_DEBUG | D3D11_CREATE_DEVICE_BGRA_SUPPORT, 
+		featureLevel, 1, D3D11_SDK_VERSION,
+		&m_pD3D11Device, &createdFeatureLevel, &m_pD3D11ImmediateContext );
+
+	if ( pAdapter )
+	{
+		pAdapter->Release();
+		pAdapter = nullptr;
+	}
+
+  std::thread([]() {
+    CJavascriptRenderer renderer;
+    renderer.init();
+    
+    for(;;) {
+      renderer.runFrame();
+      Sleep(10);
+    }
+  }).detach();
 }
 
 CAardvarkCefApp::~CAardvarkCefApp()
@@ -76,7 +130,7 @@ CAardvarkCefApp::~CAardvarkCefApp()
 	g_instance = nullptr;
 }
 
-void CAardvarkCefApp::OnContextInitialized()
+/* void CAardvarkCefApp::OnContextInitialized()
 {
 	CEF_REQUIRE_UI_THREAD();
 
@@ -134,10 +188,10 @@ void CAardvarkCefApp::OnContextInitialized()
 	}
 
 	startGadget( "http://localhost:23842/gadgets/aardvark_master", "", "master", aardvark::EndpointAddr_t(), "" );
-}
+} */
 
 
-void CAardvarkCefApp::startGadget( const std::string & uri, const std::string & initialHook, 
+/* void CAardvarkCefApp::startGadget( const std::string & uri, const std::string & initialHook, 
 	const std::string & persistenceUuid, const aardvark::EndpointAddr_t & epToNotify,
 	const std::string & remoteUniversePath )
 {
@@ -147,17 +201,17 @@ void CAardvarkCefApp::startGadget( const std::string & uri, const std::string & 
 	CefRefPtr<CAardvarkCefHandler> handler( new CAardvarkCefHandler( this, uri, initialHook, persistenceUuid, epToNotify, remoteUniversePath ) );
 	m_browsers.push_back( handler );
 	handler->start();
-}
+} */
 
 
-void CAardvarkCefApp::OnBeforeCommandLineProcessing( const CefString& processType, CefRefPtr<CefCommandLine> commandLine )
+/* void CAardvarkCefApp::OnBeforeCommandLineProcessing( const CefString& processType, CefRefPtr<CefCommandLine> commandLine )
 {
 	// turn on chrome dev tools
 	commandLine->AppendSwitchWithValue( "remote-debugging-port", std::to_string( 8042 ) );
-}
+} */
 
 
-CefRefPtr<CefRenderProcessHandler> CAardvarkCefApp::GetRenderProcessHandler()
+/* CefRefPtr<CefRenderProcessHandler> CAardvarkCefApp::GetRenderProcessHandler()
 {
 	if ( !m_renderProcessHandler )
 	{
@@ -165,16 +219,16 @@ CefRefPtr<CefRenderProcessHandler> CAardvarkCefApp::GetRenderProcessHandler()
 		m_renderProcessHandler = newHandler;
 	}
 	return m_renderProcessHandler;
-}
+} */
 
-void CAardvarkCefApp::CloseAllBrowsers( bool forceClose )
+/* void CAardvarkCefApp::CloseAllBrowsers( bool forceClose )
 {
 	std::vector< CefRefPtr< CAardvarkCefHandler > > browsers = m_browsers;
 	for ( auto browser : browsers )
 	{
 		browser->triggerClose( forceClose );
 	}
-}
+} */
 
 CAardvarkCefApp* CAardvarkCefApp::instance()
 {
@@ -185,36 +239,36 @@ void CAardvarkCefApp::runFrame()
 {
 	m_pD3D11ImmediateContext->Flush();
 
-	if ( m_quitRequested && !m_quitHandled )
+	/* if ( m_quitRequested && !m_quitHandled )
 	{
 		m_quitHandled = true;
 		CloseAllBrowsers( true );
-	}
+	} */
 }
 
 bool CAardvarkCefApp::wantsToQuit()
 {
-	return m_browsers.empty() && m_quitRequested;
+	return /* m_browsers.empty() && */m_quitRequested;
 }
 
-void CAardvarkCefApp::quitRequested()
+/* void CAardvarkCefApp::quitRequested()
 {
 	m_quitRequested = true;
-}
+} */
 
 
-void CAardvarkCefApp::browserClosed( CAardvarkCefHandler *handler )
+/* void CAardvarkCefApp::browserClosed( CAardvarkCefHandler *handler )
 {
 	auto i = std::find( m_browsers.begin(), m_browsers.end(), handler );
 	if ( i != m_browsers.end() )
 	{
 		m_browsers.erase( i );
 	}
-}
+} */
 
 
 
-bool CAardvarkCefApp::createTextureForBrowser( void **sharedHandle, 
+/* bool CAardvarkCefApp::createTextureForBrowser( void **sharedHandle, 
 	int width, int height )
 {
 	if ( !m_pD3D11Device )
@@ -271,5 +325,5 @@ void CAardvarkCefApp::updateTexture( void *sharedHandle, const void *buffer, int
 	box.front = 0;
 	box.back = 1;
 	m_pD3D11ImmediateContext->UpdateSubresource( i->second, 0, &box, buffer, width * 4, width * height * 4 );
-}
+} */
 
