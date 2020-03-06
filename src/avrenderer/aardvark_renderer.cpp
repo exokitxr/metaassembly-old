@@ -1997,9 +1997,13 @@ std::shared_ptr<vkglTF::Model> VulkanExample::findOrLoadModel( std::string model
 		return iModel->second;
 	}
 
-	auto pModel = std::make_shared<vkglTF::Model>();
   std::vector<char> data = readFile(modelUri);
-  bool bLoaded = pModel->loadFromMemory( data.data(), data.size(), vulkanDevice, m_descriptorManager, queue );
+  return loadModelFromMemory(modelUri, data.data(), data.size());
+}
+
+std::shared_ptr<vkglTF::Model> VulkanExample::loadModelFromMemory(const std::string &modelUri, const char *data, size_t size) {
+  auto pModel = std::make_shared<vkglTF::Model>();
+  bool bLoaded = pModel->loadFromMemory( data, size, vulkanDevice, m_descriptorManager, queue );
 
   if ( bLoaded )
   {
@@ -2332,15 +2336,15 @@ void CVulkanRendererModelInstance::animate( float animationTimeElapsed )
 	}
 }
 
-std::unique_ptr<IModelInstance> VulkanExample::createModelInstance( const std::string & uri, std::string *psError)
+std::unique_ptr<IModelInstance> VulkanExample::createModelInstance(const std::string &modelUrl, const char *data, size_t size)
 {
-	auto model = findOrLoadModel( uri, psError);
+	auto model = loadModelFromMemory(modelUrl, data, size);
 	if ( !model )
 	{
 		return nullptr;
 	}
 
-	return std::make_unique<CVulkanRendererModelInstance>( this, uri, model );
+	return std::make_unique<CVulkanRendererModelInstance>( this, modelUrl, model );
 }
 
 void VulkanExample::resetRenderList()

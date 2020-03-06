@@ -12,6 +12,8 @@
 #include <map>
 #include <d3d11.h>
 
+class CJavascriptRenderer;
+
 // Implement application-level callbacks for the browser process.
 class CAardvarkCefApp /*: public CefApp, public CefBrowserProcessHandler , IApplication */
 {
@@ -46,7 +48,7 @@ public:
 
 	bool wantsToQuit();
 	void runFrame();
-private:
+// private:
 
 	// CefRefPtr<CefRenderProcessHandler> m_renderProcessHandler;
 	bool m_quitRequested = false;
@@ -60,5 +62,6 @@ private:
 
 	// Include the default reference counting implementation.
 	// IMPLEMENT_REFCOUNTING(CAardvarkCefApp);
+  std::unique_ptr<CJavascriptRenderer> renderer;
 };
 

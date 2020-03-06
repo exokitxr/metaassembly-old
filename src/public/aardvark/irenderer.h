@@ -8,6 +8,7 @@
 #include <glm/gtc/quaternion.hpp>
 
 #include <string>
+#include <vector>
 
 enum class ETextureType
 {
@@ -72,7 +73,7 @@ public:
 	virtual void init( HINSTANCE hInstance, IVrManager *vrManager ) = 0;
 	virtual void runFrame( bool *shouldQuit, double frameTime ) = 0;
 
-	virtual std::unique_ptr<IModelInstance> createModelInstance( const std::string & uri, std::string *psError = nullptr ) = 0;
+	virtual std::unique_ptr<IModelInstance> createModelInstance(const std::string &uri, const char *data, size_t size) = 0;
 	virtual void resetRenderList() = 0;
 	virtual void addToRenderList( IModelInstance *modelInstance ) = 0;
 	virtual void processRenderList() = 0;

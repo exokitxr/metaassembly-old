@@ -36,7 +36,7 @@ public:
 	void runFrame();
 
 
-protected:
+// protected:
 	std::shared_ptr<IRenderer> m_renderer;
 	std::unique_ptr<IVrManager> m_vrManager;
 

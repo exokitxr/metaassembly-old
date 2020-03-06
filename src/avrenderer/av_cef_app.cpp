@@ -114,12 +114,11 @@ CAardvarkCefApp::CAardvarkCefApp()
 		pAdapter = nullptr;
 	}
 
-  std::thread([]() {
-    CJavascriptRenderer renderer;
-    renderer.init();
-    
+  renderer.reset(new CJavascriptRenderer());
+  std::thread([this]() {
+    renderer->init();
     for(;;) {
-      renderer.runFrame();
+      renderer->runFrame();
       Sleep(10);
     }
   }).detach();

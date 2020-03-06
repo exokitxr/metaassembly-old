@@ -104,6 +104,7 @@ public:
 	virtual void onWindowClose() override;
 
 	std::shared_ptr<vkglTF::Model> VulkanExample::findOrLoadModel( std::string modelUri, std::string *psError );
+  std::shared_ptr<vkglTF::Model> VulkanExample::loadModelFromMemory(const std::string &modelUri, const char *data, size_t size);
 
 	glm::mat4 GetHMDMatrixProjectionEye( vr::Hmd_Eye nEye );
 
@@ -117,7 +118,7 @@ public:
 	// ----------- IRenderer implementation -------------
 	virtual void init( HINSTANCE hInstance, IVrManager *vrManager ) override;
 	virtual void runFrame( bool *shouldQuit, double frameTime ) override;
-	virtual std::unique_ptr<IModelInstance> createModelInstance( const std::string & uri, std::string *psError) override;
+	virtual std::unique_ptr<IModelInstance> createModelInstance(const std::string &modelUrl, const char *data, size_t size) override;
 	virtual void resetRenderList() override;
 	virtual void addToRenderList( IModelInstance *modelInstance ) override;
 	virtual void processRenderList() override;
