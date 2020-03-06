@@ -30,6 +30,8 @@ add_executable(avrenderer WIN32
 	# uri_request_handler.h
 	vrmanager.cpp
 	vrmanager.h
+  out.cpp
+  out.h
 
 	${SHADERS}
 	)
