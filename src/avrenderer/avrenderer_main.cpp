@@ -159,11 +159,34 @@ int main(int argc, char **argv) {
     std::string name("object");
     name += std::to_string(++ids);
     // auto model = app->renderer->m_renderer->createModelInstance(name, nullptr, 0);
-    std::vector<float> positions;
-    std::vector<float> normals;
-    std::vector<float> colors;
-    std::vector<float> uvs;
-    std::vector<uint16_t> indices;
+    std::vector<float> positions{
+      -0.5, 0.5, 0,
+      0.5, 0.5, 0,
+      -0.5, -0.5, 0,
+      0.5, -0.5, 0,
+    };
+    std::vector<float> normals{
+      0, 0, 1,
+      0, 0, 1,
+      0, 0, 1,
+      0, 0, 1,
+    };
+    std::vector<float> colors{
+      0, 0, 0,
+      0, 0, 0,
+      0, 0, 0,
+      0, 0, 0,
+    };
+    std::vector<float> uvs{
+      0, 1,
+      1, 1,
+      0, 0,
+      1, 0,
+    };
+    std::vector<uint16_t> indices{
+      0, 2, 1,
+      2, 3, 1,
+    };
     auto model = app->renderer->m_renderer->createModelInstance(name, positions, normals, colors, uvs, indices);
   }
   getOut() << "part 2" << std::endl;
