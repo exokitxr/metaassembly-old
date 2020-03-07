@@ -2401,6 +2401,9 @@ std::unique_ptr<IModelInstance> VulkanExample::createModelInstance(const std::st
   auto &accessors = planeModel2.accessors;
   auto &bufferViews = planeModel2.bufferViews;
   auto &buffers = planeModel2.buffers;
+  auto &materials = planeModel2.materials;
+  auto &samplers = planeModel2.samplers;
+  auto &images = planeModel2.images;
   for (auto &mesh : planeModel2.meshes) {
     for (auto &primitive : mesh.primitives) {
     	// attributes
@@ -2639,6 +2642,22 @@ std::unique_ptr<IModelInstance> VulkanExample::createModelInstance(const std::st
         bufferView.target = TINYGLTF_TARGET_ELEMENT_ARRAY_BUFFER;
         bufferViews.push_back(std::move(bufferView));
 	    }
+      // materials
+      for (auto &material : materials) {
+        getOut() << "got material" << std::endl;
+      }
+      for (auto &sampler : samplers) {
+        getOut() << "got sampler" << std::endl;
+      }
+      for (auto &image : images) {
+        getOut() << "got image " << image.mimeType << " " << image.width << " " << image.height << " " << image.component << " " << image.image.size() << std::endl;
+        image.image = {
+          255,
+          0,
+          0,
+          255,
+        };
+      }
     }
   }
 
