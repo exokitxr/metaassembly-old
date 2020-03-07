@@ -88,12 +88,12 @@ int main(int argc, char **argv) {
   getOut() << "Start" << std::endl;
   
   std::unique_ptr<CAardvarkCefApp> app(new CAardvarkCefApp());
-  std::thread renderThread([&]() -> void {
+  /* std::thread renderThread([&]() -> void {
     while (!app->wantsToQuit()) {
       app->runFrame();
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-  });
+  }); */
 
   {  
     char cwdBuf[MAX_PATH];
