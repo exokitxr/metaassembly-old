@@ -999,7 +999,7 @@ void VulkanExample::generateBRDFLUT()
 	imageCI.tiling = VK_IMAGE_TILING_OPTIMAL;
 	imageCI.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 	VK_CHECK_RESULT( vkCreateImage( device, &imageCI, nullptr, &textures.lutBrdf.image ) );
-	printf( "Image 0x%llX function %s\n", (size_t)textures.lutBrdf.image, __FUNCTION__ );
+	// printf( "Image 0x%llX function %s\n", (size_t)textures.lutBrdf.image, __FUNCTION__ );
 
 	VkMemoryRequirements memReqs;
 	vkGetImageMemoryRequirements( device, textures.lutBrdf.image, &memReqs );
@@ -1285,7 +1285,7 @@ void VulkanExample::generateCubemaps()
 			imageCI.usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 			imageCI.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
 			VK_CHECK_RESULT( vkCreateImage( device, &imageCI, nullptr, &cubemap.image ) );
-			printf( "Image 0x%llX function %s\n", (size_t)cubemap.image, __FUNCTION__ );
+			// printf( "Image 0x%llX function %s\n", (size_t)cubemap.image, __FUNCTION__ );
 
 			VkMemoryRequirements memReqs;
 			vkGetImageMemoryRequirements( device, cubemap.image, &memReqs );
@@ -1396,7 +1396,7 @@ void VulkanExample::generateCubemaps()
 			imageCI.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 			imageCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 			VK_CHECK_RESULT( vkCreateImage( device, &imageCI, nullptr, &offscreen.image ) );
-			printf( "Image 0x%llX function %s\n", (size_t)offscreen.image, __FUNCTION__ );
+			// printf( "Image 0x%llX function %s\n", (size_t)offscreen.image, __FUNCTION__ );
 
 			VkMemoryRequirements memReqs;
 			vkGetImageMemoryRequirements( device, offscreen.image, &memReqs );

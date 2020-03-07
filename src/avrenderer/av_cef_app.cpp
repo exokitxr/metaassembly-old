@@ -20,6 +20,8 @@
 
 #include <tools/logging.h>
 
+// #include <cstdlib>
+#include "out.h"
 #include "javascript_renderer.h"
 
 namespace 
@@ -119,8 +121,15 @@ CAardvarkCefApp::CAardvarkCefApp()
     renderer->init();
     for(;;) {
       renderer->runFrame();
-      Sleep(10);
+      if (!renderer->m_quitting) {
+        Sleep(10);
+        continue;
+      } else {
+        break;
+      }
     }
+    getOut() << "quitting" << std::endl;
+    ExitProcess(0);
   }).detach();
 }
 

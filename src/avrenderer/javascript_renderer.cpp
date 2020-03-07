@@ -3,6 +3,9 @@
 #include "aardvark_renderer.h"
 #include "vrmanager.h"
 
+#include <cstdlib>
+#include "out.h"
+
 using aardvark::EEndpointType;
 using aardvark::EndpointAddr_t;
 
@@ -181,6 +184,8 @@ void CJavascriptRenderer::runFrame()
 
 	bool shouldQuit = false;
 	m_renderer->runFrame( &shouldQuit, tDiff / 1000.0f );
+
+  getOut() << "post quit message " << shouldQuit << std::endl;
 
 	if ( shouldQuit )
 	{
