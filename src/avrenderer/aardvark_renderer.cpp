@@ -2408,6 +2408,12 @@ std::unique_ptr<IModelInstance> VulkanExample::createModelInstance(const std::st
           typeString = "unknown";
         }
         getOut() << "got accessor " << attribute.first << " " << attribute.second << " " << typeString << std::endl;
+        if (type == TINYGLTF_TYPE_VEC3) {
+          for (size_t i = 0; i < count; i++) {
+            float *v3 = &((float *)dataStart)[i*3];
+            getOut() << v3[0] << " " << v3[1] << " " << v3[2] << std::endl;
+          }
+        }
       }
     }
   }
