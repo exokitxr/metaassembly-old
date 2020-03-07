@@ -233,14 +233,15 @@ int main(int argc, char **argv) {
               args[4].is_string()
             ) {
               std::vector<float> positions = Base64::Decode(args[0].get<std::string>());
-              std::vector<float> colors = Base64::Decode(args[1].get<std::string>());
-              std::vector<float> uvs = Base64::Decode(args[2].get<std::string>());
-              std::vector<uint16_t> indices = Base64::Decode(args[3].get<std::string>());
+              std::vector<float> normals = Base64::Decode(args[1].get<std::string>());
+              std::vector<float> colors = Base64::Decode(args[2].get<std::string>());
+              std::vector<float> uvs = Base64::Decode(args[3].get<std::string>());
+              std::vector<uint16_t> indices = Base64::Decode(args[4].get<std::string>());
 
               std::string name("object");
               name += std::to_string(++ids);
 
-              auto model = app->renderer->m_renderer->createModelInstance(name, positions, colors, uvs, indices);
+              auto model = app->renderer->m_renderer->createModelInstance(name, positions, normals, colors, uvs, indices);
               // std::shared_ptr<vkglTF::Model> VulkanExample::findOrLoadModel( std::string modelUri, std::string *psError)
               
               json result = {
