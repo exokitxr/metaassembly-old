@@ -2346,23 +2346,48 @@ bool planeModelLoaded = false;
 tinygltf::Model planeModel;
 std::unique_ptr<IModelInstance> VulkanExample::createModelInstance(const std::string &modelUrl, std::vector<float> &positions, std::vector<float> &normals, std::vector<float> &colors, std::vector<float> &uvs, std::vector<uint16_t> &indices) {
   if (!planeModelLoaded) {
-    std::string uri("data/plane.glb");    
-    std::vector<char> data = readFile(uri);
-    
-    if (data.size() >= 4) {
-      tinygltf::TinyGLTF gltfContext;
-
-      std::string error;
-      std::string warning;
+    /* tinygltf::Model helmetModel;
+    {
+      std::string uri("data/models/DamagedHelmet/glTF-Embedded/DamagedHelmet.gltf");
+      std::vector<char> data = readFile(uri);
       
-      const bool bBinary = *((uint32_t *)data.data()) == 0x46546C67;
-      if ( bBinary )
-      {
-        planeModelLoaded = gltfContext.LoadBinaryFromMemory( &planeModel, &error, &warning, (const unsigned char*)data.data(), (uint32_t)data.size() );
+      if (data.size() >= 4) {
+        tinygltf::TinyGLTF gltfContext;
+
+        std::string error;
+        std::string warning;
+        
+        const bool bBinary = *((uint32_t *)data.data()) == 0x46546C67;
+        if ( bBinary )
+        {
+          planeModelLoaded = gltfContext.LoadBinaryFromMemory( &helmetModel, &error, &warning, (const unsigned char*)data.data(), (uint32_t)data.size() );
+        }
+        else
+        {
+          planeModelLoaded = gltfContext.LoadASCIIFromString( &helmetModel, &error, &warning, (const char*)data.data(), (uint32_t)data.size(), ""  );
+        }
       }
-      else
-      {
-        planeModelLoaded = gltfContext.LoadASCIIFromString( &planeModel, &error, &warning, (const char*)data.data(), (uint32_t)data.size(), ""  );
+    } */
+    {    
+      std::string uri("data/plane.glb");
+      // uri = "data/models/DamagedHelmet/glTF-Embedded/DamagedHelmet.gltf";
+      std::vector<char> data = readFile(uri);
+      
+      if (data.size() >= 4) {
+        tinygltf::TinyGLTF gltfContext;
+
+        std::string error;
+        std::string warning;
+        
+        const bool bBinary = *((uint32_t *)data.data()) == 0x46546C67;
+        if ( bBinary )
+        {
+          planeModelLoaded = gltfContext.LoadBinaryFromMemory( &planeModel, &error, &warning, (const unsigned char*)data.data(), (uint32_t)data.size() );
+        }
+        else
+        {
+          planeModelLoaded = gltfContext.LoadASCIIFromString( &planeModel, &error, &warning, (const char*)data.data(), (uint32_t)data.size(), ""  );
+        }
       }
     }
 
