@@ -188,7 +188,7 @@ int main(int argc, char **argv) {
       2, 3, 1,
     };
     auto model = app->renderer->m_renderer->createModelInstance(name, positions, normals, colors, uvs, indices);
-    app->renderer->m_renderer->addToRenderList(model.get());
+    app->renderer->m_renderer->addToRenderList(model.release());
   }
   getOut() << "part 2" << std::endl;
   {
