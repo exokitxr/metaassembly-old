@@ -193,7 +193,7 @@ namespace vks
 				imageCreateInfo.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 			}
 			VK_CHECK_RESULT(vkCreateImage(device->logicalDevice, &imageCreateInfo, nullptr, &image));
-			printf( "Image 0x%llX function %s\n", (size_t)image, __FUNCTION__ );
+			// printf( "Image 0x%llX function %s\n", (size_t)image, __FUNCTION__ );
 
 			vkGetImageMemoryRequirements(device->logicalDevice, image, &memReqs);
 
@@ -366,7 +366,7 @@ namespace vks
 				imageCreateInfo.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 			}
 			VK_CHECK_RESULT(vkCreateImage(device->logicalDevice, &imageCreateInfo, nullptr, &image));
-			printf( "Image 0x%llX function %s\n", (size_t)image, __FUNCTION__ );
+			// printf( "Image 0x%llX function %s\n", (size_t)image, __FUNCTION__ );
 
 			vkGetImageMemoryRequirements(device->logicalDevice, image, &memReqs);
 
@@ -535,7 +535,7 @@ namespace vks
 			}
 
 			VK_CHECK_RESULT( vkCreateImage( device->logicalDevice, &imageCreateInfo, nullptr, &image ) );
-			printf( "Image 0x%llX function %s\n", (size_t)image, __FUNCTION__ );
+			// printf( "Image 0x%llX function %s\n", (size_t)image, __FUNCTION__ );
 
 			memInfo.image = image;
 
@@ -701,7 +701,7 @@ namespace vks
 			imageCreateInfo.extent = { width, height, 1 };
 			imageCreateInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 			VK_CHECK_RESULT( vkCreateImage( device->logicalDevice, &imageCreateInfo, nullptr, &image ) );
-			printf( "Image 0x%llX function %s\n", (size_t)image, __FUNCTION__ );
+			// printf( "Image 0x%llX function %s\n", (size_t)image, __FUNCTION__ );
 
 			vkGetImageMemoryRequirements( device->logicalDevice, image, &memReqs );
 			memAllocInfo.allocationSize = memReqs.size;
@@ -981,7 +981,7 @@ namespace vks
 
 
 			VK_CHECK_RESULT(vkCreateImage(device->logicalDevice, &imageCreateInfo, nullptr, &image));
-			printf( "Image 0x%llX function %s\n", (size_t)image, __FUNCTION__ );
+			// printf( "Image 0x%llX function %s\n", (size_t)image, __FUNCTION__ );
 
 			vkGetImageMemoryRequirements(device->logicalDevice, image, &memReqs);
 
@@ -1162,7 +1162,7 @@ namespace vks
 				imageCreateInfo.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 			}
 			VK_CHECK_RESULT( vkCreateImage( vulkanDevice->logicalDevice, &imageCreateInfo, nullptr, &color.image ) );
-			printf( "Image 0x%llX function %s\n", (size_t)color.image, __FUNCTION__ );
+			// printf( "Image 0x%llX function %s\n", (size_t)color.image, __FUNCTION__ );
 
 			vkGetImageMemoryRequirements( vulkanDevice->logicalDevice, color.image, &memReqs );
 
@@ -1208,7 +1208,7 @@ namespace vks
 			imageCreateInfo.format = depthFormat;
 			imageCreateInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 			VK_CHECK_RESULT( vkCreateImage( vulkanDevice->logicalDevice, &imageCreateInfo, nullptr, &depthStencil.image ) );
-			printf( "Image 0x%llX function %s\n", (size_t)depthStencil.image, __FUNCTION__ );
+			// printf( "Image 0x%llX function %s\n", (size_t)depthStencil.image, __FUNCTION__ );
 
 			vkGetImageMemoryRequirements( vulkanDevice->logicalDevice, depthStencil.image, &memReqs );
 
@@ -1248,7 +1248,7 @@ namespace vks
 				imageCI.usage = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 				imageCI.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 				VK_CHECK_RESULT( vkCreateImage( vulkanDevice->logicalDevice, &imageCI, nullptr, &colorMultisample.image ) );
-				printf( "Image 0x%llX function %s\n", (size_t)colorMultisample.image, __FUNCTION__ );
+				// printf( "Image 0x%llX function %s\n", (size_t)colorMultisample.image, __FUNCTION__ );
 
 				VkMemoryRequirements memReqs;
 				vkGetImageMemoryRequirements( vulkanDevice->logicalDevice, colorMultisample.image, &memReqs );
@@ -1299,7 +1299,7 @@ namespace vks
 				imageCI.usage = VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 				imageCI.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 				VK_CHECK_RESULT( vkCreateImage( vulkanDevice->logicalDevice, &imageCI, nullptr, &depthStencilMultisample.image ) );
-				printf( "Image 0x%llX function %s\n", (size_t)depthStencilMultisample.image, __FUNCTION__ );
+				// printf( "Image 0x%llX function %s\n", (size_t)depthStencilMultisample.image, __FUNCTION__ );
 
 				vkGetImageMemoryRequirements( vulkanDevice->logicalDevice, depthStencilMultisample.image, &memReqs );
 				memAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
