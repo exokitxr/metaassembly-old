@@ -2675,9 +2675,9 @@ void VulkanExample::init( HINSTANCE hInstance, IVrManager *vrManager )
 	setupWindow( hInstance );
 	prepare();
   
-  std::string uri("data/models/DamagedHelmet/glTF-Embedded/DamagedHelmet.gltf");
+  /* std::string uri("data/models/DamagedHelmet/glTF-Embedded/DamagedHelmet.gltf");
   std::string err;
   std::shared_ptr<vkglTF::Model> model = findOrLoadModel(uri, &err);
   CVulkanRendererModelInstance *vulkanModelInstance = new CVulkanRendererModelInstance( this, uri, model );
-	m_modelsToRender.push_back( vulkanModelInstance );
+	m_modelsToRender.push_back( vulkanModelInstance ); */
 }
