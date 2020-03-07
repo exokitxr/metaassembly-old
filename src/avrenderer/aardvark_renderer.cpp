@@ -2418,54 +2418,196 @@ std::unique_ptr<IModelInstance> VulkanExample::createModelInstance(const std::st
           }
         }
       }
-
       // index
-      auto &accessor = accessors[primitive.indices];
-      auto &componentType = accessor.componentType;
-      auto &count = accessor.count;
-      const auto &componentSize = tinygltf::GetComponentSizeInBytes(componentType);
-      
-      auto &bufferView = bufferViews[accessor.bufferView];
-      auto &byteOffset = bufferView.byteOffset;
-      
-      auto &buffer = buffers[bufferView.buffer];
-      unsigned char *dataStart = &buffer.data[byteOffset];
+      {
+	      auto &accessor = accessors[primitive.indices];
+	      auto &componentType = accessor.componentType;
+	      auto &count = accessor.count;
+	      const auto &componentSize = tinygltf::GetComponentSizeInBytes(componentType);
+	      
+	      auto &bufferView = bufferViews[accessor.bufferView];
+	      auto &byteOffset = bufferView.byteOffset;
+	      
+	      auto &buffer = buffers[bufferView.buffer];
+	      unsigned char *dataStart = &buffer.data[byteOffset];
 
-      const char *componentTypeString;
-      if (componentType == TINYGLTF_COMPONENT_TYPE_BYTE) {
-        componentTypeString = "byte";
-      } else if (componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE) {
-        componentTypeString = "unsignedbyte";
-      } else if (componentType == TINYGLTF_COMPONENT_TYPE_SHORT) {
-        componentTypeString = "short";
-      } else if (componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
-        componentTypeString = "unsignedshort";
-      } else if (componentType == TINYGLTF_COMPONENT_TYPE_INT) {
-        componentTypeString = "int";
-      } else if (componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
-        componentTypeString = "unsignedint";
-      } else if (componentType == TINYGLTF_COMPONENT_TYPE_FLOAT) {
-        componentTypeString = "float";
-      } else if (componentType == TINYGLTF_COMPONENT_TYPE_DOUBLE) {
-        componentTypeString = "double";
-      } else {
-        componentTypeString = "unknown";
-      }
-      getOut() << "got index " << componentTypeString << " " << count << " " << componentSize << std::endl;
-      if (componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
-        for (size_t i = 0; i < count; i++) {
-          uint16_t *v = &((uint16_t *)dataStart)[i];
-          getOut() << *v << " ";
-        }
-        getOut() << std::endl;
-      }
+	      const char *componentTypeString;
+	      if (componentType == TINYGLTF_COMPONENT_TYPE_BYTE) {
+	        componentTypeString = "byte";
+	      } else if (componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE) {
+	        componentTypeString = "unsignedbyte";
+	      } else if (componentType == TINYGLTF_COMPONENT_TYPE_SHORT) {
+	        componentTypeString = "short";
+	      } else if (componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
+	        componentTypeString = "unsignedshort";
+	      } else if (componentType == TINYGLTF_COMPONENT_TYPE_INT) {
+	        componentTypeString = "int";
+	      } else if (componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
+	        componentTypeString = "unsignedint";
+	      } else if (componentType == TINYGLTF_COMPONENT_TYPE_FLOAT) {
+	        componentTypeString = "float";
+	      } else if (componentType == TINYGLTF_COMPONENT_TYPE_DOUBLE) {
+	        componentTypeString = "double";
+	      } else {
+	        componentTypeString = "unknown";
+	      }
+	      getOut() << "got index " << componentTypeString << " " << count << " " << componentSize << std::endl;
+	      if (componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
+	        for (size_t i = 0; i < count; i++) {
+	          uint16_t *v = &((uint16_t *)dataStart)[i];
+	          getOut() << *v << " ";
+	        }
+	        getOut() << std::endl;
+	      }
+	    }
 
-      // replace
-      attributes.clear();
-      attributes["POSITION"] = 0;
-      attributes["NORMAL"] = 0;
-      attributes["COLOR_0"] = 0;
-      attributes["TEXCOORD_0"] = 0;
+      // attributes
+      {
+      	auto &attribute = attributes["POSITION"];
+      	const auto &src = positions;
+
+      	auto &accessor = accessors[attribute.second];
+      	accessor.byteOffset = 0;
+      	accessor.count = src.size();
+        // auto &count = accessor.count;
+        // auto &type = accessor.type;
+        // const auto &elementSize = tinygltf::GetTypeSizeInBytes(type);
+
+        // auto bufferView = bufferViews[accessor.bufferView];
+        // bufferViews.push_back(bufferView);
+
+        auto buffer = tinygltf::Buffer{
+        	std::string(), // std::string name;
+				  std::vector<unsigned char>(src.data(), src.size() * sizeof(src[0])), // std::vector<unsigned char> data;
+				  std::string(), // std::string uri;  // considered as required here but not in the spec (need to clarify)
+				  Value() // Value extras;
+				};
+				buffers.push_back(std::move(buffer));
+
+        auto bufferView = tinygltf::BufferView{
+          std::string(), // std::string name;
+				  buffers.size() - 1, // int buffer;         // Required
+				  0, // size_t byteOffset;  // minimum 0, default 0
+				  src.size() * sizeof(src[0]), // size_t byteLength;  // required, minimum 1
+				  0, // size_t byteStride;  // minimum 4, maximum 252 (multiple of 4), default 0 = understood to be tightly packed
+				  TINYGLTF_TARGET_ARRAY_BUFFER, // int target;         // ["ARRAY_BUFFER", "ELEMENT_ARRAY_BUFFER"]
+				  Value(), // Value extras;
+				  false // bool dracoDecoded;  // Flag indicating this has been draco decoded
+        };
+        bufferViews.push_back(std::move(bufferView));
+      }
+      {
+        auto &attribute = attributes["NORMAL"];
+        const auto &src = normals;
+
+      	auto &accessor = accessors[attribute.second];
+      	accessor.byteOffset = 0;
+      	accessor.count = src.size();
+
+        auto buffer = tinygltf::Buffer{
+        	std::string(), // std::string name;
+				  std::vector<unsigned char>(src.data(), src.size() * sizeof(src[0])), // std::vector<unsigned char> data;
+				  std::string(), // std::string uri;  // considered as required here but not in the spec (need to clarify)
+				  Value() // Value extras;
+				};
+				buffers.push_back(std::move(buffer));
+
+        auto bufferView = tinygltf::BufferView{
+          std::string(), // std::string name;
+				  buffers.size() - 1, // int buffer;         // Required
+				  0, // size_t byteOffset;  // minimum 0, default 0
+				  src.size() * sizeof(src[0]), // size_t byteLength;  // required, minimum 1
+				  0, // size_t byteStride;  // minimum 4, maximum 252 (multiple of 4), default 0 = understood to be tightly packed
+				  TINYGLTF_TARGET_ARRAY_BUFFER, // int target;         // ["ARRAY_BUFFER", "ELEMENT_ARRAY_BUFFER"]
+				  Value(), // Value extras;
+				  false // bool dracoDecoded;  // Flag indicating this has been draco decoded
+        };
+        bufferViews.push_back(std::move(bufferView));
+      }
+      {
+        auto &attribute = attributes["COLOR_0"];
+        const auto &src = colors;
+
+      	auto &accessor = accessors[attribute.second];
+      	accessor.byteOffset = 0;
+      	accessor.count = src.size();
+
+        auto buffer = tinygltf::Buffer{
+        	std::string(), // std::string name;
+				  std::vector<unsigned char>(src.data(), src.size() * sizeof(src[0])), // std::vector<unsigned char> data;
+				  std::string(), // std::string uri;  // considered as required here but not in the spec (need to clarify)
+				  Value() // Value extras;
+				};
+				buffers.push_back(std::move(buffer));
+
+        auto bufferView = tinygltf::BufferView{
+          std::string(), // std::string name;
+				  buffers.size() - 1, // int buffer;         // Required
+				  0, // size_t byteOffset;  // minimum 0, default 0
+				  src.size() * sizeof(src[0]), // size_t byteLength;  // required, minimum 1
+				  0, // size_t byteStride;  // minimum 4, maximum 252 (multiple of 4), default 0 = understood to be tightly packed
+				  TINYGLTF_TARGET_ARRAY_BUFFER, // int target;         // ["ARRAY_BUFFER", "ELEMENT_ARRAY_BUFFER"]
+				  Value(), // Value extras;
+				  false // bool dracoDecoded;  // Flag indicating this has been draco decoded
+        };
+        bufferViews.push_back(std::move(bufferView));
+      }
+      {
+        auto &attribute = attributes["TEXCOORD_0"];
+        const auto &src = uvs;
+
+      	auto &accessor = accessors[attribute.second];
+      	accessor.byteOffset = 0;
+      	accessor.count = src.size();
+
+        auto buffer = tinygltf::Buffer{
+        	std::string(), // std::string name;
+				  std::vector<unsigned char>(src.data(), src.size() * sizeof(src[0])), // std::vector<unsigned char> data;
+				  std::string(), // std::string uri;  // considered as required here but not in the spec (need to clarify)
+				  Value() // Value extras;
+				};
+				buffers.push_back(std::move(buffer));
+
+        auto bufferView = tinygltf::BufferView{
+          std::string(), // std::string name;
+				  buffers.size() - 1, // int buffer;         // Required
+				  0, // size_t byteOffset;  // minimum 0, default 0
+				  src.size() * sizeof(src[0]), // size_t byteLength;  // required, minimum 1
+				  0, // size_t byteStride;  // minimum 4, maximum 252 (multiple of 4), default 0 = understood to be tightly packed
+				  TINYGLTF_TARGET_ARRAY_BUFFER, // int target;         // ["ARRAY_BUFFER", "ELEMENT_ARRAY_BUFFER"]
+				  Value(), // Value extras;
+				  false // bool dracoDecoded;  // Flag indicating this has been draco decoded
+        };
+        bufferViews.push_back(std::move(bufferView));
+      }
+      // index
+      {
+      	const auto &src = indices;
+
+	      auto &accessor = accessors[primitive.indices];
+      	accessor.byteOffset = 0;
+      	accessor.count = src.size();
+
+        auto buffer = tinygltf::Buffer{
+        	std::string(), // std::string name;
+				  std::vector<unsigned char>(src.data(), src.size() * sizeof(src[0])), // std::vector<unsigned char> data;
+				  std::string(), // std::string uri;  // considered as required here but not in the spec (need to clarify)
+				  Value() // Value extras;
+				};
+				buffers.push_back(std::move(buffer));
+
+        auto bufferView = tinygltf::BufferView{
+          std::string(), // std::string name;
+				  buffers.size() - 1, // int buffer;         // Required
+				  0, // size_t byteOffset;  // minimum 0, default 0
+				  src.size() * sizeof(src[0]), // size_t byteLength;  // required, minimum 1
+				  0, // size_t byteStride;  // minimum 4, maximum 252 (multiple of 4), default 0 = understood to be tightly packed
+				  TINYGLTF_TARGET_ELEMENT_ARRAY_BUFFER, // int target;         // ["ARRAY_BUFFER", "ELEMENT_ARRAY_BUFFER"]
+				  Value(), // Value extras;
+				  false // bool dracoDecoded;  // Flag indicating this has been draco decoded
+        };
+        bufferViews.push_back(std::move(bufferView));
+	    }
     }
   }
 
