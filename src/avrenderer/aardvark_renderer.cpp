@@ -2344,7 +2344,7 @@ std::unique_ptr<IModelInstance> VulkanExample::createModelInstance(const std::st
 
 bool planeModelLoaded = false;
 tinygltf::Model planeModel;
-std::unique_ptr<IModelInstance> VulkanExample::createModelInstance(const std::string &modelUrl, std::vector<float> &positions, std::vector<float> &normals, std::vector<float> &colors, std::vector<float> &uvs, std::vector<uint16_t> &indices) {
+std::unique_ptr<IModelInstance> VulkanExample::createModelInstance(const std::string &modelUrl, std::vector<float> &positions, std::vector<float> &colors, std::vector<float> &uvs, std::vector<uint16_t> &indices) {
   if (!planeModelLoaded) {
     std::string uri("data/plane.glb");    
     std::vector<char> data = readFile(uri);
@@ -2378,6 +2378,7 @@ std::unique_ptr<IModelInstance> VulkanExample::createModelInstance(const std::st
   auto &buffers = planeModel2.buffers;
   for (auto &mesh : planeModel2.meshes) {
     for (auto &primitive : mesh.primitives) {
+    	// attributes
       std::map<std::string, int> &attributes = primitive.attributes;
       for (auto &attribute : attributes) {
         auto &accessor = accessors[attribute.second];
@@ -2418,6 +2419,7 @@ std::unique_ptr<IModelInstance> VulkanExample::createModelInstance(const std::st
         }
       }
 
+      // index
       auto &accessor = accessors[primitive.indices];
       auto &componentType = accessor.componentType;
       auto &count = accessor.count;
