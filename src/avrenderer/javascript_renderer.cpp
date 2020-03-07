@@ -185,8 +185,6 @@ void CJavascriptRenderer::runFrame()
 	bool shouldQuit = false;
 	m_renderer->runFrame( &shouldQuit, tDiff / 1000.0f );
 
-  getOut() << "post quit message " << shouldQuit << std::endl;
-
 	if ( shouldQuit )
 	{
 		m_quitting = true;

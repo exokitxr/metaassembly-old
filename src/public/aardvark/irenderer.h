@@ -74,6 +74,7 @@ public:
 	virtual void runFrame( bool *shouldQuit, double frameTime ) = 0;
 
 	virtual std::unique_ptr<IModelInstance> createModelInstance(const std::string &uri, const char *data, size_t size) = 0;
+  virtual std::unique_ptr<IModelInstance> createModelInstance(const std::string &modelUrl, std::vector<float> &positions, std::vector<float> &normals, std::vector<float> &colors, std::vector<float> &uvs, std::vector<uint16_t> &indices) = 0;
 	virtual void resetRenderList() = 0;
 	virtual void addToRenderList( IModelInstance *modelInstance ) = 0;
 	virtual void processRenderList() = 0;

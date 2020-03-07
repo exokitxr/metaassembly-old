@@ -158,7 +158,13 @@ int main(int argc, char **argv) {
     Sleep(1000);
     std::string name("object");
     name += std::to_string(++ids);
-    auto model = app->renderer->m_renderer->createModelInstance(name, nullptr, 0);
+    // auto model = app->renderer->m_renderer->createModelInstance(name, nullptr, 0);
+    std::vector<float> positions;
+    std::vector<float> normals;
+    std::vector<float> colors;
+    std::vector<float> uvs;
+    std::vector<uint16_t> indices;
+    auto model = app->renderer->m_renderer->createModelInstance(name, positions, normals, colors, uvs, indices);
   }
   getOut() << "part 2" << std::endl;
   {

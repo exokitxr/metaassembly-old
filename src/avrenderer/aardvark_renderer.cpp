@@ -2338,10 +2338,13 @@ void CVulkanRendererModelInstance::animate( float animationTimeElapsed )
 	}
 }
 
+std::unique_ptr<IModelInstance> VulkanExample::createModelInstance(const std::string &modelUrl, const char *data, size_t size) {
+  return nullptr;
+}
+
 bool planeModelLoaded = false;
 tinygltf::Model planeModel;
-std::unique_ptr<IModelInstance> VulkanExample::createModelInstance(const std::string &modelUrl, const char *data, size_t size)
-{
+std::unique_ptr<IModelInstance> VulkanExample::createModelInstance(const std::string &modelUrl, std::vector<float> &positions, std::vector<float> &normals, std::vector<float> &colors, std::vector<float> &uvs, std::vector<uint16_t> &indices) {
   if (!planeModelLoaded) {
     std::string uri("data/plane.glb");    
     std::vector<char> data = readFile(uri);
@@ -2386,8 +2389,7 @@ std::unique_ptr<IModelInstance> VulkanExample::createModelInstance(const std::st
         auto &byteOffset = bufferView.byteOffset;
         
         auto &buffer = buffers[bufferView.buffer];
-        
-        unsigned char *dataStart = &buffer.data[bufferView.byteOffset];
+        unsigned char *dataStart = &buffer.data[byteOffset];
 
         const char *typeString;
         if (type == TINYGLTF_TYPE_SCALAR) {
@@ -2407,13 +2409,53 @@ std::unique_ptr<IModelInstance> VulkanExample::createModelInstance(const std::st
         } else {
           typeString = "unknown";
         }
-        getOut() << "got accessor " << attribute.first << " " << attribute.second << " " << typeString << std::endl;
+        getOut() << "got accessor " << attribute.first << " " << attribute.second << " " << typeString << " " << accessor.bufferView << " " << byteOffset << " '" << buffer.name << "'" << std::endl;
         if (type == TINYGLTF_TYPE_VEC3) {
           for (size_t i = 0; i < count; i++) {
             float *v3 = &((float *)dataStart)[i*3];
             getOut() << v3[0] << " " << v3[1] << " " << v3[2] << std::endl;
           }
         }
+      }
+
+      auto &accessor = accessors[primitive.indices];
+      auto &componentType = accessor.componentType;
+      auto &count = accessor.count;
+      const auto &componentSize = tinygltf::GetComponentSizeInBytes(componentType);
+      
+      auto &bufferView = bufferViews[accessor.bufferView];
+      auto &byteOffset = bufferView.byteOffset;
+      
+      auto &buffer = buffers[bufferView.buffer];
+      unsigned char *dataStart = &buffer.data[byteOffset];
+
+      const char *componentTypeString;
+      if (componentType == TINYGLTF_COMPONENT_TYPE_BYTE) {
+        componentTypeString = "byte";
+      } else if (componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE) {
+        componentTypeString = "unsignedbyte";
+      } else if (componentType == TINYGLTF_COMPONENT_TYPE_SHORT) {
+        componentTypeString = "short";
+      } else if (componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
+        componentTypeString = "unsignedshort";
+      } else if (componentType == TINYGLTF_COMPONENT_TYPE_INT) {
+        componentTypeString = "int";
+      } else if (componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
+        componentTypeString = "unsignedint";
+      } else if (componentType == TINYGLTF_COMPONENT_TYPE_FLOAT) {
+        componentTypeString = "float";
+      } else if (componentType == TINYGLTF_COMPONENT_TYPE_DOUBLE) {
+        componentTypeString = "double";
+      } else {
+        componentTypeString = "unknown";
+      }
+      getOut() << "got index " << componentTypeString << " " << count << " " << componentSize << std::endl;
+      if (componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
+        for (size_t i = 0; i < count; i++) {
+          uint16_t *v = &((uint16_t *)dataStart)[i];
+          getOut() << *v << " ";
+        }
+        getOut() << std::endl;
       }
     }
   }
