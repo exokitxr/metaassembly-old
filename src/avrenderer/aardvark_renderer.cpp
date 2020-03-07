@@ -2338,14 +2338,82 @@ void CVulkanRendererModelInstance::animate( float animationTimeElapsed )
 	}
 }
 
+bool planeModelLoaded = false;
+tinygltf::Model planeModel;
 std::unique_ptr<IModelInstance> VulkanExample::createModelInstance(const std::string &modelUrl, const char *data, size_t size)
 {
-	auto model = loadModelFromMemory(modelUrl, data, size);
-	if ( !model )
-	{
-		return nullptr;
-	}
+  if (!planeModelLoaded) {
+    std::string uri("data/plane.glb");    
+    std::vector<char> data = readFile(uri);
+    
+    if (data.size() >= 4) {
+      tinygltf::TinyGLTF gltfContext;
 
+      std::string error;
+      std::string warning;
+      
+      const bool bBinary = *((uint32_t *)data.data()) == 0x46546C67;
+      if ( bBinary )
+      {
+        planeModelLoaded = gltfContext.LoadBinaryFromMemory( &planeModel, &error, &warning, (const unsigned char*)data.data(), (uint32_t)data.size() );
+      }
+      else
+      {
+        planeModelLoaded = gltfContext.LoadASCIIFromString( &planeModel, &error, &warning, (const char*)data.data(), (uint32_t)data.size(), ""  );
+      }
+    }
+
+    if (!planeModelLoaded) {
+      getOut() << "failed to get plane model" << std::endl;
+      abort();
+    }
+  }
+  
+  tinygltf::Model planeModel2(planeModel);
+  auto &accessors = planeModel2.accessors;
+  auto &bufferViews = planeModel2.bufferViews;
+  auto &buffers = planeModel2.buffers;
+  for (auto &mesh : planeModel2.meshes) {
+    for (auto &primitive : mesh.primitives) {
+      std::map<std::string, int> &attributes = primitive.attributes;
+      for (auto &attribute : attributes) {
+        auto &accessor = accessors[attribute.second];
+        auto &count = accessor.count;
+        auto &type = accessor.type;
+        const auto &elementSize = tinygltf::GetTypeSizeInBytes(type);
+
+        auto &bufferView = bufferViews[accessor.bufferView];
+        auto &byteOffset = bufferView.byteOffset;
+        
+        auto &buffer = buffers[bufferView.buffer];
+        
+        unsigned char *dataStart = &buffer.data[bufferView.byteOffset];
+
+        const char *typeString;
+        if (type == TINYGLTF_TYPE_SCALAR) {
+          typeString = "scalar";
+        } else if (type == TINYGLTF_TYPE_VEC2) {
+          typeString = "vec2";
+        } else if (type == TINYGLTF_TYPE_VEC3) {
+          typeString = "vec3";
+        } else if (type == TINYGLTF_TYPE_VEC4) {
+          typeString = "vec4";
+        } else if (type == TINYGLTF_TYPE_MAT2) {
+          typeString = "mat2";
+        } else if (type == TINYGLTF_TYPE_MAT3) {
+          typeString = "mat3";
+        } else if (type == TINYGLTF_TYPE_MAT4) {
+          typeString = "mat4";
+        } else {
+          typeString = "unknown";
+        }
+        getOut() << "got accessor " << attribute.first << " " << attribute.second << " " << typeString << std::endl;
+      }
+    }
+  }
+
+  auto model = std::make_shared<vkglTF::Model>();
+  model->loadFromGltfModel( vulkanDevice, m_descriptorManager, planeModel, queue, 1.0f );   
 	return std::make_unique<CVulkanRendererModelInstance>( this, modelUrl, model );
 }
 

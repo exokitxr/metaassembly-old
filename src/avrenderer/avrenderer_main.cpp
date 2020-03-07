@@ -153,7 +153,14 @@ int main(int argc, char **argv) {
       }
     }
   }
-
+  {  
+    app->startRenderer();
+    Sleep(1000);
+    std::string name("object");
+    name += std::to_string(++ids);
+    auto model = app->renderer->m_renderer->createModelInstance(name, nullptr, 0);
+  }
+  getOut() << "part 2" << std::endl;
   {
     setmode(fileno(stdout), O_BINARY);
     setmode(fileno(stdin), O_BINARY);
