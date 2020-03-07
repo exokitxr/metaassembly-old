@@ -115,7 +115,14 @@ CAardvarkCefApp::CAardvarkCefApp()
 		pAdapter->Release();
 		pAdapter = nullptr;
 	}
+}
 
+CAardvarkCefApp::~CAardvarkCefApp()
+{
+	g_instance = nullptr;
+}
+
+void CAardvarkCefApp::startRenderer() {
   renderer.reset(new CJavascriptRenderer());
   std::thread([this]() {
     renderer->init();
@@ -131,11 +138,6 @@ CAardvarkCefApp::CAardvarkCefApp()
     getOut() << "quitting" << std::endl;
     ExitProcess(0);
   }).detach();
-}
-
-CAardvarkCefApp::~CAardvarkCefApp()
-{
-	g_instance = nullptr;
 }
 
 /* void CAardvarkCefApp::OnContextInitialized()

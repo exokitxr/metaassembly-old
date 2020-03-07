@@ -199,7 +199,18 @@ int main(int argc, char **argv) {
               std::cout << "arg " << i << ": " << argString << std::endl;
               i++;
             } */
-             if (methodString == "addObject" && args.size() > 0 && args[0].is_string()) {
+            if (methodString == "startRenderer") {
+              app->startRenderer();
+
+              json result = {
+                // {"processId", processId}
+              };
+              json res = {
+                {"error", nullptr},
+                {"result", result}
+              };
+              respond(res);
+            } else if (methodString == "addObject" && args.size() > 0 && args[0].is_string()) {
               std::string argString = args[0].get<std::string>();
 
               std::string name("object");
