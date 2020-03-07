@@ -77,6 +77,7 @@ public:
   virtual std::unique_ptr<IModelInstance> createModelInstance(const std::string &modelUrl, std::vector<float> &positions, std::vector<float> &normals, std::vector<float> &colors, std::vector<float> &uvs, std::vector<uint16_t> &indices) = 0;
 	virtual void resetRenderList() = 0;
 	virtual void addToRenderList( IModelInstance *modelInstance ) = 0;
+	virtual void update() = 0;
 	virtual void processRenderList() = 0;
 	virtual bool getModelBox( const std::string & uri, AABB_t *pBox, std::string *psError = nullptr ) = 0;
 };

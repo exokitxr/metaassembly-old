@@ -2074,6 +2074,14 @@ bool operator<( const SortableModel_t & lhs, const SortableModel_t & rhs )
 	return lhs.distance > rhs.distance;
 }
 
+void VulkanExample::update()
+{
+  for ( auto model : m_modelsToRender ) {
+    float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+    model->m_model->translation.y = r;
+  }
+}
+
 void VulkanExample::processRenderList()
 {
 	// animate everything

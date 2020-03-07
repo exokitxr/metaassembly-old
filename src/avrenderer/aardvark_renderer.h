@@ -122,6 +122,7 @@ public:
 	virtual std::unique_ptr<IModelInstance> createModelInstance(const std::string &modelUrl, std::vector<float> &positions, std::vector<float> &normals, std::vector<float> &colors, std::vector<float> &uvs, std::vector<uint16_t> &indices);
 	virtual void resetRenderList() override;
 	virtual void addToRenderList( IModelInstance *modelInstance ) override;
+  virtual void update() override;
 	virtual void processRenderList() override;
 	virtual bool getModelBox( const std::string & uri, AABB_t *pBox, std::string *psError ) override;
 

@@ -176,6 +176,7 @@ void CJavascriptRenderer::runFrame()
 
 	} */
 
+	m_renderer->update();
 	m_renderer->processRenderList();
 
 	auto tEnd = std::chrono::high_resolution_clock::now();
