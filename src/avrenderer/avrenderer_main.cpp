@@ -188,6 +188,7 @@ int main(int argc, char **argv) {
       2, 3, 1,
     };
     auto model = app->renderer->m_renderer->createModelInstance(name, positions, normals, colors, uvs, indices);
+    app->renderer->m_renderer->addToRenderList(model.get());
   }
   getOut() << "part 2" << std::endl;
   {
@@ -265,6 +266,7 @@ int main(int argc, char **argv) {
               name += std::to_string(++ids);
 
               auto model = app->renderer->m_renderer->createModelInstance(name, positions, normals, colors, uvs, indices);
+              app->renderer->m_renderer->addToRenderList(model.get());
               // std::shared_ptr<vkglTF::Model> VulkanExample::findOrLoadModel( std::string modelUri, std::string *psError)
               
               json result = {
