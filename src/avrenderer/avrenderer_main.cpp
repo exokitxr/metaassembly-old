@@ -49,8 +49,6 @@ std::string logSuffix = "_native";
 // CHAR s_szDllPath[MAX_PATH] = "vrclient_x64.dll";
 std::string dllDir;
 
-size_t ids = 0;
-
 inline uint32_t divCeil(uint32_t x, uint32_t y) {
   return (x + y - 1) / y;
 }
@@ -189,6 +187,8 @@ int main(int argc, char **argv) {
     app->renderer->m_renderer->addToRenderList(model.release());
   }
   getOut() << "part 2" << std::endl;
+  size_t ids = 0;
+  std::map<std::string, std::unique_ptr<IModelInstance>> models;
   {
     setmode(fileno(stdout), O_BINARY);
     setmode(fileno(stdin), O_BINARY);
