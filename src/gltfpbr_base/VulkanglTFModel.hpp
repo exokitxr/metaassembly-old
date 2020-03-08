@@ -409,6 +409,7 @@ namespace vkglTF
 
 		vks::VulkanDevice *device;
 		vks::CDescriptorManager *descriptorManager;
+    std::unique_ptr<tinygltf::Model> modelPtr;
 
 		struct Vertex {
 			glm::vec3 pos;
@@ -1069,7 +1070,7 @@ namespace vkglTF
 
 		bool loadFromFile(std::string filename, vks::VulkanDevice *device, vks::CDescriptorManager *descriptorManager, VkQueue transferQueue, float scale = 1.0f)
 		{
-			tinygltf::Model gltfModel;
+			std::unique_ptr<tinygltf::Model> gltfModel(new tinygltf::Model());
 			tinygltf::TinyGLTF gltfContext;
 			std::string error;
 			std::string warning;
@@ -1081,7 +1082,7 @@ namespace vkglTF
 				binary = (filename.substr(extpos + 1, filename.length() - extpos) == "glb");
 			}  
 
-			bool fileLoaded = binary ? gltfContext.LoadBinaryFromFile(&gltfModel, &error, &warning, filename.c_str()) : gltfContext.LoadASCIIFromFile(&gltfModel, &error, &warning, filename.c_str());
+			bool fileLoaded = binary ? gltfContext.LoadBinaryFromFile(gltfModel.get(), &error, &warning, filename.c_str()) : gltfContext.LoadASCIIFromFile(gltfModel.get(), &error, &warning, filename.c_str());
 			if( !fileLoaded )
 			{
 				// TODO: throw
@@ -1089,13 +1090,13 @@ namespace vkglTF
 				return false;
 			}
 
-			loadFromGltfModel( device, descriptorManager, gltfModel, transferQueue, scale );
+			loadFromGltfModel( device, descriptorManager, std::move(gltfModel), transferQueue, scale );
 			return true;
 		}
 
 		bool loadFromMemory( const void *pvData, size_t unSize, vks::VulkanDevice *device, vks::CDescriptorManager *descriptorManager, VkQueue transferQueue, float scale = 1.0f )
 		{
-			tinygltf::Model gltfModel;
+			std::unique_ptr<tinygltf::Model> gltfModel(new tinygltf::Model());
 			tinygltf::TinyGLTF gltfContext;
 			std::string error;
 			std::string warning;
@@ -1109,11 +1110,11 @@ namespace vkglTF
 			bool bLoaded;
 			if ( bBinary )
 			{
-				bLoaded = gltfContext.LoadBinaryFromMemory( &gltfModel, &error, &warning, (const unsigned char*)pvData, (uint32_t)unSize );
+				bLoaded = gltfContext.LoadBinaryFromMemory( gltfModel.get(), &error, &warning, (const unsigned char*)pvData, (uint32_t)unSize );
 			}
 			else
 			{
-				bLoaded = gltfContext.LoadASCIIFromString( &gltfModel, &error, &warning, (const char*)pvData, (uint32_t)unSize, ""  );
+				bLoaded = gltfContext.LoadASCIIFromString( gltfModel.get(), &error, &warning, (const char*)pvData, (uint32_t)unSize, ""  );
 			}
 			if ( !bLoaded )
 			{
@@ -1122,14 +1123,17 @@ namespace vkglTF
 				return false;
 			}
 
-			loadFromGltfModel( device, descriptorManager, gltfModel, transferQueue, scale );
+			loadFromGltfModel( device, descriptorManager, std::move(gltfModel), transferQueue, scale );
 			return true;
 		}
 
-		void loadFromGltfModel( vks::VulkanDevice * device, vks::CDescriptorManager *descriptorManager, tinygltf::Model &gltfModel, VkQueue transferQueue, float scale )
+		void loadFromGltfModel( vks::VulkanDevice * device, vks::CDescriptorManager *descriptorManager, std::unique_ptr<tinygltf::Model> modelPtr, VkQueue transferQueue, float scale )
 		{
+      tinygltf::Model &gltfModel = *modelPtr;
+      
 			this->device = device;
 			this->descriptorManager = descriptorManager;
+      this->modelPtr = std::move(modelPtr);
 
 			std::vector<uint32_t> indexBuffer;
 			std::vector<Vertex> vertexBuffer;

@@ -77,6 +77,7 @@ public:
   virtual std::unique_ptr<IModelInstance> createDefaultModelInstance(const std::string &modelUrl) = 0;
   virtual void setModelTransform(IModelInstance *model, std::vector<float> &position, std::vector<float> &quaternion, std::vector<float> &scale) = 0;
   virtual std::unique_ptr<IModelInstance> setModelGeometry(std::unique_ptr<IModelInstance> model, std::vector<float> &positions, std::vector<float> &normals, std::vector<float> &colors, std::vector<float> &uvs, std::vector<uint16_t> &indices) = 0;
+  virtual std::unique_ptr<IModelInstance> setModelTexture(std::unique_ptr<IModelInstance> modelInstance, int width, int height, std::vector<unsigned char> &&data) = 0;
 	virtual void resetRenderList() = 0;
 	virtual void addToRenderList( IModelInstance *modelInstance ) = 0;
 	virtual void update() = 0;

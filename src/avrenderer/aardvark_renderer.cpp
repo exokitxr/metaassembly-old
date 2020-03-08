@@ -2352,7 +2352,6 @@ std::unique_ptr<IModelInstance> VulkanExample::createModelInstance(const std::st
   return nullptr;
 }
 
-tinygltf::Model planeModel;
 std::shared_ptr<vkglTF::Model> planeModelVk;
 std::unique_ptr<IModelInstance> VulkanExample::createDefaultModelInstance(const std::string &modelUrl) {
   if (!planeModelVk) {
@@ -2360,7 +2359,8 @@ std::unique_ptr<IModelInstance> VulkanExample::createDefaultModelInstance(const 
       std::string uri("data/plane.glb");
       // uri = "data/models/DamagedHelmet/glTF-Embedded/DamagedHelmet.gltf";
       std::vector<char> data = readFile(uri);
-      
+
+      std::unique_ptr<tinygltf::Model> planeModel(new tinygltf::Model());
       bool planeModelLoaded;
       if (data.size() >= 4) {
         tinygltf::TinyGLTF gltfContext;
@@ -2371,17 +2371,17 @@ std::unique_ptr<IModelInstance> VulkanExample::createDefaultModelInstance(const 
         const bool bBinary = *((uint32_t *)data.data()) == 0x46546C67;
         if ( bBinary )
         {
-          planeModelLoaded = gltfContext.LoadBinaryFromMemory( &planeModel, &error, &warning, (const unsigned char*)data.data(), (uint32_t)data.size() );
+          planeModelLoaded = gltfContext.LoadBinaryFromMemory( planeModel.get(), &error, &warning, (const unsigned char*)data.data(), (uint32_t)data.size() );
         }
         else
         {
-          planeModelLoaded = gltfContext.LoadASCIIFromString( &planeModel, &error, &warning, (const char*)data.data(), (uint32_t)data.size(), ""  );
+          planeModelLoaded = gltfContext.LoadASCIIFromString( planeModel.get(), &error, &warning, (const char*)data.data(), (uint32_t)data.size(), ""  );
         }
       }
       
       if (planeModelLoaded) {
         planeModelVk = std::make_shared<vkglTF::Model>();
-        planeModelVk->loadFromGltfModel( vulkanDevice, m_descriptorManager, planeModel, queue, 1.0f );
+        planeModelVk->loadFromGltfModel( vulkanDevice, m_descriptorManager, std::move(planeModel), queue, 1.0f );
         
         /* auto &images = planeModel.images;
         for (auto &image : images) {
@@ -2436,18 +2436,17 @@ void VulkanExample::setModelTransform(IModelInstance *modelInstance, std::vector
   model->m_model->scale.z = scale[2];
 }
 
-std::vector<std::shared_ptr<vkglTF::Model>> olds;
 std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<IModelInstance> modelInstance, std::vector<float> &positions, std::vector<float> &normals, std::vector<float> &colors, std::vector<float> &uvs, std::vector<uint16_t> &indices) {
   CVulkanRendererModelInstance *model = dynamic_cast<CVulkanRendererModelInstance *>( modelInstance.get() );
-  
-  tinygltf::Model planeModel2(planeModel);
-  auto &accessors = planeModel2.accessors;
-  auto &bufferViews = planeModel2.bufferViews;
-  auto &buffers = planeModel2.buffers;
-  auto &materials = planeModel2.materials;
-  auto &samplers = planeModel2.samplers;
-  auto &images = planeModel2.images;
-  for (auto &mesh : planeModel2.meshes) {
+
+  std::unique_ptr<tinygltf::Model> model2(new tinygltf::Model(*model->m_model->modelPtr));
+  auto &accessors = model2->accessors;
+  auto &bufferViews = model2->bufferViews;
+  auto &buffers = model2->buffers;
+  auto &materials = model2->materials;
+  auto &samplers = model2->samplers;
+  // auto &images = model2->images;
+  for (auto &mesh : model2->meshes) {
     for (auto &primitive : mesh.primitives) {
     	// attributes
       std::map<std::string, int> &attributes = primitive.attributes;
@@ -2697,24 +2696,36 @@ std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<
       for (auto &sampler : samplers) {
         getOut() << "got sampler" << std::endl;
       }
-      for (auto &image : images) {
-        getOut() << "got image " << image.mimeType << " " << image.width << " " << image.height << " " << image.component << " " << image.image.size() << std::endl;
-        image.image = {
-          255,
-          0,
-          0,
-          255,
-        };
-      }
     }
   }
 
-  auto model2 = std::make_shared<vkglTF::Model>();
-  model2->loadFromGltfModel( vulkanDevice, m_descriptorManager, planeModel2, queue, 1.0f );
-  setupDescriptorSetsForModel( model2 );
+  auto model3 = std::make_shared<vkglTF::Model>();
+  model3->loadFromGltfModel( vulkanDevice, m_descriptorManager, std::move(model2), queue, 1.0f );
+  setupDescriptorSetsForModel( model3 );
 
+  auto result = std::make_unique<CVulkanRendererModelInstance>( this, model->m_modelUri, model3 );
+  result->m_model->translation = model->m_model->translation;
+  result->m_model->rotation = model->m_model->rotation;
+  result->m_model->scale = model->m_model->scale;
+  return std::move(result);
+}
 
-  auto result = std::make_unique<CVulkanRendererModelInstance>( this, model->m_modelUri, model2 );
+std::unique_ptr<IModelInstance> VulkanExample::setModelTexture(std::unique_ptr<IModelInstance> modelInstance, int width, int height, std::vector<unsigned char> &&data) {
+  CVulkanRendererModelInstance *model = dynamic_cast<CVulkanRendererModelInstance *>( modelInstance.get() );
+
+  std::unique_ptr<tinygltf::Model> model2(new tinygltf::Model(*(model->m_model->modelPtr)));
+  auto &images = model2->images;
+  for (auto &image : images) {
+    image.width = width;
+    image.height = height;
+    image.image = std::move(data);
+  }
+  
+  auto model3 = std::make_shared<vkglTF::Model>();
+  model3->loadFromGltfModel( vulkanDevice, m_descriptorManager, std::move(model2), queue, 1.0f );
+  setupDescriptorSetsForModel( model3 );
+
+  auto result = std::make_unique<CVulkanRendererModelInstance>( this, model->m_modelUri, model3 );
   result->m_model->translation = model->m_model->translation;
   result->m_model->rotation = model->m_model->rotation;
   result->m_model->scale = model->m_model->scale;

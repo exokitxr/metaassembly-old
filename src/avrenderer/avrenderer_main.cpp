@@ -185,6 +185,13 @@ int main(int argc, char **argv) {
     };
     auto model = app->renderer->m_renderer->createDefaultModelInstance(name);
     model = app->renderer->m_renderer->setModelGeometry(std::move(model), positions, normals, colors, uvs, indices);
+    /* std::vector<unsigned char> image = {
+      255,
+      0,
+      0,
+      255,
+    };
+    model = app->renderer->m_renderer->setModelTexture(std::move(model), 1, 1, std::move(image)); */
     app->renderer->m_renderer->addToRenderList(model.release());
   }
   getOut() << "part 2" << std::endl;

@@ -122,6 +122,7 @@ public:
 	virtual std::unique_ptr<IModelInstance> createDefaultModelInstance(const std::string &modelUrl);
   void setModelTransform(IModelInstance *model, std::vector<float> &position, std::vector<float> &quaternion, std::vector<float> &scale) override;
   std::unique_ptr<IModelInstance> setModelGeometry(std::unique_ptr<IModelInstance> model, std::vector<float> &positions, std::vector<float> &normals, std::vector<float> &colors, std::vector<float> &uvs, std::vector<uint16_t> &indices) override;
+  std::unique_ptr<IModelInstance> setModelTexture(std::unique_ptr<IModelInstance> model, int width, int height, std::vector<unsigned char> &&data) override;
 	virtual void resetRenderList() override;
 	virtual void addToRenderList( IModelInstance *modelInstance ) override;
   virtual void update() override;
