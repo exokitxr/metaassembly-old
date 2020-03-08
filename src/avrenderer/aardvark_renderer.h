@@ -119,7 +119,9 @@ public:
 	virtual void init( HINSTANCE hInstance, IVrManager *vrManager ) override;
 	virtual void runFrame( bool *shouldQuit, double frameTime ) override;
   virtual std::unique_ptr<IModelInstance> createModelInstance(const std::string &modelUrl, const char *data, size_t size) override;
-	virtual std::unique_ptr<IModelInstance> createModelInstance(const std::string &modelUrl, std::vector<float> &positions, std::vector<float> &normals, std::vector<float> &colors, std::vector<float> &uvs, std::vector<uint16_t> &indices);
+	virtual std::unique_ptr<IModelInstance> createDefaultModelInstance(const std::string &modelUrl);
+  void setModelTransform(IModelInstance *model, std::vector<float> &position, std::vector<float> &quaternion, std::vector<float> &scale) override;
+  std::unique_ptr<IModelInstance> setModelGeometry(std::unique_ptr<IModelInstance> model, std::vector<float> &positions, std::vector<float> &normals, std::vector<float> &colors, std::vector<float> &uvs, std::vector<uint16_t> &indices) override;
 	virtual void resetRenderList() override;
 	virtual void addToRenderList( IModelInstance *modelInstance ) override;
   virtual void update() override;

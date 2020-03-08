@@ -183,7 +183,8 @@ int main(int argc, char **argv) {
       0, 2, 1,
       2, 3, 1,
     };
-    auto model = app->renderer->m_renderer->createModelInstance(name, positions, normals, colors, uvs, indices);
+    auto model = app->renderer->m_renderer->createDefaultModelInstance(name);
+    model = app->renderer->m_renderer->setModelGeometry(std::move(model), positions, normals, colors, uvs, indices);
     app->renderer->m_renderer->addToRenderList(model.release());
   }
   getOut() << "part 2" << std::endl;

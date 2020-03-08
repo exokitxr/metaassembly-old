@@ -2352,37 +2352,16 @@ std::unique_ptr<IModelInstance> VulkanExample::createModelInstance(const std::st
   return nullptr;
 }
 
-bool planeModelLoaded = false;
 tinygltf::Model planeModel;
-std::unique_ptr<IModelInstance> VulkanExample::createModelInstance(const std::string &modelUrl, std::vector<float> &positions, std::vector<float> &normals, std::vector<float> &colors, std::vector<float> &uvs, std::vector<uint16_t> &indices) {
-  if (!planeModelLoaded) {
-    /* tinygltf::Model helmetModel;
-    {
-      std::string uri("data/models/DamagedHelmet/glTF-Embedded/DamagedHelmet.gltf");
-      std::vector<char> data = readFile(uri);
-      
-      if (data.size() >= 4) {
-        tinygltf::TinyGLTF gltfContext;
-
-        std::string error;
-        std::string warning;
-        
-        const bool bBinary = *((uint32_t *)data.data()) == 0x46546C67;
-        if ( bBinary )
-        {
-          planeModelLoaded = gltfContext.LoadBinaryFromMemory( &helmetModel, &error, &warning, (const unsigned char*)data.data(), (uint32_t)data.size() );
-        }
-        else
-        {
-          planeModelLoaded = gltfContext.LoadASCIIFromString( &helmetModel, &error, &warning, (const char*)data.data(), (uint32_t)data.size(), ""  );
-        }
-      }
-    } */
+std::shared_ptr<vkglTF::Model> planeModelVk;
+std::unique_ptr<IModelInstance> VulkanExample::createDefaultModelInstance(const std::string &modelUrl) {
+  if (!planeModelVk) {
     {    
       std::string uri("data/plane.glb");
       // uri = "data/models/DamagedHelmet/glTF-Embedded/DamagedHelmet.gltf";
       std::vector<char> data = readFile(uri);
       
+      bool planeModelLoaded;
       if (data.size() >= 4) {
         tinygltf::TinyGLTF gltfContext;
 
@@ -2399,13 +2378,67 @@ std::unique_ptr<IModelInstance> VulkanExample::createModelInstance(const std::st
           planeModelLoaded = gltfContext.LoadASCIIFromString( &planeModel, &error, &warning, (const char*)data.data(), (uint32_t)data.size(), ""  );
         }
       }
+      
+      if (planeModelLoaded) {
+        planeModelVk = std::make_shared<vkglTF::Model>();
+        planeModelVk->loadFromGltfModel( vulkanDevice, m_descriptorManager, planeModel, queue, 1.0f );
+        
+        /* auto &images = planeModel.images;
+        for (auto &image : images) {
+          getOut() << "got image " << image.mimeType << " " << image.width << " " << image.height << " " << image.component << " " << image.image.size() << std::endl;
+          image.image = {
+            255,
+            0,
+            0,
+            255,
+          };
+        }
+        
+        planeModelVk->nodes.clear();
+        planeModelVk->linearNodes.clear();
+        planeModelVk->buffers = nullptr;
+        planeModelVk->skins.clear();
+        planeModelVk->textures.clear();
+        planeModelVk->textureSamplers.clear();
+        // planeModelVk->materials.clear();
+
+        planeModelVk->loadFromGltfModel( vulkanDevice, m_descriptorManager, planeModel, queue, 1.0f ); */
+        
+        setupDescriptorSetsForModel( planeModelVk );
+      }
     }
 
-    if (!planeModelLoaded) {
+    if (!planeModelVk) {
       getOut() << "failed to get plane model" << std::endl;
       abort();
     }
   }
+
+  // auto model = std::make_shared<vkglTF::Model>();
+  // model->copyFrom(*planeModelVk);
+	return std::make_unique<CVulkanRendererModelInstance>( this, modelUrl, planeModelVk );
+}
+
+void VulkanExample::setModelTransform(IModelInstance *modelInstance, std::vector<float> &position, std::vector<float> &quaternion, std::vector<float> &scale) {
+  CVulkanRendererModelInstance *model = dynamic_cast<CVulkanRendererModelInstance *>( modelInstance );
+
+  model->m_model->translation.x = position[0];
+  model->m_model->translation.y = position[1];
+  model->m_model->translation.z = position[2];
+
+  model->m_model->rotation.x = quaternion[0];
+  model->m_model->rotation.y = quaternion[1];
+  model->m_model->rotation.z = quaternion[2];
+  model->m_model->rotation.w = quaternion[3];
+
+  model->m_model->scale.x = scale[0];
+  model->m_model->scale.y = scale[1];
+  model->m_model->scale.z = scale[2];
+}
+
+std::vector<std::shared_ptr<vkglTF::Model>> olds;
+std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<IModelInstance> modelInstance, std::vector<float> &positions, std::vector<float> &normals, std::vector<float> &colors, std::vector<float> &uvs, std::vector<uint16_t> &indices) {
+  CVulkanRendererModelInstance *model = dynamic_cast<CVulkanRendererModelInstance *>( modelInstance.get() );
   
   tinygltf::Model planeModel2(planeModel);
   auto &accessors = planeModel2.accessors;
@@ -2676,10 +2709,29 @@ std::unique_ptr<IModelInstance> VulkanExample::createModelInstance(const std::st
     }
   }
 
-  auto model = std::make_shared<vkglTF::Model>();
-  model->loadFromGltfModel( vulkanDevice, m_descriptorManager, planeModel2, queue, 1.0f );
-  setupDescriptorSetsForModel( model );
-	return std::make_unique<CVulkanRendererModelInstance>( this, modelUrl, model );
+  auto model2 = std::make_shared<vkglTF::Model>();
+  /* model->m_model->copyFrom(*planeModelVk);
+  model->m_model->nodes.clear();
+  model->m_model->linearNodes.clear();
+  model->m_model->buffers = nullptr;
+  model->m_model->skins.clear();
+  model->m_model->textures.clear();
+  model->m_model->textureSamplers.clear();
+  model->m_model->materials.clear(); */
+  // model->m_model->animations.clear();
+  // model->m_model->extensions.clear();
+  model2->loadFromGltfModel( vulkanDevice, m_descriptorManager, planeModel2, queue, 1.0f );
+  setupDescriptorSetsForModel( model2 );
+
+
+  auto result = std::make_unique<CVulkanRendererModelInstance>( this, model->m_modelUri, model2 );
+  result->m_model->translation = model->m_model->translation;
+  result->m_model->rotation = model->m_model->rotation;
+  result->m_model->scale = model->m_model->scale;
+  return std::move(result);
+  // model->m_model = model2;
+  // model->m_model->parent = &model->m_modelParent;
+  // return std::move(modelInstance);
 }
 
 void VulkanExample::resetRenderList()
