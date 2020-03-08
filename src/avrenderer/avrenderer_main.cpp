@@ -247,7 +247,7 @@ int main(int argc, char **argv) {
               respond(res);
             } else if (
               methodString == "addObject" &&
-              args.size() > 0 &&
+              args.size() >= 5 &&
               args[0].is_string() &&
               args[1].is_string() &&
               args[2].is_string() &&
@@ -263,9 +263,62 @@ int main(int argc, char **argv) {
               std::string name("object");
               name += std::to_string(++ids);
 
-              auto model = app->renderer->m_renderer->createModelInstance(name, positions, normals, colors, uvs, indices);
-              app->renderer->m_renderer->addToRenderList(model.get());
+              models[name] = app->renderer->m_renderer->createDefaultModelInstance(name);
+              app->renderer->m_renderer->addToRenderList(models[name].get());
               // std::shared_ptr<vkglTF::Model> VulkanExample::findOrLoadModel( std::string modelUri, std::string *psError)
+              
+              json result = {
+                {"id", name}
+              };
+              json res = {
+                {"error", nullptr},
+                {"result", result}
+              };
+              respond(res);
+            } else if (
+              methodString == "updateObjectTransform" &&
+              args.size() >= 4 &&
+              args[0].is_string() &&
+              args[1].is_string() &&
+              args[2].is_string() &&
+              args[3].is_string()
+            ) {
+              std::string name = args[0].get<std::string>();
+              std::vector<float> position = Base64::Decode<float>(args[1].get<std::string>());
+              std::vector<float> quaternion = Base64::Decode<float>(args[2].get<std::string>());
+              std::vector<float> scale = Base64::Decode<float>(args[3].get<std::string>());
+
+              auto model = models[name].get();
+              app->renderer->m_renderer->setModelTransform(models[name].get(), position, quaternion, scale);
+              // XXX update geometry
+              
+              json result = {
+                // {"processId", processId}
+              };
+              json res = {
+                {"error", nullptr},
+                {"result", result}
+              };
+              respond(res);
+            } else if (
+              methodString == "updateObjectGeometry" &&
+              args.size() >= 6 &&
+              args[0].is_string() &&
+              args[1].is_string() &&
+              args[2].is_string() &&
+              args[3].is_string() &&
+              args[4].is_string() &&
+              args[5].is_string()
+            ) {
+              std::string name = args[0].get<std::string>();
+              std::vector<float> positions = Base64::Decode<float>(args[1].get<std::string>());
+              std::vector<float> normals = Base64::Decode<float>(args[2].get<std::string>());
+              std::vector<float> colors = Base64::Decode<float>(args[3].get<std::string>());
+              std::vector<float> uvs = Base64::Decode<float>(args[4].get<std::string>());
+              std::vector<uint16_t> indices = Base64::Decode<uint16_t>(args[5].get<std::string>());
+
+              auto model = models[name].get();
+              // XXX update geometry
               
               json result = {
                 // {"processId", processId}
