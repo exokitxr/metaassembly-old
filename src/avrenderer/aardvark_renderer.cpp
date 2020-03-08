@@ -2360,8 +2360,8 @@ std::unique_ptr<IModelInstance> VulkanExample::createDefaultModelInstance(const 
       // uri = "data/models/DamagedHelmet/glTF-Embedded/DamagedHelmet.gltf";
       std::vector<char> data = readFile(uri);
 
-      std::unique_ptr<tinygltf::Model> planeModel(new tinygltf::Model());
-      bool planeModelLoaded;
+      std::shared_ptr<tinygltf::Model> planeModel(new tinygltf::Model());
+      bool planeModelLoaded = false;
       if (data.size() >= 4) {
         tinygltf::TinyGLTF gltfContext;
 
@@ -2381,7 +2381,9 @@ std::unique_ptr<IModelInstance> VulkanExample::createDefaultModelInstance(const 
       
       if (planeModelLoaded) {
         planeModelVk = std::make_shared<vkglTF::Model>();
-        planeModelVk->loadFromGltfModel( vulkanDevice, m_descriptorManager, std::move(planeModel), queue, 1.0f );
+        planeModelVk->loadFromGltfModel( vulkanDevice, m_descriptorManager, planeModel, queue, 1.0f );
+
+        getOut() << "model loaded 1 " << planeModelVk->modelPtr.get() << " " << planeModelVk->modelPtr->materials.size() << std::endl;
         
         /* auto &images = planeModel.images;
         for (auto &image : images) {
@@ -2413,6 +2415,8 @@ std::unique_ptr<IModelInstance> VulkanExample::createDefaultModelInstance(const 
       abort();
     }
   }
+  
+  getOut() << "model loaded 2 " << planeModelVk->modelPtr.get() << std::endl;
 
   // auto model = std::make_shared<vkglTF::Model>();
   // model->copyFrom(*planeModelVk);
@@ -2436,10 +2440,12 @@ void VulkanExample::setModelTransform(IModelInstance *modelInstance, std::vector
   model->m_model->scale.z = scale[2];
 }
 
-std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<IModelInstance> modelInstance, std::vector<float> &positions, std::vector<float> &normals, std::vector<float> &colors, std::vector<float> &uvs, std::vector<uint16_t> &indices) {
+std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<IModelInstance> modelInstance, std::vector<float> &positions, std::vector<float> &normals, std::vector<float> &colors, std::vector<float> &uvs, std::vector<uint16_t> &indices) {  
   CVulkanRendererModelInstance *model = dynamic_cast<CVulkanRendererModelInstance *>( modelInstance.get() );
+  
+  getOut() << "set model geometry " << (void *)model << " " << (void *)(model->m_model.get()) << " " << (void *)(model->m_model->modelPtr.get()) << std::endl;
 
-  std::unique_ptr<tinygltf::Model> model2(new tinygltf::Model(*model->m_model->modelPtr));
+  std::shared_ptr<tinygltf::Model> model2(new tinygltf::Model(*model->m_model->modelPtr));
   auto &accessors = model2->accessors;
   auto &bufferViews = model2->bufferViews;
   auto &buffers = model2->buffers;
@@ -2700,7 +2706,7 @@ std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<
   }
 
   auto model3 = std::make_shared<vkglTF::Model>();
-  model3->loadFromGltfModel( vulkanDevice, m_descriptorManager, std::move(model2), queue, 1.0f );
+  model3->loadFromGltfModel( vulkanDevice, m_descriptorManager, model2, queue, 1.0f );
   setupDescriptorSetsForModel( model3 );
 
   auto result = std::make_unique<CVulkanRendererModelInstance>( this, model->m_modelUri, model3 );
@@ -2713,7 +2719,7 @@ std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<
 std::unique_ptr<IModelInstance> VulkanExample::setModelTexture(std::unique_ptr<IModelInstance> modelInstance, int width, int height, std::vector<unsigned char> &&data) {
   CVulkanRendererModelInstance *model = dynamic_cast<CVulkanRendererModelInstance *>( modelInstance.get() );
 
-  std::unique_ptr<tinygltf::Model> model2(new tinygltf::Model(*(model->m_model->modelPtr)));
+  std::shared_ptr<tinygltf::Model> model2(new tinygltf::Model(*(model->m_model->modelPtr)));
   auto &images = model2->images;
   for (auto &image : images) {
     image.width = width;
@@ -2722,7 +2728,7 @@ std::unique_ptr<IModelInstance> VulkanExample::setModelTexture(std::unique_ptr<I
   }
   
   auto model3 = std::make_shared<vkglTF::Model>();
-  model3->loadFromGltfModel( vulkanDevice, m_descriptorManager, std::move(model2), queue, 1.0f );
+  model3->loadFromGltfModel( vulkanDevice, m_descriptorManager, model2, queue, 1.0f );
   setupDescriptorSetsForModel( model3 );
 
   auto result = std::make_unique<CVulkanRendererModelInstance>( this, model->m_modelUri, model3 );

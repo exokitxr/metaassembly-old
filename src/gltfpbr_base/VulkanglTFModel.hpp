@@ -409,7 +409,7 @@ namespace vkglTF
 
 		vks::VulkanDevice *device;
 		vks::CDescriptorManager *descriptorManager;
-    std::unique_ptr<tinygltf::Model> modelPtr;
+    std::shared_ptr<tinygltf::Model> modelPtr;
 
 		struct Vertex {
 			glm::vec3 pos;
@@ -451,6 +451,7 @@ namespace vkglTF
 		void copyFrom( const Model & src )
 		{
 			device = src.device;
+      modelPtr = src.modelPtr;
 			buffers = src.buffers; // shallow copy so we reuse the vertex and index buffers
 			aabb = src.aabb;
 
@@ -1070,7 +1071,7 @@ namespace vkglTF
 
 		bool loadFromFile(std::string filename, vks::VulkanDevice *device, vks::CDescriptorManager *descriptorManager, VkQueue transferQueue, float scale = 1.0f)
 		{
-			std::unique_ptr<tinygltf::Model> gltfModel(new tinygltf::Model());
+			std::shared_ptr<tinygltf::Model> gltfModel(new tinygltf::Model());
 			tinygltf::TinyGLTF gltfContext;
 			std::string error;
 			std::string warning;
@@ -1096,7 +1097,7 @@ namespace vkglTF
 
 		bool loadFromMemory( const void *pvData, size_t unSize, vks::VulkanDevice *device, vks::CDescriptorManager *descriptorManager, VkQueue transferQueue, float scale = 1.0f )
 		{
-			std::unique_ptr<tinygltf::Model> gltfModel(new tinygltf::Model());
+			std::shared_ptr<tinygltf::Model> gltfModel(new tinygltf::Model());
 			tinygltf::TinyGLTF gltfContext;
 			std::string error;
 			std::string warning;
@@ -1127,13 +1128,13 @@ namespace vkglTF
 			return true;
 		}
 
-		void loadFromGltfModel( vks::VulkanDevice * device, vks::CDescriptorManager *descriptorManager, std::unique_ptr<tinygltf::Model> modelPtr, VkQueue transferQueue, float scale )
+		void loadFromGltfModel( vks::VulkanDevice * device, vks::CDescriptorManager *descriptorManager, std::shared_ptr<tinygltf::Model> modelPtr, VkQueue transferQueue, float scale )
 		{
       tinygltf::Model &gltfModel = *modelPtr;
       
 			this->device = device;
 			this->descriptorManager = descriptorManager;
-      this->modelPtr = std::move(modelPtr);
+      this->modelPtr = modelPtr;
 
 			std::vector<uint32_t> indexBuffer;
 			std::vector<Vertex> vertexBuffer;
