@@ -158,10 +158,10 @@ int main(int argc, char **argv) {
     Sleep(1000);
     std::string name("objectTest");
     std::vector<float> positions{
-      -0.5, 0.5, 0,
-      0.5, 0.5, 0,
-      -0.5, -0.5, 0,
-      0.5, -0.5, 0,
+      -0.1, 0.5, 0,
+      0.1, 0.5, 0,
+      -0.1, -0.5, 0,
+      0.1, -0.5, 0,
     };
     std::vector<float> normals{
       0, 0, 1,
