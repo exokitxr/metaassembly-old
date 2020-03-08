@@ -2347,6 +2347,8 @@ void CVulkanRendererModelInstance::animate( float animationTimeElapsed )
 }
 
 std::unique_ptr<IModelInstance> VulkanExample::createModelInstance(const std::string &modelUrl, const char *data, size_t size) {
+  getOut() << "called non-implemented VulkanExample::createModelInstance" << std::endl;
+  abort();
   return nullptr;
 }
 
