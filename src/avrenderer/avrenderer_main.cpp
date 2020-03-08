@@ -156,9 +156,7 @@ int main(int argc, char **argv) {
   {  
     app->startRenderer();
     Sleep(1000);
-    std::string name("object");
-    name += std::to_string(++ids);
-    // auto model = app->renderer->m_renderer->createModelInstance(name, nullptr, 0);
+    std::string name("objectTest");
     std::vector<float> positions{
       -0.5, 0.5, 0,
       0.5, 0.5, 0,
