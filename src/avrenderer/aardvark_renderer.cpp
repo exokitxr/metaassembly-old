@@ -2710,16 +2710,6 @@ std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<
   }
 
   auto model2 = std::make_shared<vkglTF::Model>();
-  /* model->m_model->copyFrom(*planeModelVk);
-  model->m_model->nodes.clear();
-  model->m_model->linearNodes.clear();
-  model->m_model->buffers = nullptr;
-  model->m_model->skins.clear();
-  model->m_model->textures.clear();
-  model->m_model->textureSamplers.clear();
-  model->m_model->materials.clear(); */
-  // model->m_model->animations.clear();
-  // model->m_model->extensions.clear();
   model2->loadFromGltfModel( vulkanDevice, m_descriptorManager, planeModel2, queue, 1.0f );
   setupDescriptorSetsForModel( model2 );
 
@@ -2729,9 +2719,6 @@ std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<
   result->m_model->rotation = model->m_model->rotation;
   result->m_model->scale = model->m_model->scale;
   return std::move(result);
-  // model->m_model = model2;
-  // model->m_model->parent = &model->m_modelParent;
-  // return std::move(modelInstance);
 }
 
 void VulkanExample::resetRenderList()
