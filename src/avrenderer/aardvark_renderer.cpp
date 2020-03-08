@@ -2537,6 +2537,7 @@ std::unique_ptr<IModelInstance> VulkanExample::createModelInstance(const std::st
 				  false // bool dracoDecoded;  // Flag indicating this has been draco decoded
         }; */
         bufferViews.push_back(std::move(bufferView));
+        accessor.bufferView = bufferViews.size() - 1;
       }
       {
         auto &attribute = attributes["NORMAL"];
@@ -2561,6 +2562,7 @@ std::unique_ptr<IModelInstance> VulkanExample::createModelInstance(const std::st
         bufferView.byteLength = src.size() * sizeof(src[0]);
         bufferView.target = TINYGLTF_TARGET_ARRAY_BUFFER;
         bufferViews.push_back(std::move(bufferView));
+        accessor.bufferView = bufferViews.size() - 1;
       }
       {
         auto &attribute = attributes["COLOR_0"];
@@ -2585,6 +2587,7 @@ std::unique_ptr<IModelInstance> VulkanExample::createModelInstance(const std::st
         bufferView.byteLength = src.size() * sizeof(src[0]);
         bufferView.target = TINYGLTF_TARGET_ARRAY_BUFFER;
         bufferViews.push_back(std::move(bufferView));
+        accessor.bufferView = bufferViews.size() - 1;
       }
       {
         auto &attribute = attributes["TEXCOORD_0"];
@@ -2609,6 +2612,7 @@ std::unique_ptr<IModelInstance> VulkanExample::createModelInstance(const std::st
         bufferView.byteLength = src.size() * sizeof(src[0]);
         bufferView.target = TINYGLTF_TARGET_ARRAY_BUFFER;
         bufferViews.push_back(std::move(bufferView));
+        accessor.bufferView = bufferViews.size() - 1;
       }
       // index
       {
@@ -2649,6 +2653,7 @@ std::unique_ptr<IModelInstance> VulkanExample::createModelInstance(const std::st
         bufferView.byteLength = src.size() * sizeof(src[0]);
         bufferView.target = TINYGLTF_TARGET_ELEMENT_ARRAY_BUFFER;
         bufferViews.push_back(std::move(bufferView));
+        accessor.bufferView = bufferViews.size() - 1;
 	    }
       // materials
       for (auto &material : materials) {
