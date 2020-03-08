@@ -2236,7 +2236,7 @@ CVulkanRendererModelInstance::CVulkanRendererModelInstance(
 {
 	m_renderer = renderer;
 	m_modelUri = uri;
-	m_model = std::make_shared<vkglTF::Model>( *modelExample );
+	m_model = modelExample;
 	m_model->parent = &m_modelParent;
 }
 
