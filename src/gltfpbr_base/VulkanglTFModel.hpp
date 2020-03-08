@@ -314,14 +314,14 @@ namespace vkglTF
 				if (skin) {
 					mesh->uniformBlock.matrix = m;
 					// Update join matrices
-					glm::mat4 inverseTransform = glm::inverse(m);
+					// glm::mat4 inverseTransform = glm::inverse(m);
 					size_t numJoints = std::min((uint32_t)skin->joints.size(), MAX_NUM_JOINTS);
-					for (size_t i = 0; i < numJoints; i++) {
+					/* for (size_t i = 0; i < numJoints; i++) {
 						std::shared_ptr<Node> jointNode = skin->joints[i];
 						glm::mat4 jointMat = jointNode->getMatrix() * skin->inverseBindMatrices[i];
 						jointMat = inverseTransform * jointMat;
 						mesh->uniformBlock.jointMatrix[i] = jointMat;
-					}
+					} */
 					mesh->uniformBlock.jointcount = (float)numJoints;
 					memcpy(mesh->uniformBuffer.mapped, &mesh->uniformBlock, sizeof(mesh->uniformBlock));
 				} else {

@@ -2435,10 +2435,8 @@ void VulkanExample::setModelTransform(IModelInstance *modelInstance, std::vector
   model->m_model->scale.z = scale[2];
 }
 
-std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<IModelInstance> modelInstance, std::vector<float> &positions, std::vector<float> &normals, std::vector<float> &colors, std::vector<float> &uvs, std::vector<uint16_t> &indices) {  
+std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<IModelInstance> modelInstance, std::vector<float> &positions, std::vector<float> &normals, std::vector<float> &colors, std::vector<float> &uvs, std::vector<uint16_t> &indices) {
   CVulkanRendererModelInstance *model = dynamic_cast<CVulkanRendererModelInstance *>( modelInstance.get() );
-  
-  getOut() << "set model geometry " << (void *)model << " " << (void *)(model->m_model.get()) << " " << (void *)(model->m_model->modelPtr.get()) << std::endl;
 
   std::shared_ptr<tinygltf::Model> model2(new tinygltf::Model(*model->m_model->modelPtr));
   auto &accessors = model2->accessors;
@@ -2731,6 +2729,27 @@ std::unique_ptr<IModelInstance> VulkanExample::setModelTexture(std::unique_ptr<I
   result->m_model->rotation = model->m_model->rotation;
   result->m_model->scale = model->m_model->scale;
   return std::move(result);
+}
+
+void VulkanExample::setBoneTexture(IModelInstance *modelInstance, const std::vector<float> &boneTexture) {
+  CVulkanRendererModelInstance *model = dynamic_cast<CVulkanRendererModelInstance *>( modelInstance );
+
+  size_t numSkins = 0;
+  for (size_t i = 0; i < model->m_model->linearNodes.size(); i++) {
+    auto &node = model->m_model->linearNodes[i];
+    auto &mesh = node->mesh;
+    auto &skin = node->skin;
+    if (mesh && skin) {
+      // getOut() << "set skin" << (++numSkins) << std::endl;
+      glm::mat4 jointMat = glm::translate( glm::mat4{1}, glm::vec3(0, 0.2, 0) );
+      for (size_t i = 0; i < skin->joints.size(); i++) {
+        /* std::shared_ptr<Node> jointNode = skin->joints[i];
+        glm::mat4 jointMat = jointNode->getMatrix() * skin->inverseBindMatrices[i];
+        jointMat = inverseTransform * jointMat; */
+        mesh->uniformBlock.jointMatrix[i] = jointMat;
+      }
+    }
+  }
 }
 
 void VulkanExample::resetRenderList()

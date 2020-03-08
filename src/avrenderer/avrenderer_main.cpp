@@ -154,14 +154,16 @@ int main(int argc, char **argv) {
   }
   {  
     app->startRenderer();
-    Sleep(1000);
-    /* {
+    Sleep(2000);
+    {
       std::string name("objectTest1");
       std::vector<char> data = readFile("data/avatar.glb");
       auto model = app->renderer->m_renderer->loadModelInstance(name, std::move(data));
+      std::vector<float> boneTexture;
+      app->renderer->m_renderer->setBoneTexture(model.get(), boneTexture);
       app->renderer->m_renderer->addToRenderList(model.release());
-    } */
-    {
+    }
+    /* {
       std::string name("objectTest2");
       std::vector<float> positions{
         -0.1, 0.5, 0,
@@ -201,7 +203,7 @@ int main(int argc, char **argv) {
       };
       model = app->renderer->m_renderer->setModelTexture(std::move(model), 1, 1, std::move(image));
       app->renderer->m_renderer->addToRenderList(model.release());
-    }
+    } */
   }
   getOut() << "part 2" << std::endl;
   size_t ids = 0;
