@@ -2740,7 +2740,6 @@ void VulkanExample::setBoneTexture(IModelInstance *modelInstance, const std::vec
     auto &skin = node->skin;
     if (mesh && skin) {
       if (sizeof(mesh->uniformBlock.jointMatrix) == boneTexture.size()*sizeof(boneTexture[0])) {
-        getOut() << "ok size " << sizeof(mesh->uniformBlock.jointMatrix) << " " << (boneTexture.size()*sizeof(boneTexture[0])) << std::endl;
         memcpy(mesh->uniformBlock.jointMatrix, boneTexture.data(), boneTexture.size()*sizeof(boneTexture[0]));
         /* glm::mat4 jointMat = glm::translate( glm::mat4{1}, glm::vec3(0, 0.2, 0) );
         for (size_t i = 0; i < skin->joints.size(); i++) {
@@ -2750,7 +2749,8 @@ void VulkanExample::setBoneTexture(IModelInstance *modelInstance, const std::vec
           mesh->uniformBlock.jointMatrix[i] = jointMat;
         } */
       } else {
-        getOut() << "fail size " << sizeof(mesh->uniformBlock.jointMatrix) << " " << (boneTexture.size()*sizeof(boneTexture[0])) << std::endl;
+        getOut() << "bad bones size: " << sizeof(mesh->uniformBlock.jointMatrix) << " " << (boneTexture.size()*sizeof(boneTexture[0])) << std::endl;
+        abort();
       }
     }
   }
