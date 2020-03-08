@@ -2343,6 +2343,7 @@ std::unique_ptr<IModelInstance> VulkanExample::loadModelInstance(const std::stri
   
   auto model2 = std::make_shared<vkglTF::Model>();
   model2->loadFromGltfModel( vulkanDevice, m_descriptorManager, model, queue, 1.0f );
+  setupDescriptorSetsForModel( model2 );
   return std::make_unique<CVulkanRendererModelInstance>( this, modelUrl, model2 );
 }
 
