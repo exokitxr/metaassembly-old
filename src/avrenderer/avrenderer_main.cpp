@@ -325,8 +325,30 @@ int main(int argc, char **argv) {
               std::vector<float> uvs = Base64::Decode<float>(args[4].get<std::string>());
               std::vector<uint16_t> indices = Base64::Decode<uint16_t>(args[5].get<std::string>());
 
-              auto model = models[name].get();
-              // XXX update geometry
+              models[name] = app->renderer->m_renderer->setModelGeometry(std::move(models[name]), positions, normals, colors, uvs, indices);
+              
+              json result = {
+                // {"processId", processId}
+              };
+              json res = {
+                {"error", nullptr},
+                {"result", result}
+              };
+              respond(res);
+            } else if (
+              methodString == "updateObjectTexture" &&
+              args.size() >= 4 &&
+              args[0].is_string() &&
+              args[1].is_number() &&
+              args[2].is_number() &&
+              args[3].is_string()
+            ) {
+              std::string name = args[0].get<std::string>();
+              int width = args[1].get<int>();
+              int height = args[2].get<int>();
+              std::vector<uint8_t> data = Base64::Decode<uint8_t>(args[3].get<std::string>());
+
+              models[name] = app->renderer->m_renderer->setModelTexture(std::move(models[name]), width, height, std::move(data));
               
               json result = {
                 // {"processId", processId}
