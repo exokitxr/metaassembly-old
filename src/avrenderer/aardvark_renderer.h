@@ -118,7 +118,7 @@ public:
 	// ----------- IRenderer implementation -------------
 	virtual void init( HINSTANCE hInstance, IVrManager *vrManager ) override;
 	virtual void runFrame( bool *shouldQuit, double frameTime ) override;
-  virtual std::unique_ptr<IModelInstance> createModelInstance(const std::string &modelUrl, const char *data, size_t size) override;
+  virtual std::unique_ptr<IModelInstance> loadModelInstance(const std::string &modelUrl, std::vector<char> &&data) override;
 	virtual std::unique_ptr<IModelInstance> createDefaultModelInstance(const std::string &modelUrl);
   void setModelTransform(IModelInstance *model, std::vector<float> &position, std::vector<float> &quaternion, std::vector<float> &scale) override;
   std::unique_ptr<IModelInstance> setModelGeometry(std::unique_ptr<IModelInstance> model, std::vector<float> &positions, std::vector<float> &normals, std::vector<float> &colors, std::vector<float> &uvs, std::vector<uint16_t> &indices) override;

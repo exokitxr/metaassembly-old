@@ -2320,10 +2320,30 @@ void CVulkanRendererModelInstance::animate( float animationTimeElapsed )
 	}
 }
 
-std::unique_ptr<IModelInstance> VulkanExample::createModelInstance(const std::string &modelUrl, const char *data, size_t size) {
-  getOut() << "called non-implemented VulkanExample::createModelInstance" << std::endl;
-  abort();
-  return nullptr;
+std::unique_ptr<IModelInstance> VulkanExample::loadModelInstance(const std::string &modelUrl, std::vector<char> &&data) {
+  std::shared_ptr<tinygltf::Model> model(new tinygltf::Model());
+
+  bool planeModelLoaded = false;
+  if (data.size() >= 4) {
+    tinygltf::TinyGLTF gltfContext;
+
+    std::string error;
+    std::string warning;
+    
+    const bool bBinary = *((uint32_t *)data.data()) == 0x46546C67;
+    if ( bBinary )
+    {
+      planeModelLoaded = gltfContext.LoadBinaryFromMemory( model.get(), &error, &warning, (const unsigned char*)data.data(), (uint32_t)data.size() );
+    }
+    else
+    {
+      planeModelLoaded = gltfContext.LoadASCIIFromString( model.get(), &error, &warning, (const char*)data.data(), (uint32_t)data.size(), ""  );
+    }
+  }
+  
+  auto model2 = std::make_shared<vkglTF::Model>();
+  model2->loadFromGltfModel( vulkanDevice, m_descriptorManager, model, queue, 1.0f );
+  return std::make_unique<CVulkanRendererModelInstance>( this, modelUrl, model2 );
 }
 
 std::shared_ptr<vkglTF::Model> planeModelVk;

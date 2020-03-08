@@ -40,6 +40,7 @@
 #include "javascript_renderer.h"
 
 #include "out.h"
+#include "io.h"
 
 using json = nlohmann::json;
 using Base64 = macaron::Base64;
@@ -154,45 +155,53 @@ int main(int argc, char **argv) {
   {  
     app->startRenderer();
     Sleep(1000);
-    std::string name("objectTest");
-    std::vector<float> positions{
-      -0.1, 0.5, 0,
-      0.1, 0.5, 0,
-      -0.1, -0.5, 0,
-      0.1, -0.5, 0,
-    };
-    std::vector<float> normals{
-      0, 0, 1,
-      0, 0, 1,
-      0, 0, 1,
-      0, 0, 1,
-    };
-    std::vector<float> colors{
-      0, 0, 0,
-      0, 0, 0,
-      0, 0, 0,
-      0, 0, 0,
-    };
-    std::vector<float> uvs{
-      0, 1,
-      1, 1,
-      0, 0,
-      1, 0,
-    };
-    std::vector<uint16_t> indices{
-      0, 2, 1,
-      2, 3, 1,
-    };
-    auto model = app->renderer->m_renderer->createDefaultModelInstance(name);
-    model = app->renderer->m_renderer->setModelGeometry(std::move(model), positions, normals, colors, uvs, indices);
-    std::vector<unsigned char> image = {
-      255,
-      0,
-      0,
-      255,
-    };
-    model = app->renderer->m_renderer->setModelTexture(std::move(model), 1, 1, std::move(image));
-    app->renderer->m_renderer->addToRenderList(model.release());
+    /* {
+      std::string name("objectTest1");
+      std::vector<char> data = readFile("data/avatar.glb");
+      auto model = app->renderer->m_renderer->loadModelInstance(name, std::move(data));
+      app->renderer->m_renderer->addToRenderList(model.release());
+    } */
+    {
+      std::string name("objectTest2");
+      std::vector<float> positions{
+        -0.1, 0.5, 0,
+        0.1, 0.5, 0,
+        -0.1, -0.5, 0,
+        0.1, -0.5, 0,
+      };
+      std::vector<float> normals{
+        0, 0, 1,
+        0, 0, 1,
+        0, 0, 1,
+        0, 0, 1,
+      };
+      std::vector<float> colors{
+        0, 0, 0,
+        0, 0, 0,
+        0, 0, 0,
+        0, 0, 0,
+      };
+      std::vector<float> uvs{
+        0, 1,
+        1, 1,
+        0, 0,
+        1, 0,
+      };
+      std::vector<uint16_t> indices{
+        0, 2, 1,
+        2, 3, 1,
+      };
+      auto model = app->renderer->m_renderer->createDefaultModelInstance(name);
+      model = app->renderer->m_renderer->setModelGeometry(std::move(model), positions, normals, colors, uvs, indices);
+      std::vector<unsigned char> image = {
+        255,
+        0,
+        0,
+        255,
+      };
+      model = app->renderer->m_renderer->setModelTexture(std::move(model), 1, 1, std::move(image));
+      app->renderer->m_renderer->addToRenderList(model.release());
+    }
   }
   getOut() << "part 2" << std::endl;
   size_t ids = 0;
@@ -253,6 +262,25 @@ int main(int argc, char **argv) {
                 {"result", result}
               };
               respond(res);
+            /* } else if (
+              methodString == "addModel" &&
+              args.size() >= 1 &&
+              args[0].is_string()
+            ) {
+              std::vector<unsigned char> data = Base64::Decode<unsigned char>(args[0].get<std::string>());
+
+              models[name] = app->renderer->m_renderer->createDefaultModelInstance(name);
+              app->renderer->m_renderer->addToRenderList(models[name].get());
+              // std::shared_ptr<vkglTF::Model> VulkanExample::findOrLoadModel( std::string modelUri, std::string *psError)
+              
+              json result = {
+                {"id", name}
+              };
+              json res = {
+                {"error", nullptr},
+                {"result", result}
+              };
+              respond(res); */
             } else if (
               methodString == "addObject" &&
               args.size() >= 5 &&

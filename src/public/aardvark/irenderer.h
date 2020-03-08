@@ -73,7 +73,7 @@ public:
 	virtual void init( HINSTANCE hInstance, IVrManager *vrManager ) = 0;
 	virtual void runFrame( bool *shouldQuit, double frameTime ) = 0;
 
-	virtual std::unique_ptr<IModelInstance> createModelInstance(const std::string &uri, const char *data, size_t size) = 0;
+	virtual std::unique_ptr<IModelInstance> loadModelInstance(const std::string &uri, std::vector<char> &&data) = 0;
   virtual std::unique_ptr<IModelInstance> createDefaultModelInstance(const std::string &modelUrl) = 0;
   virtual void setModelTransform(IModelInstance *model, std::vector<float> &position, std::vector<float> &quaternion, std::vector<float> &scale) = 0;
   virtual std::unique_ptr<IModelInstance> setModelGeometry(std::unique_ptr<IModelInstance> model, std::vector<float> &positions, std::vector<float> &normals, std::vector<float> &colors, std::vector<float> &uvs, std::vector<uint16_t> &indices) = 0;
