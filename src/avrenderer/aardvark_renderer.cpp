@@ -2378,7 +2378,6 @@ std::unique_ptr<IModelInstance> VulkanExample::createDefaultModelInstance(const 
         planeModelVk = std::make_shared<vkglTF::Model>();
         planeModelVk->loadFromGltfModel( vulkanDevice, m_descriptorManager, planeModel, queue, 1.0f );
 
-        getOut() << "model loaded 1 " << planeModelVk->modelPtr.get() << " " << planeModelVk->modelPtr->materials.size() << std::endl;
         
         /* auto &images = planeModel.images;
         for (auto &image : images) {
