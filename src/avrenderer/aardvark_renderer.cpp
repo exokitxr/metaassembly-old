@@ -2739,13 +2739,18 @@ void VulkanExample::setBoneTexture(IModelInstance *modelInstance, const std::vec
     auto &mesh = node->mesh;
     auto &skin = node->skin;
     if (mesh && skin) {
-      // getOut() << "set skin" << (++numSkins) << std::endl;
-      glm::mat4 jointMat = glm::translate( glm::mat4{1}, glm::vec3(0, 0.2, 0) );
-      for (size_t i = 0; i < skin->joints.size(); i++) {
-        /* std::shared_ptr<Node> jointNode = skin->joints[i];
-        glm::mat4 jointMat = jointNode->getMatrix() * skin->inverseBindMatrices[i];
-        jointMat = inverseTransform * jointMat; */
-        mesh->uniformBlock.jointMatrix[i] = jointMat;
+      if (sizeof(mesh->uniformBlock.jointMatrix) == boneTexture.size()*sizeof(boneTexture[0])) {
+        getOut() << "ok size " << sizeof(mesh->uniformBlock.jointMatrix) << " " << (boneTexture.size()*sizeof(boneTexture[0])) << std::endl;
+        memcpy(mesh->uniformBlock.jointMatrix, boneTexture.data(), boneTexture.size()*sizeof(boneTexture[0]));
+        /* glm::mat4 jointMat = glm::translate( glm::mat4{1}, glm::vec3(0, 0.2, 0) );
+        for (size_t i = 0; i < skin->joints.size(); i++) {
+          std::shared_ptr<Node> jointNode = skin->joints[i];
+          glm::mat4 jointMat = jointNode->getMatrix() * skin->inverseBindMatrices[i];
+          jointMat = inverseTransform * jointMat;
+          mesh->uniformBlock.jointMatrix[i] = jointMat;
+        } */
+      } else {
+        getOut() << "fail size " << sizeof(mesh->uniformBlock.jointMatrix) << " " << (boneTexture.size()*sizeof(boneTexture[0])) << std::endl;
       }
     }
   }

@@ -159,7 +159,11 @@ int main(int argc, char **argv) {
       std::string name("objectTest1");
       std::vector<char> data = readFile("data/avatar.glb");
       auto model = app->renderer->m_renderer->loadModelInstance(name, std::move(data));
-      std::vector<float> boneTexture;
+      std::vector<float> boneTexture(128*16);
+      glm::mat4 jointMat = glm::translate(glm::mat4{1}, glm::vec3(0, 0.2, 0));
+      for (size_t i = 0; i < boneTexture.size(); i += 16) {
+        memcpy(&boneTexture[i], &jointMat, sizeof(float)*16);
+      }
       app->renderer->m_renderer->setBoneTexture(model.get(), boneTexture);
       app->renderer->m_renderer->addToRenderList(model.release());
     }
