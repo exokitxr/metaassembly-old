@@ -13,6 +13,8 @@ rm steamworks_sdk_148.zip
 
 msbuild Aardvark.sln
 
+cp -Recurse data src\build\avrenderer\Debug\
+
 echo zipping artifact... 
 7z a avrenderer.zip -r .\src\build\avrenderer\Debug\
 echo done zipping artifact
