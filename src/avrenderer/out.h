@@ -6,6 +6,7 @@
 
 extern std::string dllDir;
 extern std::ofstream out;
+extern std::string logSuffix;
 
 std::ostream &getOut();
 void TRACE(const char *module, const std::function<void()> &fn);

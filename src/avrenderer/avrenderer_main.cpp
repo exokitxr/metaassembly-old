@@ -45,7 +45,7 @@
 using json = nlohmann::json;
 using Base64 = macaron::Base64;
 
-std::string logSuffix = "_native";
+std::string logSuffix = "_native_host";
 // HWND g_hWnd = NULL;
 // CHAR s_szDllPath[MAX_PATH] = "vrclient_x64.dll";
 std::string dllDir;
@@ -93,65 +93,6 @@ int main(int argc, char **argv) {
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
   }); */
-
-  {  
-    char cwdBuf[MAX_PATH];
-    if (!GetCurrentDirectory(sizeof(cwdBuf), cwdBuf)) {
-      getOut() << "failed to get current directory" << std::endl;
-      abort();
-    }
-    dllDir = cwdBuf;
-    dllDir += "\\";
-    {
-      std::string manifestTemplateFilePath = std::filesystem::weakly_canonical(std::filesystem::path(dllDir + std::string(R"EOF(..\..\..\avrenderer\native-manifest-template.json)EOF"))).string();
-      std::string manifestFilePath = std::filesystem::weakly_canonical(std::filesystem::path(dllDir + std::string(R"EOF(\native-manifest.json)EOF"))).string();
-
-      std::string s;
-      {
-        std::ifstream inFile(manifestTemplateFilePath);
-        s = std::string((std::istreambuf_iterator<char>(inFile)), std::istreambuf_iterator<char>());
-      }
-      {
-        json j = json::parse(s);
-        j["path"] = std::filesystem::weakly_canonical(std::filesystem::path(dllDir + std::string(R"EOF(\avrenderer.exe)EOF"))).string();
-        s = j.dump(2);
-      }
-      {    
-        std::ofstream outFile(manifestFilePath);
-        outFile << s;
-        outFile.close();
-      }
-      
-      HKEY hKey;
-      LPCTSTR sk = R"EOF(Software\Google\Chrome\NativeMessagingHosts\com.exokit.xrchrome)EOF";
-      LONG openRes = RegOpenKeyEx(HKEY_CURRENT_USER, sk, 0, KEY_ALL_ACCESS , &hKey);
-      if (openRes == ERROR_FILE_NOT_FOUND) {
-        openRes = RegCreateKeyExA(HKEY_CURRENT_USER, sk, 0, NULL, 0, KEY_ALL_ACCESS, NULL, &hKey, NULL);
-        
-        if (openRes != ERROR_SUCCESS) {
-          getOut() << "failed to create registry key: " << (void*)openRes << std::endl;
-          abort();
-        }
-      } else if (openRes != ERROR_SUCCESS) {
-        getOut() << "failed to open registry key: " << (void*)openRes << std::endl;
-        abort();
-      }
-
-      LPCTSTR value = "";
-      LPCTSTR data = manifestFilePath.c_str();
-      LONG setRes = RegSetValueEx(hKey, value, 0, REG_SZ, (LPBYTE)data, strlen(data)+1);
-      if (setRes != ERROR_SUCCESS) {
-        getOut() << "failed to set registry key: " << (void*)setRes << std::endl;
-        abort();
-      }
-
-      LONG closeRes = RegCloseKey(hKey);
-      if (closeRes != ERROR_SUCCESS) {
-        getOut() << "failed to close registry key: " << (void*)closeRes << std::endl;
-        abort();
-      }
-    }
-  }
   {  
     /* app->startRenderer();
     Sleep(2000);

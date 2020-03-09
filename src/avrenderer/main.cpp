@@ -18,7 +18,7 @@
 
 using json = nlohmann::json;
 
-std::string logSuffix = "_native";
+std::string logSuffix = "";
 // HWND g_hWnd = NULL;
 // CHAR s_szDllPath[MAX_PATH] = "vrclient_x64.dll";
 std::string dllDir;
