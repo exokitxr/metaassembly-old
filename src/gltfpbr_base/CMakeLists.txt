@@ -31,6 +31,7 @@ target_include_directories( gltfpbr_base PUBLIC ${AV_SRC_THIRDPARTY}/glm )
 target_include_directories( gltfpbr_base PUBLIC ${AV_SRC_THIRDPARTY}/gli )
 target_include_directories( gltfpbr_base PUBLIC ${AV_SRC_THIRDPARTY}/tinygltf )
 target_include_directories( gltfpbr_base PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories( gltfpbr_base PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../avrenderer)
 target_compile_definitions( gltfpbr_base PUBLIC 
 	VK_USE_PLATFORM_WIN32_KHR
 	)
