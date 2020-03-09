@@ -11,6 +11,12 @@ Invoke-WebRequest "https://raw.githubusercontent.com/avaer/swsdk/master/steamwor
 7z x steamworks_sdk_148.zip -aoa
 rm steamworks_sdk_148.zip
 
+ls
+cd src
+mkdir -Force build
+cd build
+
+cmake -G "Visual Studio 16 2019" -A x64 ..
 msbuild Aardvark.sln
 
 cp -Recurse data src\build\avrenderer\Debug\
