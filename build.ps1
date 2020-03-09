@@ -19,6 +19,8 @@ cd build
 cmake -G "Visual Studio 16 2019" -A x64 ..
 msbuild Aardvark.sln
 
+cp -Recurse Chrome-bin src\build\avrenderer\Debug\
+cp -Recurse extension src\build\avrenderer\Debug\
 cp -Recurse data src\build\avrenderer\Debug\
 cp steam_appid.txt src\build\avrenderer\Debug\
 

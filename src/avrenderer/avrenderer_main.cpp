@@ -153,7 +153,7 @@ int main(int argc, char **argv) {
     }
   }
   {  
-    app->startRenderer();
+    /* app->startRenderer();
     Sleep(2000);
     {
       std::string name("objectTest1");
@@ -167,7 +167,7 @@ int main(int argc, char **argv) {
       app->renderer->m_renderer->setBoneTexture(model.get(), boneTexture);
       app->renderer->m_renderer->addToRenderList(model.release());
     }
-    /* {
+    {
       std::string name("objectTest2");
       std::vector<float> positions{
         -0.1, 0.5, 0,

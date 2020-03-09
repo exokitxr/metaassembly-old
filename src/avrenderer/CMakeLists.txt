@@ -36,7 +36,7 @@ add_executable(avrenderer WIN32
   io.h
 
 	${SHADERS}
-	)
+)
 
 target_link_libraries(avrenderer ${Vulkan_LIBRARY} ${WINLIBS})
 target_link_libraries( avrenderer aardvark )
@@ -74,7 +74,7 @@ set( CEF_TARGET_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>/")
 #
 
 set_target_properties(avrenderer PROPERTIES
-LINK_FLAGS /SUBSYSTEM:CONSOLE
+  LINK_FLAGS /SUBSYSTEM:CONSOLE
 )
 
 if(OS_WINDOWS)
@@ -101,3 +101,13 @@ target_include_directories( avrenderer PRIVATE ${TinyProcessLibrary_INCLUDE_DIR}
 target_link_directories( avrenderer PRIVATE ${TinyProcessLibrary_LIB_DIR} )
 target_link_libraries( avrenderer tiny-process-library )
 target_link_libraries( avrenderer D3D11 )
+
+add_executable(av WIN32
+	main.cpp
+
+  out.cpp
+  out.h
+)
+set_target_properties(av PROPERTIES
+  LINK_FLAGS /SUBSYSTEM:CONSOLE
+)
