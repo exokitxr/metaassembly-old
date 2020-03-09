@@ -223,6 +223,14 @@ int main(int argc, char **argv, char **envp) {
             if (methodString == "startRenderer") {
               app.reset(new CAardvarkCefApp());
               app->startRenderer();
+              auto appPtr = app.get();
+              std::thread([appPtr]() {
+                while (appPtr->tickRenderer) {
+                  Sleep(10);
+                }
+                getOut() << "quitting" << std::endl;
+                ExitProcess(0);
+              }).detach();
               
               getOut() << "respond 1" << std::endl;
 

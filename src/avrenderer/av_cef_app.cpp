@@ -124,20 +124,12 @@ CAardvarkCefApp::~CAardvarkCefApp()
 
 void CAardvarkCefApp::startRenderer() {
   renderer.reset(new CJavascriptRenderer());
-  std::thread([this]() {
-    renderer->init();
-    for(;;) {
-      renderer->runFrame();
-      if (!renderer->m_quitting) {
-        Sleep(10);
-        continue;
-      } else {
-        break;
-      }
-    }
-    getOut() << "quitting" << std::endl;
-    ExitProcess(0);
-  }).detach();
+  renderer->init();
+}
+
+bool CAardvarkCefApp::tickRenderer() {
+	renderer->runFrame();
+	return !renderer->m_quitting;
 }
 
 /* void CAardvarkCefApp::OnContextInitialized()

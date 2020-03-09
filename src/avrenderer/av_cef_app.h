@@ -24,6 +24,7 @@ public:
 	static CAardvarkCefApp* instance();
   
   void startRenderer();
+  bool tickRenderer();
 
 	// CefApp methods:
 	/* virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() override
