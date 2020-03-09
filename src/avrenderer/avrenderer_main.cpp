@@ -38,6 +38,7 @@
 #include "base64.h"
 
 #include "javascript_renderer.h"
+#include <glm/gtc/type_ptr.hpp>
 
 #include "out.h"
 #include "file_io.h"
@@ -77,9 +78,6 @@ void respond(const json &j) {
     }
     // std::cout << "done sending" << std::endl;
   }
-}
-void emitEvent(const json &j) {
-
 }
 
 // OS specific macros for the example main entry points
@@ -242,16 +240,18 @@ int main(int argc, char **argv, char **envp) {
                     leftArray.push_back(left[i]);
                     rightArray.push_back(right[i]);
                   }
+                  
+                  getOut() << "emit event" << hmd[0] << " " << hmd[1] << " " << hmd[2] << " " << hmd[3] << std::endl;
 
                   json event = {
-                    {"type", "pose"},
+                    {"event", "pose"},
                     {"data", {
                       {"hmd", hmdArray},
                       {"left", leftArray},
                       {"right", rightArray},
                     }},
                   };
-                  emitEvent(event);
+                  respond(event);
 
                   Sleep(10);
                 }
