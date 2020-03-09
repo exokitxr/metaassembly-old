@@ -23,6 +23,7 @@ cp -Recurse Chrome-bin src\build\avrenderer\Debug\
 cp -Recurse extension src\build\avrenderer\Debug\
 cp -Recurse data src\build\avrenderer\Debug\
 cp -Recurse bin\openvr_api.dll src\build\avrenderer\Debug\
+# cp -Recurse bin\openvr_api.dll src\build\avrenderer\Debug\Chrome-bin\79.0.3945.130\
 cp steam_appid.txt src\build\avrenderer\Debug\
 
 echo zipping artifact... 
