@@ -36,6 +36,7 @@ chrome.tabs.onUpdated.addListener(inject); */
 const port = chrome.runtime.connectNative('com.exokit.xrchrome');
 const cbs = [];
 let continuationString = '';
+const ports = [];
 const _handleMessage = msg => {
   // console.log("received native", msg);
   const _processCb = msg => {
@@ -109,6 +110,15 @@ chrome.runtime.onMessage.addListener(
     }
     
     return true; // async
+});
+
+chrome.runtime.onConnect.addListener(port => {
+  console.log('port connect', port);
+  ports.push(port);
+  port.onDisconnect.addListener(() => {
+    console.log('port disconnect', port);
+    ports.splice(ports.indexOf(port), 1);
+  });
 });
 
 chrome.windows.onRemoved.addListener(windowId => {
