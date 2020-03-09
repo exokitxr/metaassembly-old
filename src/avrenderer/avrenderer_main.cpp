@@ -29,6 +29,8 @@
 // #include <DXGI1_4.h>
 // #include <wrl.h>
 
+#include <psapi.h>
+
 // #include "device/vr/detours/detours.h"
 #include "json.hpp"
 
@@ -78,6 +80,78 @@ void respond(const json &j) {
     }
     // std::cout << "done sending" << std::endl;
   }
+}
+
+void terminateProcesses(const std::vector<const char *> &candidateFilenames) {
+  char cwdBuf[MAX_PATH];
+  if (!GetCurrentDirectory(sizeof(cwdBuf), cwdBuf)) {
+    getOut() << "failed to get current directory" << std::endl;
+    abort();
+  }
+  std::string cwdBufString(cwdBuf);
+  
+  DWORD aProcesses[1024], cbNeeded, cProcesses;
+  if (EnumProcesses(aProcesses, sizeof(aProcesses), &cbNeeded)) {
+    cProcesses = cbNeeded / sizeof(DWORD);
+
+    bool matchedSelf = false;
+    for (DWORD i = 0; i < cProcesses; i++) {
+      DWORD pid = aProcesses[i];
+      if (pid != 0) {
+        HANDLE h = OpenProcess(
+          PROCESS_QUERY_INFORMATION | PROCESS_VM_READ | PROCESS_TERMINATE,
+          FALSE,
+          pid
+        );
+        if (h) {
+          char p[MAX_PATH];
+          if (GetModuleFileNameExA(h, 0, p, MAX_PATH)) {
+            std::string pString(p);
+            if (pString.rfind(cwdBufString, 0) == 0) {
+              std::string filenameString(p + cwdBufString.length() + 1); // cwd slash
+              bool match = false;
+              for (auto candidateFileName : candidateFilenames) {
+                if (filenameString == candidateFileName) {
+                  if (pid != GetCurrentProcessId()) {
+                    match = true;
+                  } else {
+                    matchedSelf = true;
+                  }
+                  break;
+                }
+              }
+              if (match) {
+                getOut() << "terminate process " << p << " " << pid << std::endl;
+                if (!TerminateProcess(h, 0)) {
+                  getOut() << "failed to terminate process " << p << " " << pid << " " << (void *)GetLastError() << std::endl;
+                }
+              }
+            }
+          } else {
+            getOut() << "failed to get process file name: " << (void *)GetLastError() << std::endl;
+          }
+          CloseHandle(h);
+        }
+      }
+    }
+    if (matchedSelf) {
+      getOut() << "terminating self" << std::endl;
+      ExitProcess(0);
+    }
+  } else {
+    getOut() << "failed to enum chrome processes" << std::endl;
+  }
+}
+void terminateKnownProcesses() {
+  terminateProcesses(std::vector<const char *>{
+    "Chrome-bin\\chrome.exe",
+  });
+  terminateProcesses(std::vector<const char *>{
+    "avrenderer.exe",
+  });
+  /* terminateProcesses(std::vector<const char *>{
+    "av.exe",
+  }); */
 }
 
 // OS specific macros for the example main entry points
@@ -410,6 +484,24 @@ int main(int argc, char **argv, char **envp) {
               json res = {
                 {"error", nullptr},
                 {"result", result}
+              };
+              respond(res);
+            } else if (
+              methodString == "terminate"
+            ) {
+              getOut() << "call terminate 1" << std::endl;
+              terminateKnownProcesses();
+              getOut() << "call terminate 2" << std::endl;
+
+              json res = {
+                {"error", nullptr},
+                {"result", "ok"}
+              };
+              respond(res);
+            } else {
+              json res = {
+                {"error", "unknown method"},
+                {"result", nullptr}
               };
               respond(res);
             }
