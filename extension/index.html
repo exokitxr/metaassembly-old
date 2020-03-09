@@ -343,6 +343,10 @@ window.addEventListener('load', async e => {
       // nothing
     }
   });
+  
+  window.addEventListener('pose', e => {
+    console.log('got pose', e.data);
+  });
 
   document.getElementById('form-1').addEventListener('submit', e => {
     e.preventDefault();
