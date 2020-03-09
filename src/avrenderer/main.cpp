@@ -41,7 +41,7 @@ void getChildEnvBuf(char *pEnvBuf) {
     abort();
   }
 
-  {
+  /* {
     std::string vrOverrideString = "VR_OVERRIDE=";
     vrOverrideString += cwdBuf;
     vrOverrideString += R"EOF(\..\)EOF";
@@ -62,7 +62,7 @@ void getChildEnvBuf(char *pEnvBuf) {
     if (!vrOverrideFound) {
       vars.push_back(std::move(vrOverrideString));
     }
-  }
+  } */
 
   for (auto iter : vars) {
     const std::string &s = iter;
@@ -217,9 +217,7 @@ HANDLE startChrome(const std::string &indexHtmlPath) {
 }
 
 HANDLE chromeProcessHandle = NULL;
-int main(int argc, char **argv) {
-  // tools::initLogs();
-  
+int main(int argc, char **argv, char **envp) {
   getOut() << "Start" << std::endl;
   
   char cwdBuf[MAX_PATH];

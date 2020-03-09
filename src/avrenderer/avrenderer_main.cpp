@@ -81,10 +81,30 @@ void respond(const json &j) {
 
 // OS specific macros for the example main entry points
 // int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
-int main(int argc, char **argv) {
+int main(int argc, char **argv, char **envp) {
   tools::initLogs();
   
   getOut() << "Start" << std::endl;
+  
+  SetEnvironmentVariable("VR_OVERRIDE", nullptr);
+  
+  for (char **env = envp; *env != 0; env++) {
+    char *thisEnv = *env;
+    getOut() << thisEnv << std::endl; 
+  }
+
+  {
+    char cwdBuf[MAX_PATH];
+    if (!GetCurrentDirectory(
+      sizeof(cwdBuf),
+      cwdBuf
+    )) {
+      getOut() << "failed to get current directory" << std::endl;
+      abort();
+    }
+
+    getOut() << "start native host " << cwdBuf << std::endl;
+  }
   
   std::unique_ptr<CAardvarkCefApp> app(new CAardvarkCefApp());
   /* std::thread renderThread([&]() -> void {
