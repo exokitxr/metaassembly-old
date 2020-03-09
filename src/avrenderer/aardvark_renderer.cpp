@@ -2769,9 +2769,9 @@ void VulkanExample::addToRenderList( IModelInstance *modelInstance )
 
 std::shared_ptr<vkglTF::Model> model;
 void VulkanExample::runFrame( bool *shouldQuit, double frameTime )
-{ 
-	bool unusedShouldRender;
-	pumpWindowEvents( shouldQuit, &unusedShouldRender );
+{
+	// bool unusedShouldRender;
+	// pumpWindowEvents( shouldQuit, &unusedShouldRender );
 	updateFrameTime( frameTime );
 }
 

@@ -852,9 +852,9 @@ HWND VulkanExampleBase::setupWindow( HINSTANCE hinstance )
 
 	SetWindowLongPtr( window, GWLP_USERDATA, (LONG_PTR)this );
 
-	ShowWindow(window, SW_SHOW);
+	/* ShowWindow(window, SW_SHOW);
 	SetForegroundWindow(window);
-	SetFocus(window);
+	SetFocus(window); */
 
 	return window;
 }
