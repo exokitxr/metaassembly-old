@@ -36,9 +36,9 @@ chrome.tabs.onUpdated.addListener(inject); */
 const port = chrome.runtime.connectNative('com.exokit.xrchrome');
 const cbs = [];
 let continuationString = '';
-port.onMessage.addListener(msg => {
+const _handleMessage = msg => {
   // console.log("received native", msg);
-  const _process = msg => {
+  const _processCb = msg => {
     if (cbs.length > 0) {
       const cb = cbs.shift();
       cb(msg);
@@ -50,12 +50,13 @@ port.onMessage.addListener(msg => {
     if (index === total - 1) {
       const continuationMsg = JSON.parse(continuationString);
       continuationString = '';
-      _process(continuationMsg);
+      _handleMessage(continuationMsg);
     }
   } else {
-    _process(msg);
+    _processCb(msg);
   }
-});
+};
+port.onMessage.addListener(_handleMessage);
 port.onDisconnect.addListener(() => {
   console.log("disconnected native");
 });
