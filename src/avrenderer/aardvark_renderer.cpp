@@ -46,7 +46,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "out.h"
-#include "io.h"
+#include "file_io.h"
 
 using namespace aardvark;
 
