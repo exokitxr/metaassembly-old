@@ -21,6 +21,14 @@ window.addEventListener('message', m => {
     });
   }
 });
+const port = chrome.runtime.connect();
+port.onMessage.addListener(msg => {
+  const {event, data} = msg;
+  window.dispatchEvent(new MessageEvent(event, {data}));
+});
+port.onDisconnect.addListener(() => {
+  console.log('main port disconnected', port);
+});
 chrome.runtime.sendMessage({}, function(res) {
   console.log('got ping response', res);
 });
