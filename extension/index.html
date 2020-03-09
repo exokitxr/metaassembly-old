@@ -44,7 +44,8 @@ body.phase-2 #form-2
     <input type=submit>
   </form>
   <form id=form-2>
-    <input type=button id=enter value="Enter Overlay">
+    <input type=button id=enter-xr-button value="Enter XR">
+    <input type=button id=enter-overlay-button value="Enter Overlay">
     <canvas id=canvas></canvas>
   </form>
 <script type=module>
@@ -148,14 +149,14 @@ window.addEventListener('load', async e => {
   const container = new THREE.Object3D();
   scene.add(container);
 
-  const orbitControls = new OrbitControls(camera, interfaceDocument.querySelector('.background'), interfaceDocument);
+  const orbitControls = new OrbitControls(camera, canvas, document);
   orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, 0, -1.5));
   orbitControls.screenSpacePanning = true;
   // orbitControls.enabled = !!loginToken;
   orbitControls.enableMiddleZoom = false;
   orbitControls.update();
 
-  const enterXrButton = interfaceDocument.getElementById('enter-xr-button');
+  const enterXrButton = document.getElementById('enter-xr-button');
   let currentSession = null;
   const triggerDowns = [false, false];
   const gripDowns = [false, false];
@@ -395,7 +396,7 @@ window.addEventListener('load', async e => {
     }
     document.body.classList.add('phase-2');
   });
-  document.getElementById('enter').addEventListener('click', async e => {
+  document.getElementById('enter-overlay-button').addEventListener('click', async e => {
     await window.xrchrome.request('startRenderer', []);
     const res = await fetch('../data/avatar.glb');
     const arrayBuffer = await res.arrayBuffer();
