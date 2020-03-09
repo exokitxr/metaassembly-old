@@ -402,12 +402,15 @@ window.addEventListener('load', async e => {
   });
   document.getElementById('enter-overlay-button').addEventListener('click', async e => {
     await window.xrchrome.request('startRenderer', []);
+    console.log('render started');
     const res = await fetch('../data/avatar.glb');
     const arrayBuffer = await res.arrayBuffer();
+    console.log('model fetched');
     await window.xrchrome.request('addModel', [
       'model',
       base64ArrayBuffer(arrayBuffer),
     ]);
+    console.log('model added');
   });
 });
 
