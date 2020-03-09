@@ -240,8 +240,8 @@ int main(int argc, char **argv, char **envp) {
                     leftArray.push_back(left[i]);
                     rightArray.push_back(right[i]);
                   }
-                  
-                  getOut() << "emit event" << hmd[0] << " " << hmd[1] << " " << hmd[2] << " " << hmd[3] << std::endl;
+
+                  // getOut() << "emit event" << hmd[0] << " " << hmd[1] << " " << hmd[2] << " " << hmd[3] << std::endl;
 
                   json event = {
                     {"event", "pose"},
