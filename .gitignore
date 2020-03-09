@@ -19,6 +19,7 @@ packages/aardvark-react/lib
 packages/aardvark-shared/lib
 node_modules
 
+package-lock.json
 chrome.7z
 Chrome-bin
 steamworks_sdk_148.zip
