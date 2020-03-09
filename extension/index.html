@@ -1,7 +1,6 @@
 <!doctype html>
 <html>
 <head>
-<script src="three.js"></script>
 <script src="https://rawcdn.githack.com/ConsenSys/eth-lightwallet/d21df74dd2d5e09632bf38309f147784668b1498/dist/lightwallet.js"></script>
 <style>
 body {
@@ -48,6 +47,10 @@ body.phase-2 #form-2
     <input type=button id=enter value="Enter Overlay">
     <canvas id=canvas></canvas>
   </form>
+<script type=module>
+  import THREE from './three.module.js';
+  window.THREE = THREE;
+</script>
 <script type=module>
 import {OrbitControls} from './OrbitControls.js';
 import {XRControllerModelFactory} from './XRControllerModelFactory.js';
