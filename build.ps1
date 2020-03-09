@@ -17,19 +17,25 @@ mkdir -Force build
 cd build
 
 cmake -G "Visual Studio 16 2019" -A x64 ..
-msbuild Aardvark.sln
 
+msbuild -m Aardvark.sln
 cd ..
 ls
 cp -Recurse Chrome-bin src\build\avrenderer\Debug\
 cp -Recurse extension src\build\avrenderer\Debug\
 cp -Recurse data src\build\avrenderer\Debug\
 cp -Recurse bin\openvr_api.dll src\build\avrenderer\Debug\
-# cp -Recurse bin\openvr_api.dll src\build\avrenderer\Debug\Chrome-bin\79.0.3945.130\
 cp steam_appid.txt src\build\avrenderer\Debug\
 
+msbuild /p:Configuration=Release -m Aardvark.sln
+cp -Recurse Chrome-bin src\build\avrenderer\Release\
+cp -Recurse extension src\build\avrenderer\Release\
+cp -Recurse data src\build\avrenderer\Release\
+cp -Recurse bin\openvr_api.dll src\build\avrenderer\Release\
+cp steam_appid.txt src\build\avrenderer\Release\
+
 echo zipping artifact... 
-7z a avrenderer.zip -r .\src\build\avrenderer\Debug\
+7z a avrenderer.zip -r .\src\build\avrenderer\Release\
 echo done zipping artifact
 
 ls
