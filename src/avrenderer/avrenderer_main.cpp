@@ -78,6 +78,9 @@ void respond(const json &j) {
     // std::cout << "done sending" << std::endl;
   }
 }
+void emitEvent(const json &j) {
+
+}
 
 // OS specific macros for the example main entry points
 // int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
@@ -226,6 +229,30 @@ int main(int argc, char **argv, char **envp) {
               auto appPtr = app.get();
               std::thread([appPtr]() {
                 while (appPtr->tickRenderer) {
+                  float hmd[16];
+                  float left[16];
+                  float right[16];
+                  appPtr->getPoses(hmd, left, right);
+
+                  json hmdArray = json::array();
+                  json leftArray = json::array();
+                  json rightArray = json::array();
+                  for (size_t i = 0; i < ARRAYSIZE(hmd); i++) {
+                    hmdArray.push_back(hmd[i]);
+                    leftArray.push_back(left[i]);
+                    rightArray.push_back(right[i]);
+                  }
+
+                  json event = {
+                    {"type", "pose"},
+                    {"data", {
+                      {"hmd", hmdArray},
+                      {"left", leftArray},
+                      {"right", rightArray},
+                    }},
+                  };
+                  emitEvent(event);
+
                   Sleep(10);
                 }
                 getOut() << "quitting" << std::endl;

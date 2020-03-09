@@ -132,6 +132,15 @@ bool CAardvarkCefApp::tickRenderer() {
 	return !renderer->m_quitting;
 }
 
+void CAardvarkCefApp::getPoses(float *hmd, float *left, float *right) {
+	glm::mat4 &headMatrix = renderer->m_vrManager->m_universeFromOriginTransforms["/user/head"];
+	memcpy(hmd, glm::value_ptr(headMatrix), sizeof(headMatrix));
+	glm::mat4 &leftMatrix = renderer->m_vrManager->m_universeFromOriginTransforms["/user/hand/left"];
+	memcpy(left, glm::value_ptr(leftMatrix), sizeof(leftMatrix));
+	glm::mat4 &rightMatrix = renderer->m_vrManager->m_universeFromOriginTransforms["/user/hand/right"];
+	memcpy(right, glm::value_ptr(rightMatrix), sizeof(rightMatrix));
+}
+
 /* void CAardvarkCefApp::OnContextInitialized()
 {
 	CEF_REQUIRE_UI_THREAD();

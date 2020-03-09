@@ -25,6 +25,7 @@ public:
   
   void startRenderer();
   bool tickRenderer();
+  void getPoses(float *head, float *left, float *right);
 
 	// CefApp methods:
 	/* virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() override
