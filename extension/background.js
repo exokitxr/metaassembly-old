@@ -58,14 +58,6 @@ const _handleMessage = msg => {
     for (let i = 0; i > ports.length; i++) {
       ports[i].postMessage({event, data});
     }
-    /* chrome.tabs.query({}, function(tabs) {
-      console.log('got tabs', tabs);
-      tabs.forEach(tab => {
-        chrome.tabs.sendMessage(tab.id, {event, data}, function(response) {
-          // console.log(response.farewell);
-        });
-      });
-    }); */
   } else {
     _processCb(msg);
   }
