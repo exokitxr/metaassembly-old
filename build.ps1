@@ -22,6 +22,7 @@ msbuild Aardvark.sln
 cp -Recurse Chrome-bin src\build\avrenderer\Debug\
 cp -Recurse extension src\build\avrenderer\Debug\
 cp -Recurse data src\build\avrenderer\Debug\
+cp -Recurse bin\openvr_api.dll src\build\avrenderer\Debug\
 cp steam_appid.txt src\build\avrenderer\Debug\
 
 echo zipping artifact... 
