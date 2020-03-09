@@ -228,7 +228,7 @@ int main(int argc, char **argv, char **envp) {
               app->startRenderer();
               auto appPtr = app.get();
               std::thread([appPtr]() {
-                while (appPtr->tickRenderer) {
+                while (appPtr->tickRenderer()) {
                   float hmd[16];
                   float left[16];
                   float right[16];

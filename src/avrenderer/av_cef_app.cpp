@@ -20,7 +20,7 @@
 
 #include <tools/logging.h>
 
-// #include <cstdlib>
+#include <glm/gtc/type_ptr.hpp>
 #include "out.h"
 #include "javascript_renderer.h"
 
@@ -133,11 +133,14 @@ bool CAardvarkCefApp::tickRenderer() {
 }
 
 void CAardvarkCefApp::getPoses(float *hmd, float *left, float *right) {
-	glm::mat4 &headMatrix = renderer->m_vrManager->m_universeFromOriginTransforms["/user/head"];
+	glm::mat4 headMatrix;
+  renderer->m_vrManager->getUniverseFromOrigin("/user/head", &headMatrix);
 	memcpy(hmd, glm::value_ptr(headMatrix), sizeof(headMatrix));
-	glm::mat4 &leftMatrix = renderer->m_vrManager->m_universeFromOriginTransforms["/user/hand/left"];
+	glm::mat4 leftMatrix;
+  renderer->m_vrManager->getUniverseFromOrigin("/user/hand/left", &leftMatrix);
 	memcpy(left, glm::value_ptr(leftMatrix), sizeof(leftMatrix));
-	glm::mat4 &rightMatrix = renderer->m_vrManager->m_universeFromOriginTransforms["/user/hand/right"];
+	glm::mat4 rightMatrix;
+  renderer->m_vrManager->getUniverseFromOrigin("/user/hand/right", &rightMatrix);
 	memcpy(right, glm::value_ptr(rightMatrix), sizeof(rightMatrix));
 }
 
