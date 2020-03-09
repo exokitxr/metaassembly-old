@@ -49,6 +49,8 @@ body.phase-2 #form-2
     <canvas id=canvas></canvas>
   </form>
 <script type=module>
+import {OrbitControls} from './OrbitControls.js';
+import {XRControllerModelFactory} from './XRControllerModelFactory.js';
 import {initLocalRig, updatePlayerFromCamera, updatePlayerFromXr, bindPeerConnection} from './peerconnection.js';
 
 function base64ArrayBuffer(arrayBuffer) {
