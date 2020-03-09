@@ -88,7 +88,7 @@ int main(int argc, char **argv, char **envp) {
   
   SetEnvironmentVariable("VR_OVERRIDE", nullptr);
   
-  for (char **env = envp; *env != 0; env++) {
+  /* for (char **env = envp; *env != 0; env++) {
     char *thisEnv = *env;
     getOut() << thisEnv << std::endl; 
   }
@@ -104,8 +104,8 @@ int main(int argc, char **argv, char **envp) {
     }
 
     getOut() << "start native host " << cwdBuf << std::endl;
-  }
-  
+  } */
+
   std::unique_ptr<CAardvarkCefApp> app(new CAardvarkCefApp());
   /* std::thread renderThread([&]() -> void {
     while (!app->wantsToQuit()) {
