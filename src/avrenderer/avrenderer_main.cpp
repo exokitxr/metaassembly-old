@@ -82,7 +82,7 @@ void respond(const json &j) {
 // OS specific macros for the example main entry points
 // int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 int main(int argc, char **argv, char **envp) {
-  tools::initLogs();
+  // tools::initLogs();
   
   getOut() << "Start" << std::endl;
   
@@ -106,20 +106,22 @@ int main(int argc, char **argv, char **envp) {
     getOut() << "start native host " << cwdBuf << std::endl;
   } */
 
-  std::unique_ptr<CAardvarkCefApp> app(new CAardvarkCefApp());
+  std::unique_ptr<CAardvarkCefApp> app;
   /* std::thread renderThread([&]() -> void {
     while (!app->wantsToQuit()) {
       app->runFrame();
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
   }); */
-  {  
-    /* app->startRenderer();
+  {
+    /* app.reset(new CAardvarkCefApp());
+    app->startRenderer();
     Sleep(2000);
     {
       std::string name("objectTest1");
       std::vector<char> data = readFile("data/avatar.glb");
-      auto model = app->renderer->m_renderer->loadModelInstance(name, std::move(data));
+      getOut() << "get data " << name << " " << data.size() << std::endl;
+      // auto model = app->renderer->m_renderer->loadModelInstance(name, std::move(data));
       std::vector<float> boneTexture(128*16);
       glm::mat4 jointMat = glm::translate(glm::mat4{1}, glm::vec3(0, 0.2, 0));
       for (size_t i = 0; i < boneTexture.size(); i += 16) {
@@ -127,8 +129,8 @@ int main(int argc, char **argv, char **envp) {
       }
       app->renderer->m_renderer->setBoneTexture(model.get(), boneTexture);
       app->renderer->m_renderer->addToRenderList(model.release());
-    }
-    {
+    } */
+    /* {
       std::string name("objectTest2");
       std::vector<float> positions{
         -0.1, 0.5, 0,
@@ -219,27 +221,49 @@ int main(int argc, char **argv, char **envp) {
               i++;
             } */
             if (methodString == "startRenderer") {
+              app.reset(new CAardvarkCefApp());
               app->startRenderer();
+              
+              getOut() << "respond 1" << std::endl;
+
+              Sleep(2000);
+
+              getOut() << "respond 2" << std::endl;
 
               json result = {
-                // {"processId", processId}
+                {"ok", true}
               };
               json res = {
                 {"error", nullptr},
                 {"result", result}
               };
               respond(res);
-            /* } else if (
-              methodString == "addModel" &&
-              args.size() >= 1 &&
-              args[0].is_string()
-            ) {
-              std::vector<unsigned char> data = Base64::Decode<unsigned char>(args[0].get<std::string>());
-
-              models[name] = app->renderer->m_renderer->createDefaultModelInstance(name);
-              app->renderer->m_renderer->addToRenderList(models[name].get());
-              // std::shared_ptr<vkglTF::Model> VulkanExample::findOrLoadModel( std::string modelUri, std::string *psError)
               
+              getOut() << "respond 3" << std::endl;
+            } else if (
+              methodString == "addModel" &&
+              args.size() >= 2 &&
+              args[0].is_string() &&
+              args[1].is_string()
+            ) {
+              getOut() << "add model 1" << std::endl;
+              std::string name = args[0].get<std::string>();
+              std::vector<char> data = Base64::Decode<char>(args[1].get<std::string>());
+              getOut() << "add model 2 " << name << " " << data.size() << std::endl;
+
+              models[name] = app->renderer->m_renderer->loadModelInstance(name, std::move(data));
+
+              std::vector<float> boneTexture(128*16);
+              glm::mat4 jointMat = glm::translate(glm::mat4{1}, glm::vec3(0, 0.2, 0));
+              for (size_t i = 0; i < boneTexture.size(); i += 16) {
+                memcpy(&boneTexture[i], &jointMat, sizeof(float)*16);
+              }
+              app->renderer->m_renderer->setBoneTexture(models[name].get(), boneTexture);
+              
+              app->renderer->m_renderer->addToRenderList(models[name].get());
+
+              getOut() << "add model 3" << std::endl;
+
               json result = {
                 {"id", name}
               };
@@ -247,7 +271,7 @@ int main(int argc, char **argv, char **envp) {
                 {"error", nullptr},
                 {"result", result}
               };
-              respond(res); */
+              respond(res);
             } else if (
               methodString == "addObject" &&
               args.size() >= 5 &&

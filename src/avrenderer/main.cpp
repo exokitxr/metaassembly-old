@@ -228,7 +228,7 @@ int main(int argc, char **argv, char **envp) {
   
   {
     std::string indexHtmlPath;
-    ArgvQuote(std::string(cwdBuf) + std::string(R"EOF(\extension\index.html)EOF"), indexHtmlPath, false);
+    ArgvQuote(R"EOF(http://localhost:3000/extension/)EOF", indexHtmlPath, false);
     chromeProcessHandle = startChrome(indexHtmlPath);
     if (chromeProcessHandle) {
       getOut() << "launched chrome ui process" << std::endl;
