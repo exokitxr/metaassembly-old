@@ -46,6 +46,8 @@
 // Changing this value here also requires changing it in the vertex shader
 #define MAX_NUM_JOINTS 128u
 
+#include "out.h"
+
 namespace vkglTF
 {
 	struct Node;
@@ -1030,7 +1032,7 @@ namespace vkglTF
 							break;
 						}
 						default: {
-							std::cout << "unknown type" << std::endl;
+							getOut() << "unknown type" << std::endl;
 							break;
 						}
 						}
@@ -1053,7 +1055,7 @@ namespace vkglTF
 						channel.path = AnimationChannel::PathType::SCALE;
 					}
 					if (source.target_path == "weights") {
-						std::cout << "weights not yet supported, skipping channel" << std::endl;
+						getOut() << "weights not yet supported, skipping channel" << std::endl;
 						continue;
 					}
 					channel.samplerIndex = source.sampler;

@@ -9,6 +9,8 @@
 #include "VulkanExampleBase.h"
 #include <openvr.h>
 
+#include "out.h"
+
 std::vector<const char*> VulkanExampleBase::args;
 
 VKAPI_ATTR VkBool32 VKAPI_CALL debugMessageCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objType, uint64_t srcObject, size_t location, int32_t msgCode, const char * pLayerPrefix, const char * pMsg, void * pUserData)
@@ -28,9 +30,9 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugMessageCallback(VkDebugReportFlagsEXT flags,
 #if defined(__ANDROID__)
 	LOGD("%s", debugMessage.str().c_str());
 #else
-	std::cout << debugMessage.str() << "\n";
+	getOut() << debugMessage.str() << "\n";
 #endif
-	fflush(stdout);
+	// fflush(stdout);
 	return VK_FALSE;
 }
 
@@ -558,14 +560,14 @@ VulkanExampleBase::VulkanExampleBase()
 	initxcbConnection();
 #endif
 
-#if defined(_WIN32)
+/* #if defined(_WIN32)
 	AllocConsole();
 	AttachConsole(GetCurrentProcessId());
 	FILE *stream;
 	freopen_s(&stream, "CONOUT$", "w+", stdout);
 	freopen_s(&stream, "CONOUT$", "w+", stderr);
 	SetConsoleTitle(TEXT("Vulkan validation output"));
-#endif
+#endif */
 }
 
 VulkanExampleBase::~VulkanExampleBase()
@@ -1356,16 +1358,16 @@ void VulkanExampleBase::initWaylandConnection()
 	display = wl_display_connect(NULL);
 	if (!display)
 	{
-		std::cout << "Could not connect to Wayland display!\n";
-		fflush(stdout);
+		getOut() << "Could not connect to Wayland display!\n";
+		// fflush(stdout);
 		exit(1);
 	}
 
 	registry = wl_display_get_registry(display);
 	if (!registry)
 	{
-		std::cout << "Could not get Wayland registry!\n";
-		fflush(stdout);
+		getOut() << "Could not get Wayland registry!\n";
+		// fflush(stdout);
 		exit(1);
 	}
 
@@ -1376,8 +1378,8 @@ void VulkanExampleBase::initWaylandConnection()
 	wl_display_roundtrip(display);
 	if (!compositor || !shell || !seat)
 	{
-		std::cout << "Could not bind Wayland protocols!\n";
-		fflush(stdout);
+		getOut() << "Could not bind Wayland protocols!\n";
+		// fflush(stdout);
 		exit(1);
 	}
 }
@@ -1493,7 +1495,7 @@ void VulkanExampleBase::initxcbConnection()
 	connection = xcb_connect(NULL, &scr);
 	if (connection == NULL) {
 		// printf("Could not find a compatible Vulkan ICD!\n");
-		fflush(stdout);
+		// fflush(stdout);
 		exit(1);
 	}
 
