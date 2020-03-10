@@ -81,6 +81,14 @@ export function updatePlayerFromArrays(xr, hmd, left, right) {
     rig.update();
   }
 }
+export function getRigBoneTexture() {
+  if (rig && rig.skinnedMeshes.length > 0) {
+    const skeleton = rig.skinnedMeshes[0].skeleton;
+    return skeleton.boneTexture.image.data.slice(0, skeleton.bones.length*16);
+  } else {
+    return null;
+  }
+}
 export function bindPeerConnection(peerConnection, container) {
   console.log('bind peer connection', peerConnection);
   
