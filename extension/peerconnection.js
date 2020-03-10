@@ -65,6 +65,22 @@ export function updatePlayerFromXr(xr, camera) {
     rig.update();
   }
 }
+export function updatePlayerFromArrays(xr, hmd, left, right) {
+  if (rig) {
+    window.rig = rig;
+    const localMatrix = new THREE.Matrix4();
+    const localScale = new THREE.Vector3();
+
+    localMatrix.fromArray(hmd);
+    localMatrix.decompose(rig.inputs.hmd.position, rig.inputs.hmd.quaternion, localScale);
+    localMatrix.fromArray(left);
+    localMatrix.decompose(rig.inputs.leftGamepad.position, rig.inputs.leftGamepad.quaternion, localScale);
+    localMatrix.fromArray(right);
+    localMatrix.decompose(rig.inputs.rightGamepad.position, rig.inputs.rightGamepad.quaternion, localScale);
+
+    rig.update();
+  }
+}
 export function bindPeerConnection(peerConnection, container) {
   console.log('bind peer connection', peerConnection);
   
