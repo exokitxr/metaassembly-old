@@ -181,7 +181,7 @@ Environment:
   });
 } */
 HANDLE startChrome(const std::string &indexHtmlPath) {
-  std::string cmd(R"EOF(Chrome-bin\chrome.exe --enable-features="WebXR,OpenVR" --disable-features="WindowsMixedReality" --disable-xr-device-consent-prompt-for-testing --load-extension="..\..\extension" --whitelisted-extension-id="glmgcjligejadkfhgebnplablaggjbmm"" )EOF");
+  std::string cmd(R"EOF(Chrome-bin\chrome.exe --enable-features="WebXR,OpenVR" --disable-features="WindowsMixedReality" --disable-xr-device-consent-prompt-for-testing --load-extension="..\..\extension" --whitelisted-extension-id="glmgcjligejadkfhgebnplablaggjbmm"" --app=)EOF");
   cmd += indexHtmlPath;
   // --allow-insecure-localhost
   // --unsafely-treat-insecure-origin-as-secure="http://localhost:9002"
