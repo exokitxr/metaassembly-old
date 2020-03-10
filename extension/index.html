@@ -483,7 +483,7 @@ window.addEventListener('load', async e => {
         std::vector<float> normals = Base64::Decode<float>(args[2].get<std::string>());
         std::vector<float> colors = Base64::Decode<float>(args[3].get<std::string>());
         std::vector<float> uvs = Base64::Decode<float>(args[4].get<std::string>());
-        std::vector<uint16_t> indices = Base64::Decode<uint16_t>(args[5].get<std::string>());
+        std::vector<uint16_t> indices = Base64::Decode<uint16_t>(args[5].get<std::string>());
 
         models[name] = app->renderer->m_renderer->setModelGeometry(std::move(models[name]), positions, normals, colors, uvs, indices);
         
