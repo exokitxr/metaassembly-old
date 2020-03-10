@@ -34,17 +34,11 @@ Local<Object> makeHandler() {
   return scope.Escape(result);
 }
 
-void InitExports(Local<Object> exports) {
+NAN_MODULE_INIT(InitAll) {
   Local<Value> handler = makeHandler();
-  exports->Set(Isolate::GetCurrent()->GetCurrentContext(), JS_STR("handler"), handler);
-}
-
-void Init(Local<Object> exports) {
-  InitExports(exports);
+  target->Set(Isolate::GetCurrent()->GetCurrentContext(), JS_STR("handler"), handler);
 }
 
 }
 
-NODE_MODULE_INIT(/* exports, module, context */) {
-  exokit::Init(exports);
-}
+NODE_MODULE(exokit, exokit::InitAll)
