@@ -60,7 +60,7 @@ body.phase-2 #form-2
 <script type=module>
 import {OrbitControls} from './OrbitControls.js';
 import {XRControllerModelFactory} from './XRControllerModelFactory.js';
-import {initLocalRig, updatePlayerFromCamera, updatePlayerFromXr, bindPeerConnection} from './peerconnection.js';
+import {initLocalRig, updatePlayerFromCamera, updatePlayerFromXr, updatePlayerFromArrays, getRigBoneTexture, bindPeerConnection} from './peerconnection.js';
 
 function base64ArrayBuffer(arrayBuffer, byteOffset = 0, byteLength = arrayBuffer.byteLength) {
   var base64    = ''
@@ -537,6 +537,17 @@ window.addEventListener('load', async e => {
   });
   window.addEventListener('pose', e => {
     const {hmd, left, right} = e.data;
+    if (avatarObject) {
+      updatePlayerFromArrays(renderer.xr, hmd, left, right);
+      const boneTexture = getRigBoneTexture();
+      if (boneTexture) {
+        // console.log('submit bones', boneTexture);
+        window.xrchrome.request('updateObjectBoneTexture', [
+          avatarObject.id,
+          base64ArrayBuffer(boneTexture.buffer, boneTexture.byteOffset, boneTexture.byteLength),
+        ]);
+      }
+    }
     /* if (hmdObject) {
       const hmdArray = Float32Array.from(hmd);
       window.xrchrome.request('updateObjectMatrix', [
