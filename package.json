@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/avaer/aardvark#readme",
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "nan": "^2.14.0"
   }
 }
