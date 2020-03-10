@@ -21,6 +21,7 @@
 // #include <tools/logging.h>
 
 #include <glm/gtc/type_ptr.hpp>
+#include "macros.h"
 #include "out.h"
 #include "javascript_renderer.h"
 

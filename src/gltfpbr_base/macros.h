@@ -12,6 +12,7 @@
 // #include <tools/logging.h>
 #include "out.h"
 
+#define INFO() getOut()
 #define LOG() getOut()
 
 #if defined(__ANDROID__)
