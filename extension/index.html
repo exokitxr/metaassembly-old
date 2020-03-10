@@ -4,10 +4,18 @@
 <script src="https://rawcdn.githack.com/ConsenSys/eth-lightwallet/d21df74dd2d5e09632bf38309f147784668b1498/dist/lightwallet.js"></script>
 <style>
 body {
-  margin: 0;
-}
-.body {
   display: flex;
+  height: 100vh;
+  margin: 0;
+  flex-direction: column;
+}
+header {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
 }
 h1 {
   padding: 0 30px;
@@ -29,25 +37,22 @@ body.phase-2 #form-2
 {
   display: block;
 }
-#canvas-2d {
-  position: absolute;
-  // pointer-events: none;
-  display: none;
-}
 </style>
 </head>
 <body class=phase-1>
-  <h1>Metachromium Lite</h1>
-  <form id=form-1>
-    <textarea id=seed-phrase placeholder="seed phrase">announce beef fever pipe connect laptop assault space gorilla dad uphold broccoli</textarea>
-    <input type=password id=password value=password>
-    <input type=submit>
-  </form>
-  <form id=form-2>
-    <input type=button id=enter-xr-button value="Enter XR">
-    <input type=button id=enter-overlay-button value="Enter Overlay">
-    <canvas id=canvas></canvas>
-  </form>
+  <header>
+    <h1>Metachromium Lite</h1>
+    <form id=form-1>
+      <textarea id=seed-phrase placeholder="seed phrase">announce beef fever pipe connect laptop assault space gorilla dad uphold broccoli</textarea>
+      <input type=password id=password value=password>
+      <input type=submit>
+    </form>
+    <form id=form-2>
+      <input type=button id=enter-xr-button value="Enter XR">
+      <input type=button id=enter-overlay-button value="Enter Overlay">
+    </form>
+  </header>
+  <canvas id=canvas></canvas>
 <script type=module>
   import THREE from './three.module.js';
   window.THREE = THREE;
@@ -109,53 +114,54 @@ function base64ArrayBuffer(arrayBuffer, byteOffset = 0, byteLength = arrayBuffer
   return base64
 }
 
+const canvas = document.getElementById('canvas');
+const renderer = new THREE.WebGLRenderer({
+  canvas,
+  antialias: true,
+});
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.sortObjects = false;
+renderer.physicallyCorrectLights = true;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFShadowMap;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xEEEEEE);
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.set(0, 0.5, 2);
+camera.rotation.order = 'YXZ';
+renderer.render(scene, camera);
+
+const ambientLight = new THREE.AmbientLight(0xFFFFFF);
+scene.add(ambientLight);
+
+const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 3);
+directionalLight.position.set(0.5, 1, 0.5).multiplyScalar(100);
+directionalLight.castShadow = true;
+directionalLight.shadow.mapSize.width = 1024;
+directionalLight.shadow.mapSize.height = 1024;
+directionalLight.shadow.camera.near = 0.5;
+directionalLight.shadow.camera.far = 500;
+scene.add(directionalLight);
+
+const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 3);
+directionalLight2.position.set(-0.5, -0.1, 0.5).multiplyScalar(100);
+scene.add(directionalLight2);
+
+const container = new THREE.Object3D();
+scene.add(container);
+
+const orbitControls = new OrbitControls(camera, canvas, document);
+orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, 0, -1.5));
+orbitControls.screenSpacePanning = true;
+// orbitControls.enabled = !!loginToken;
+orbitControls.enableMiddleZoom = false;
+orbitControls.update();
+
+initLocalRig(container);
+
 window.addEventListener('load', async e => {
-  const canvas = document.getElementById('canvas');
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  const renderer = new THREE.WebGLRenderer({
-    canvas,
-    antialias: true,
-  });
-  renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.sortObjects = false;
-  renderer.physicallyCorrectLights = true;
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFShadowMap;
-
-  const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xEEEEEE);
-  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-  camera.position.set(0.5, 0.5, 2);
-  camera.rotation.order = 'YXZ';
-  renderer.render(scene, camera);
-
-  const ambientLight = new THREE.AmbientLight(0xFFFFFF);
-  scene.add(ambientLight);
-
-  const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 3);
-  directionalLight.position.set(0.5, 1, 0.5).multiplyScalar(100);
-  directionalLight.castShadow = true;
-  directionalLight.shadow.mapSize.width = 1024;
-  directionalLight.shadow.mapSize.height = 1024;
-  directionalLight.shadow.camera.near = 0.5;
-  directionalLight.shadow.camera.far = 500;
-  scene.add(directionalLight);
-
-  const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 3);
-  directionalLight2.position.set(-0.5, -0.1, 0.5).multiplyScalar(100);
-  scene.add(directionalLight2);
-
-  const container = new THREE.Object3D();
-  scene.add(container);
-
-  const orbitControls = new OrbitControls(camera, canvas, document);
-  orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, 0, -1.5));
-  orbitControls.screenSpacePanning = true;
-  // orbitControls.enabled = !!loginToken;
-  orbitControls.enableMiddleZoom = false;
-  orbitControls.update();
-
   const enterXrButton = document.getElementById('enter-xr-button');
   let currentSession = null;
   const triggerDowns = [false, false];
@@ -260,9 +266,9 @@ window.addEventListener('load', async e => {
   const velocity = new THREE.Vector3();
   function animate() {
     orbitControls.enabled && orbitControls.update();
-    
+
     if (currentSession) {
-      for (let i = 0; i < 2; i++) {
+      /* for (let i = 0; i < 2; i++) {
         const controller = renderer.xr.getController(i);
         if (controller.userData.data) {
           if (controller.userData.data.handedness === 'left') {
@@ -275,10 +281,10 @@ window.addEventListener('load', async e => {
         }
       }
 
-      _updateControllers();
+      _updateControllers(); */
 
       updatePlayerFromXr(renderer.xr, camera);
-    } else {
+    } /* else {
       const speed = 0.015 * (keys.shift ? 3 : 1);
       const cameraEuler = camera.rotation.clone();
       cameraEuler.x = 0;
@@ -306,9 +312,9 @@ window.addEventListener('load', async e => {
       orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, 0, -1.5).applyQuaternion(camera.quaternion));
       
       updatePlayerFromCamera(camera);
-    }
+    } */
 
-    for (let i = 0; i < peerConnections.length; i++) {
+    /* for (let i = 0; i < peerConnections.length; i++) {
       const peerConnection = peerConnections[i];
       peerConnection.rig && peerConnection.rig.update();
     }
@@ -320,18 +326,18 @@ window.addEventListener('load', async e => {
       for (let i = 0; i < objectMeshes.length; i++) {
         ammo.updateObjectMesh(objectMeshes[i]);
       }
-    }
+    } */
 
-    const thirdperson = selectedTool === 'thirdperson';
+    /* const thirdperson = selectedTool === 'thirdperson';
     let oldCameraPosition;
     if (thirdperson) {
       oldCameraPosition = camera.position.clone();
       camera.position.add(new THREE.Vector3(0, 0, 2).applyQuaternion(camera.quaternion));
-    }
+    } */
     renderer.render(scene, camera);
-    if (thirdperson) {
+    /* if (thirdperson) {
       camera.position.copy(oldCameraPosition);
-    }
+    } */
   }
   renderer.setAnimationLoop(animate);
 
