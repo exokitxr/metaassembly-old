@@ -17,7 +17,7 @@
 #include <vector>
 
 #include <vulkan/vulkan.h>
-#include <tools/logging.h>
+// #include <tools/logging.h>
 #include "macros.h"
 
 #ifdef __ANDROID__

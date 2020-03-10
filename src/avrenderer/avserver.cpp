@@ -4,7 +4,7 @@
 
 #include <windows.h>
 #include <shellapi.h>
-#include <tools/logging.h>
+// #include <tools/logging.h>
 
 static TinyProcessLib::Process *g_pServerProcess = nullptr;
 

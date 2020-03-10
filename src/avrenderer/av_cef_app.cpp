@@ -18,7 +18,7 @@
 #include <openvr.h>
 #include <processthreadsapi.h>
 
-#include <tools/logging.h>
+// #include <tools/logging.h>
 
 #include <glm/gtc/type_ptr.hpp>
 #include "out.h"

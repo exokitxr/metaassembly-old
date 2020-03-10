@@ -4,7 +4,7 @@
 #define STBI_MSC_SECURE_CRT
 #include "tiny_gltf.h"
 
-#include <tools/logging.h>
+// #include <tools/logging.h>
 
 #include "av_cef_app.h"
 #include "avserver.h"

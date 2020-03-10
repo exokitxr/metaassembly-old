@@ -9,7 +9,10 @@
 #pragma once
 
 #include "vulkan/vulkan.h"
-#include <tools/logging.h>
+// #include <tools/logging.h>
+#include "out.h"
+
+#define LOG() getOut()
 
 #if defined(__ANDROID__)
 #define VK_CHECK_RESULT(f)																				\
