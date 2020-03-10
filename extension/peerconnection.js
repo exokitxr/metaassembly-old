@@ -74,9 +74,9 @@ export function updatePlayerFromArrays(xr, hmd, left, right) {
     localMatrix.fromArray(hmd);
     localMatrix.decompose(rig.inputs.hmd.position, rig.inputs.hmd.quaternion, localScale);
     localMatrix.fromArray(left);
-    localMatrix.decompose(rig.inputs.leftGamepad.position, rig.inputs.leftGamepad.quaternion, localScale);
-    localMatrix.fromArray(right);
     localMatrix.decompose(rig.inputs.rightGamepad.position, rig.inputs.rightGamepad.quaternion, localScale);
+    localMatrix.fromArray(right);
+    localMatrix.decompose(rig.inputs.leftGamepad.position, rig.inputs.leftGamepad.quaternion, localScale);
 
     rig.update();
   }
