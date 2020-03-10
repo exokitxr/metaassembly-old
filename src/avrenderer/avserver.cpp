@@ -1,4 +1,4 @@
-#include <process.hpp>
+// #include <process.hpp>
 #include <tools/pathtools.h>
 #include <tools/stringtools.h>
 
@@ -6,7 +6,7 @@
 #include <shellapi.h>
 // #include <tools/logging.h>
 
-static TinyProcessLib::Process *g_pServerProcess = nullptr;
+// static TinyProcessLib::Process *g_pServerProcess = nullptr;
 
 std::filesystem::path getNodeExePath()
 {
@@ -23,7 +23,7 @@ std::filesystem::path getAvCmdJsPath()
 	return tools::GetDataPath() / "avcmd" / "avcmd.js";
 }
 
-bool StartServer( HINSTANCE hInstance )
+/* bool StartServer( HINSTANCE hInstance )
 {
 	// TODO( Joe ): Move getting command line args into a library
 	LPWSTR cmdLine = GetCommandLineW();
@@ -94,5 +94,5 @@ void StopServer()
 		delete g_pServerProcess;
 		g_pServerProcess = nullptr;
 	}
-}
+} */
 
