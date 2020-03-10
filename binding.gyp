@@ -7,7 +7,6 @@
         'module/renderer.cpp',
         'src/avrenderer/aardvark_renderer.cpp',
         'src/avrenderer/aardvark_renderer.h',
-        'src/avrenderer/avrenderer_main.cpp',
         'src/avrenderer/avserver.cpp',
         'src/avrenderer/avserver.h',
         'src/avrenderer/av_cef_app.cpp',
