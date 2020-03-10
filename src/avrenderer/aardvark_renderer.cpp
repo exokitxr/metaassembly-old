@@ -44,6 +44,7 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "matrix.h"
 
 #include "out.h"
 #include "file_io.h"
@@ -2432,6 +2433,12 @@ void VulkanExample::setModelTransform(IModelInstance *modelInstance, std::vector
   model->m_model->scale.x = scale[0];
   model->m_model->scale.y = scale[1];
   model->m_model->scale.z = scale[2];
+}
+
+void VulkanExample::setModelMatrix(IModelInstance *modelInstance, std::vector<float> &matrix) {
+  CVulkanRendererModelInstance *model = dynamic_cast<CVulkanRendererModelInstance *>( modelInstance );
+
+  decomposeMatrix(matrix.data(), glm::value_ptr(model->m_model->translation), glm::value_ptr(model->m_model->rotation), glm::value_ptr(model->m_model->scale));
 }
 
 std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<IModelInstance> modelInstance, std::vector<float> &positions, std::vector<float> &normals, std::vector<float> &colors, std::vector<float> &uvs, std::vector<uint16_t> &indices) {
