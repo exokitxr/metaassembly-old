@@ -54,6 +54,12 @@
         # 'opengl32.lib',
       ],
       'copies': [
+        {
+          'destination': '<(module_root_dir)/build/Release/',
+          'files': [
+            'bin/openvr_api.dll',
+          ]
+        },
       ],
       'defines': [
         '_CRT_SECURE_NO_WARNINGS',
