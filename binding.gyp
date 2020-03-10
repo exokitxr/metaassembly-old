@@ -5,6 +5,7 @@
       'sources': [
         'module/module.cpp',
         'module/renderer.cpp',
+        'module/renderer.h',
         'src/avrenderer/aardvark_renderer.cpp',
         'src/avrenderer/aardvark_renderer.h',
         'src/avrenderer/avserver.cpp',
@@ -47,6 +48,7 @@
         'src/thirdparty/openvr/lib/win64',
       ],
       'libraries': [
+        'psapi.lib',
         'vulkan-1.lib',
         'openvr_api.lib',
         'dxgi.lib',
