@@ -456,7 +456,7 @@ int main(int argc, char **argv, char **envp) {
               models[name] = app->renderer->m_renderer->setModelGeometry(std::move(models[name]), positions, normals, colors, uvs, indices);
               
               json result = {
-                // {"processId", processId}
+                {"id", name}
               };
               json res = {
                 {"error", nullptr},
