@@ -24,6 +24,7 @@ ls
 cp -Recurse Chrome-bin src\build\avrenderer\Debug\
 cp -Recurse extension src\build\avrenderer\Debug\
 cp -Recurse data src\build\avrenderer\Debug\
+cp -Recurse userdata src\build\avrenderer\Debug\Chrome-bin\
 cp -Recurse bin\openvr_api.dll src\build\avrenderer\Debug\
 cp steam_appid.txt src\build\avrenderer\Debug\
 
@@ -31,6 +32,7 @@ msbuild /p:Configuration=Release -m Aardvark.sln
 cp -Recurse Chrome-bin src\build\avrenderer\Release\
 cp -Recurse extension src\build\avrenderer\Release\
 cp -Recurse data src\build\avrenderer\Release\
+cp -Recurse userdata src\build\avrenderer\Release\Chrome-bin\
 cp -Recurse bin\openvr_api.dll src\build\avrenderer\Release\
 cp steam_appid.txt src\build\avrenderer\Release\
 
