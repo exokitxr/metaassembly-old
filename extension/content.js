@@ -28,17 +28,15 @@ window.xrchrome = {
 };
 window.addEventListener('message', m => {
   if (m.data && m.data._xrcres) {
-    if (m.data.event) {
-      const {event, data} = m.data;
-      window.dispatchEvent(new MessageEvent(event, {data}));
-    } else {
-      const {id, error, result} = m.data;
-      const cb = callbacks[id];
-      if (cb) {
-        cb(error, result);
-        delete callbacks[id];
-      }
+    const {id, error, result} = m.data;
+    const cb = callbacks[id];
+    if (cb) {
+      cb(error, result);
+      delete callbacks[id];
     }
+  } else if (m.data && m.data._xrcevent) {
+    const {event, data} = m.data;
+    window.dispatchEvent(new MessageEvent(event, {data}));
   }
 });
 

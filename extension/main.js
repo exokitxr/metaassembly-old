@@ -24,7 +24,11 @@ window.addEventListener('message', m => {
 const port = chrome.runtime.connect();
 port.onMessage.addListener(msg => {
   const {event, data} = msg;
-  window.dispatchEvent(new MessageEvent(event, {data}));
+  window.postMessage({
+    _xrcevent: true,
+    event,
+    data,
+  }, '*', []);
 });
 port.onDisconnect.addListener(() => {
   console.log('main port disconnected', port);

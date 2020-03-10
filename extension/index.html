@@ -343,10 +343,10 @@ window.addEventListener('load', async e => {
       // nothing
     }
   });
-  
+
   window.addEventListener('pose', e => {
-    console.log('got pose', e.data);
-  });
+    console.log('got first pose', e.data);
+  }, {once: true});
 
   document.getElementById('form-1').addEventListener('submit', e => {
     e.preventDefault();
