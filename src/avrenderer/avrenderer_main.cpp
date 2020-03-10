@@ -400,6 +400,15 @@ int main(int argc, char **argv, char **envp) {
               name += std::to_string(++ids);
 
               models[name] = app->renderer->m_renderer->createDefaultModelInstance(name);
+              models[name] = app->renderer->m_renderer->setModelGeometry(std::move(models[name]), positions, normals, colors, uvs, indices);
+              std::vector<unsigned char> image = {
+                255,
+                0,
+                0,
+                255,
+              };
+              models[name] = app->renderer->m_renderer->setModelTexture(std::move(models[name]), 1, 1, std::move(image));
+              
               app->renderer->m_renderer->addToRenderList(models[name].get());
               // std::shared_ptr<vkglTF::Model> VulkanExample::findOrLoadModel( std::string modelUri, std::string *psError)
               
