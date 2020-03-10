@@ -55,7 +55,7 @@ const _handleMessage = msg => {
     }
   } else if (msg.event) {
     const {event, data} = msg;
-    for (let i = 0; i > ports.length; i++) {
+    for (let i = 0; i < ports.length; i++) {
       ports[i].postMessage({event, data});
     }
   } else {
