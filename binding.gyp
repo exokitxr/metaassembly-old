@@ -22,6 +22,12 @@
         'src/avrenderer/file_io.h',
         'src/avrenderer/matrix.cpp',
         'src/avrenderer/matrix.h',
+
+        'src/gltfpbr_base/VulkanExampleBase.cpp',
+        'src/gltfpbr_base/vulkanutils.cpp',
+        'src/tools/pathtools.cpp',
+        'src/tools/stringtools.cpp',
+        'src/gltfpbr_base/descriptormanager.cpp',
       ],
       'include_dirs': [
         "<!(node -e \"console.log(require.resolve('nan').slice(0, -16))\")",
@@ -33,12 +39,18 @@
         'src/thirdparty/gli',
         'src/gltfpbr_base',
         'src/thirdparty/openvr/headers',
-        'src/thirdparty/tiny-process-library',
+        # 'src/thirdparty/tiny-process-library',
       ],
       'library_dirs': [
         # "<!(node -e \"console.log(require.resolve('native-graphics-deps').slice(0, -9) + '/lib/windows/glew')\")",
+        'src/thirdparty/vulkan/libs',
+        'src/thirdparty/openvr/lib/win64',
       ],
       'libraries': [
+        'vulkan-1.lib',
+        'openvr_api.lib',
+        'dxgi.lib',
+        'd3d11.lib',
         # 'opengl32.lib',
       ],
       'copies': [
