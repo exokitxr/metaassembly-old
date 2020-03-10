@@ -462,6 +462,25 @@ int main(int argc, char **argv, char **envp) {
               };
               respond(res);
             } else if (
+              methodString == "updateObjectBoneTexture" &&
+              args.size() >= 2 &&
+              args[0].is_string() &&
+              args[1].is_string()
+            ) {
+              std::string name = args[0].get<std::string>();
+              std::vector<float> boneTexture = Base64::Decode<float>(args[1].get<std::string>());
+
+              app->renderer->m_renderer->setBoneTexture(models[name].get(), boneTexture);
+              
+              json result = {
+                {"id", name}
+              };
+              json res = {
+                {"error", nullptr},
+                {"result", result}
+              };
+              respond(res);
+            } else if (
               methodString == "updateObjectGeometry" &&
               args.size() >= 6 &&
               args[0].is_string() &&
