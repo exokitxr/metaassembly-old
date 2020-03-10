@@ -204,7 +204,7 @@ void VulkanExample::recordCommandBuffers( uint32_t cbIndex )
 
 	VK_CHECK_RESULT( vkBeginCommandBuffer( currentCB, &cmdBufferBeginInfo ) );
 
-	renderScene( cbIndex, renderPass, frameBuffers[cbIndex], width, height, EEye::Mirror );
+	// renderScene( cbIndex, renderPass, frameBuffers[cbIndex], width, height, EEye::Mirror );
 	renderSceneToTarget( cbIndex, leftEyeRT, eyeWidth, eyeHeight, EEye::Left );
 	renderSceneToTarget( cbIndex, rightEyeRT, eyeWidth, eyeHeight, EEye::Right );
 	renderVarggles( cbIndex, vargglesRT, m_unVargglesWidth, m_unVargglesHeight);
