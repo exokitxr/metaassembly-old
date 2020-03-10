@@ -16,12 +16,10 @@ std::vector<char> readFile(const std::string &filename) {
 
   // reserve capacity
   std::vector<char> vec;
-  vec.reserve(fileSize);
+  vec.resize(fileSize);
 
   // read the data:
-  vec.insert(vec.begin(),
-             std::istream_iterator<char>(file),
-             std::istream_iterator<char>());
+  file.read(vec.data(), fileSize);
 
   return vec;
 }
