@@ -406,6 +406,7 @@ window.addEventListener('load', async e => {
     }
     document.body.classList.add('phase-2');
   });
+  let avatarObject = null;
   let hmdObject = null;
   const controllerObjects = [null, null];
   document.getElementById('enter-overlay-button').addEventListener('click', async e => {
@@ -525,13 +526,13 @@ window.addEventListener('load', async e => {
     ]);
     console.log('got objects', hmdObject, controllerObjects[0], controllerObjects[1]);
     
-    /* const res = await fetch('../data/avatar.glb');
+    const res = await fetch('../data/avatar.glb');
     const arrayBuffer = await res.arrayBuffer();
     console.log('model fetched');
-    await window.xrchrome.request('addModel', [
+    avatarObject = await window.xrchrome.request('addModel', [
       'model',
-      base64: base64ArrayBuffer(arrayBuffer),
-    ]); */
+      base64ArrayBuffer(arrayBuffer),
+    ]);
     console.log('model added');
   });
   window.addEventListener('pose', e => {
