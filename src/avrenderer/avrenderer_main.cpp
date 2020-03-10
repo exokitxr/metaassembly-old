@@ -500,7 +500,7 @@ int main(int argc, char **argv, char **envp) {
               respond(res);
             } else {
               json res = {
-                {"error", "unknown method"},
+                {"error", std::string("unknown method: ") + methodString + " " + std::to_string(args.size())},
                 {"result", nullptr}
               };
               respond(res);
