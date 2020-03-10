@@ -34,6 +34,8 @@ add_executable(avrenderer WIN32
   out.h
   file_io.cpp
   file_io.h
+  matrix.cpp
+  matrix.h
 
 	${SHADERS}
 )
