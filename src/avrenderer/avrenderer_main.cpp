@@ -410,7 +410,6 @@ int main(int argc, char **argv, char **envp) {
               models[name] = app->renderer->m_renderer->setModelTexture(std::move(models[name]), 1, 1, std::move(image));
               
               app->renderer->m_renderer->addToRenderList(models[name].get());
-              // std::shared_ptr<vkglTF::Model> VulkanExample::findOrLoadModel( std::string modelUri, std::string *psError)
               
               json result = {
                 {"id", name}
@@ -433,9 +432,7 @@ int main(int argc, char **argv, char **envp) {
               std::vector<float> quaternion = Base64::Decode<float>(args[2].get<std::string>());
               std::vector<float> scale = Base64::Decode<float>(args[3].get<std::string>());
 
-              auto model = models[name].get();
               app->renderer->m_renderer->setModelTransform(models[name].get(), position, quaternion, scale);
-              // XXX update geometry
               
               json result = {
                 {"id", name}
