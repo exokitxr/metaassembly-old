@@ -429,7 +429,7 @@ int main(int argc, char **argv, char **envp) {
               // XXX update geometry
               
               json result = {
-                // {"processId", processId}
+                {"id", name}
               };
               json res = {
                 {"error", nullptr},
