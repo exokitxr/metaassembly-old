@@ -12,8 +12,8 @@
 // #include <tools/logging.h>
 #include "out.h"
 
-#define INFO() getOut()
-#define LOG() getOut()
+#define INFO(t) getOut()
+#define LOG(t) getOut()
 
 #if defined(__ANDROID__)
 #define VK_CHECK_RESULT(f)																				\
