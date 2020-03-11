@@ -361,7 +361,7 @@ NAN_METHOD(handleMessage) {
     args->Get(Isolate::GetCurrent()->GetCurrentContext(), 2).ToLocalChecked()->IsArray() &&
     args->Get(Isolate::GetCurrent()->GetCurrentContext(), 3).ToLocalChecked()->IsArray()
   ) {
-    Nan::Utf8String nameUtf8(info[0]);
+    Nan::Utf8String nameUtf8(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 0).ToLocalChecked());
     std::string name = *nameUtf8;
     auto positions = getArrayData<float *>(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked());
     auto quaternions = getArrayData<float *>(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 2).ToLocalChecked());
@@ -378,15 +378,13 @@ NAN_METHOD(handleMessage) {
     methodString == "updateObjectMatrix" &&
     args->Length() >= 2 &&
     args->Get(Isolate::GetCurrent()->GetCurrentContext(), 0).ToLocalChecked()->IsString() &&
-    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked()->IsString()
+    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked()->IsArray()
   ) {
-    Nan::Utf8String nameUtf8(info[0]);
+    Nan::Utf8String nameUtf8(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 0).ToLocalChecked());
     std::string name = *nameUtf8;
-    Local<ArrayBuffer> matrixValue = Local<ArrayBuffer>::Cast(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked());
-    float *matrix = (float *)matrixValue->GetContents().Data();
-    size_t numMatrix = matrixValue->ByteLength();
+    auto matrix = getArrayData<float *>(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked());
 
-    app->renderer->m_renderer->setModelMatrix(models[name].get(), matrix, numMatrix);
+    app->renderer->m_renderer->setModelMatrix(models[name].get(), matrix.first, matrix.second);
 
     Local<Object> result = Nan::New<Object>();
     result->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("id").ToLocalChecked(), Nan::New<String>(name).ToLocalChecked());
@@ -399,7 +397,7 @@ NAN_METHOD(handleMessage) {
     args->Get(Isolate::GetCurrent()->GetCurrentContext(), 0).ToLocalChecked()->IsString() &&
     args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked()->IsArray()
   ) {
-    Nan::Utf8String nameUtf8(info[0]);
+    Nan::Utf8String nameUtf8(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 0).ToLocalChecked());
     std::string name = *nameUtf8;
     auto boneTexture = getArrayData<float *>(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked());
 
@@ -420,7 +418,7 @@ NAN_METHOD(handleMessage) {
     args->Get(Isolate::GetCurrent()->GetCurrentContext(), 4).ToLocalChecked()->IsArray() &&
     args->Get(Isolate::GetCurrent()->GetCurrentContext(), 5).ToLocalChecked()->IsArray()
   ) {
-    Nan::Utf8String nameUtf8(info[0]);
+    Nan::Utf8String nameUtf8(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 0).ToLocalChecked());
     std::string name = *nameUtf8;
     auto positions = getArrayData<float *>(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked());
     auto normals = getArrayData<float *>(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 2).ToLocalChecked());
@@ -443,7 +441,7 @@ NAN_METHOD(handleMessage) {
     args->Get(Isolate::GetCurrent()->GetCurrentContext(), 2).ToLocalChecked()->IsNumber() &&
     args->Get(Isolate::GetCurrent()->GetCurrentContext(), 3).ToLocalChecked()->IsArray()
   ) {
-    Nan::Utf8String nameUtf8(info[0]);
+    Nan::Utf8String nameUtf8(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 0).ToLocalChecked());
     std::string name = *nameUtf8;
     Local<Number> widthValue = Local<Number>::Cast(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked());
     int width = widthValue->Int32Value(Isolate::GetCurrent()->GetCurrentContext()).ToChecked();
