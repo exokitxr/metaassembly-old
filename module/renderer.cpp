@@ -237,14 +237,11 @@ NAN_METHOD(handleMessage) {
 
     // getOut() << "add model 3" << std::endl;
 
-    json result = {
-      {"id", name}
-    };
-    json res = {
-      {"error", nullptr},
-      {"result", result}
-    };
-    respond(res);
+    Local<Object> result = Nan::New<Object>();
+    result->Set(JS_STR("id"), Nan::New<String>(name));
+    Local<Object> res = Nan::New<Object>();
+    result->Set(JS_STR("result"), result);
+    info.GetReturnValue().Set(result);
   } else if (
     methodString == "addObject" &&
     args.size() >= 5 &&
@@ -274,15 +271,12 @@ NAN_METHOD(handleMessage) {
     models[name] = app->renderer->m_renderer->setModelTexture(std::move(models[name]), 1, 1, std::move(image));
     
     app->renderer->m_renderer->addToRenderList(models[name].get());
-    
-    json result = {
-      {"id", name}
-    };
-    json res = {
-      {"error", nullptr},
-      {"result", result}
-    };
-    respond(res);
+
+    Local<Object> result = Nan::New<Object>();
+    result->Set(JS_STR("id"), Nan::New<String>(name));
+    Local<Object> res = Nan::New<Object>();
+    result->Set(JS_STR("result"), result);
+    info.GetReturnValue().Set(result);
   } else if (
     methodString == "updateObjectTransform" &&
     args.size() >= 4 &&
@@ -298,14 +292,11 @@ NAN_METHOD(handleMessage) {
 
     app->renderer->m_renderer->setModelTransform(models[name].get(), position, quaternion, scale);
     
-    json result = {
-      {"id", name}
-    };
-    json res = {
-      {"error", nullptr},
-      {"result", result}
-    };
-    respond(res);
+    Local<Object> result = Nan::New<Object>();
+    result->Set(JS_STR("id"), Nan::New<String>(name));
+    Local<Object> res = Nan::New<Object>();
+    result->Set(JS_STR("result"), result);
+    info.GetReturnValue().Set(result);
   } else if (
     methodString == "updateObjectMatrix" &&
     args.size() >= 2 &&
@@ -317,14 +308,11 @@ NAN_METHOD(handleMessage) {
 
     app->renderer->m_renderer->setModelMatrix(models[name].get(), updateObjectMatrix);
 
-    json result = {
-      {"id", name}
-    };
-    json res = {
-      {"error", nullptr},
-      {"result", result}
-    };
-    respond(res);
+    Local<Object> result = Nan::New<Object>();
+    result->Set(JS_STR("id"), Nan::New<String>(name));
+    Local<Object> res = Nan::New<Object>();
+    result->Set(JS_STR("result"), result);
+    info.GetReturnValue().Set(result);
   } else if (
     methodString == "updateObjectBoneTexture" &&
     args.size() >= 2 &&
@@ -336,14 +324,11 @@ NAN_METHOD(handleMessage) {
 
     app->renderer->m_renderer->setBoneTexture(models[name].get(), boneTexture);
     
-    json result = {
-      {"id", name}
-    };
-    json res = {
-      {"error", nullptr},
-      {"result", result}
-    };
-    respond(res);
+    Local<Object> result = Nan::New<Object>();
+    result->Set(JS_STR("id"), Nan::New<String>(name));
+    Local<Object> res = Nan::New<Object>();
+    result->Set(JS_STR("result"), result);
+    info.GetReturnValue().Set(result);
   } else if (
     methodString == "updateObjectGeometry" &&
     args.size() >= 6 &&
@@ -363,14 +348,11 @@ NAN_METHOD(handleMessage) {
 
     models[name] = app->renderer->m_renderer->setModelGeometry(std::move(models[name]), positions, normals, colors, uvs, indices);
     
-    json result = {
-      {"id", name}
-    };
-    json res = {
-      {"error", nullptr},
-      {"result", result}
-    };
-    respond(res);
+    Local<Object> result = Nan::New<Object>();
+    result->Set(JS_STR("id"), Nan::New<String>(name));
+    Local<Object> res = Nan::New<Object>();
+    result->Set(JS_STR("result"), result);
+    info.GetReturnValue().Set(result);
   } else if (
     methodString == "updateObjectTexture" &&
     args.size() >= 4 &&
@@ -386,14 +368,11 @@ NAN_METHOD(handleMessage) {
 
     models[name] = app->renderer->m_renderer->setModelTexture(std::move(models[name]), width, height, std::move(data));
     
-    json result = {
-      // {"processId", processId}
-    };
-    json res = {
-      {"error", nullptr},
-      {"result", result}
-    };
-    respond(res);
+    Local<Object> result = Nan::New<Object>();
+    result->Set(JS_STR("id"), Nan::New<String>(name));
+    Local<Object> res = Nan::New<Object>();
+    result->Set(JS_STR("result"), result);
+    info.GetReturnValue().Set(result);
   } else if (
     methodString == "terminate"
   ) {
@@ -401,16 +380,16 @@ NAN_METHOD(handleMessage) {
     terminateKnownProcesses();
     getOut() << "call terminate 2" << std::endl;
 
-    json res = {
-      {"error", nullptr},
-      {"result", "ok"}
-    };
-    respond(res);
+    Local<Object> result = Nan::New<Object>();
+    result->Set(JS_STR("ok"), Nan::New<Boolean>(true));
+    Local<Object> res = Nan::New<Object>();
+    result->Set(JS_STR("result"), result);
+    info.GetReturnValue().Set(result);
   } else {
-    json res = {
-      {"error", std::string("unknown method: ") + methodString + " " + std::to_string(args.size())},
-      {"result", nullptr}
-    };
-    respond(res);
+    std::string errorMsg = std::string("unknown method: ") + methodString + " " + std::to_string(args.size());
+    Local<Object> error = Nan::New<String>(errorMsg);
+    Local<Object> res = Nan::New<Object>();
+    result->Set(JS_STR("error"), error);
+    info.GetReturnValue().Set(result);
   }
 }
