@@ -72,7 +72,7 @@ function makePromise() {
   p.reject = reject;
   return p;
 }
-function base64ArrayBuffer(arrayBuffer, byteOffset = 0, byteLength = arrayBuffer.byteLength) {
+/* function base64ArrayBuffer(arrayBuffer, byteOffset = 0, byteLength = arrayBuffer.byteLength) {
   var base64    = ''
   var encodings = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 
@@ -122,7 +122,7 @@ function base64ArrayBuffer(arrayBuffer, byteOffset = 0, byteLength = arrayBuffer
   }
   
   return base64
-}
+} */
 
 const canvas = document.getElementById('canvas');
 const renderer = new THREE.WebGLRenderer({
@@ -561,11 +561,11 @@ window.addEventListener('load', async e => {
       colors[i+2] = 1;
     }
     /* hmdObject = await socket.request('addObject', [
-      base64ArrayBuffer(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset, geometry.attributes.position.array.byteLength),
-      base64ArrayBuffer(geometry.attributes.normal.array.buffer, geometry.attributes.normal.array.byteOffset, geometry.attributes.normal.array.byteLength),
-      base64ArrayBuffer(colors.buffer, colors.byteOffset, colors.byteLength),
-      base64ArrayBuffer(geometry.attributes.uv.array.buffer, geometry.attributes.uv.array.byteOffset, geometry.attributes.uv.array.byteLength),
-      base64ArrayBuffer(geometry.index.array.buffer, geometry.index.array.byteOffset, geometry.index.array.byteLength),
+      geometry.attributes.position.array,
+      geometry.attributes.normal.array,
+      colors,
+      geometry.attributes.uv.array,
+      geometry.index.array,
     ]); */
     controllerObjects[0] = await socket.request('addObject', [
       geometry.attributes.position.array,
@@ -573,19 +573,14 @@ window.addEventListener('load', async e => {
       colors,
       geometry.attributes.uv.array,
       geometry.index.array,
-      /* base64ArrayBuffer(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset, geometry.attributes.position.array.byteLength),
-      base64ArrayBuffer(geometry.attributes.normal.array.buffer, geometry.attributes.normal.array.byteOffset, geometry.attributes.normal.array.byteLength),
-      base64ArrayBuffer(colors.buffer, colors.byteOffset, colors.byteLength),
-      base64ArrayBuffer(geometry.attributes.uv.array.buffer, geometry.attributes.uv.array.byteOffset, geometry.attributes.uv.array.byteLength),
-      base64ArrayBuffer(geometry.index.array.buffer, geometry.index.array.byteOffset, geometry.index.array.byteLength), */
     ]);
-    /* controllerObjects[1] = await socket.request('addObject', [
-      base64ArrayBuffer(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset, geometry.attributes.position.array.byteLength),
-      base64ArrayBuffer(geometry.attributes.normal.array.buffer, geometry.attributes.normal.array.byteOffset, geometry.attributes.normal.array.byteLength),
-      base64ArrayBuffer(colors.buffer, colors.byteOffset, colors.byteLength),
-      base64ArrayBuffer(geometry.attributes.uv.array.buffer, geometry.attributes.uv.array.byteOffset, geometry.attributes.uv.array.byteLength),
-      base64ArrayBuffer(geometry.index.array.buffer, geometry.index.array.byteOffset, geometry.index.array.byteLength),
-    ]); */
+    controllerObjects[1] = await socket.request('addObject', [
+      geometry.attributes.position.array,
+      geometry.attributes.normal.array,
+      colors,
+      geometry.attributes.uv.array,
+      geometry.index.array,
+    ]);
     console.log('got objects', hmdObject, controllerObjects[0], controllerObjects[1]);
     
     const res = await fetch('../data/avatar.glb');
@@ -593,7 +588,7 @@ window.addEventListener('load', async e => {
     console.log('model fetched');
     avatarObject = await socket.request('addModel', [
       'model',
-      base64ArrayBuffer(arrayBuffer),
+      arrayBuffer,
     ]);
     console.log('model added');
   });
@@ -606,29 +601,29 @@ window.addEventListener('load', async e => {
         // console.log('submit bones', boneTexture);
         socket.request('updateObjectBoneTexture', [
           avatarObject.id,
-          base64ArrayBuffer(boneTexture.buffer, boneTexture.byteOffset, boneTexture.byteLength),
+          boneTexture.buffer,
         ]);
       }
     }
-    /* if (hmdObject) {
+    if (hmdObject) {
       const hmdArray = Float32Array.from(hmd);
       socket.request('updateObjectMatrix', [
         hmdObject.id,
-        base64ArrayBuffer(hmdArray.buffer, hmdArray.byteOffset, hmdArray.byteLength),
+        hmdArray,
       ]);
-    } */
+    }
     if (controllerObjects[0]) {
       const leftArray = Float32Array.from(left);
       socket.request('updateObjectMatrix', [
         controllerObjects[0].id,
-        base64ArrayBuffer(leftArray.buffer, leftArray.byteOffset, leftArray.byteLength),
+        leftArray,
       ]);
     }
     if (controllerObjects[1]) {
       const rightArray = Float32Array.from(right);
       socket.request('updateObjectMatrix', [
         controllerObjects[1].id,
-        base64ArrayBuffer(rightArray.buffer, rightArray.byteOffset, rightArray.byteLength),
+        rightArray,
       ]);
     }
   });
