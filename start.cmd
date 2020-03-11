@@ -1,1 +1,0 @@
-.\Chrome-bin\chrome.exe --enable-features="WebXR,OpenVR" --disable-features="WindowsMixedReality" --no-sandbox --test-type --disable-xr-device-consent-prompt-for-testing --load-extension="..\..\extension" --whitelisted-extension-id="glmgcjligejadkfhgebnplablaggjbmm"
