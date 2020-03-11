@@ -73,13 +73,13 @@ public:
 	virtual void init( HINSTANCE hInstance, IVrManager *vrManager ) = 0;
 	virtual void runFrame( bool *shouldQuit, double frameTime ) = 0;
 
-	virtual std::unique_ptr<IModelInstance> loadModelInstance(const std::string &uri, std::vector<char> &&data) = 0;
+	virtual std::unique_ptr<IModelInstance> loadModelInstance(const std::string &uri, unsigned char *data, size_t size) = 0;
   virtual std::unique_ptr<IModelInstance> createDefaultModelInstance(const std::string &modelUrl) = 0;
-  virtual void setModelTransform(IModelInstance *model, std::vector<float> &position, std::vector<float> &quaternion, std::vector<float> &scale) = 0;
-  virtual void setModelMatrix(IModelInstance *model, std::vector<float> &matrix) = 0;
-  virtual std::unique_ptr<IModelInstance> setModelGeometry(std::unique_ptr<IModelInstance> model, std::vector<float> &positions, std::vector<float> &normals, std::vector<float> &colors, std::vector<float> &uvs, std::vector<uint16_t> &indices) = 0;
-  virtual std::unique_ptr<IModelInstance> setModelTexture(std::unique_ptr<IModelInstance> modelInstance, int width, int height, std::vector<unsigned char> &&data) = 0;
-  virtual void setBoneTexture(IModelInstance *modelInstance, const std::vector<float> &boneTexture) = 0;
+  virtual void setModelTransform(IModelInstance *model, float *position, size_t numPositions, float *quaternion, size_t numQuaternions, float *scale, size_t numScales) = 0;
+  virtual void setModelMatrix(IModelInstance *model, float *matrix, size_t numMatrix) = 0;
+  virtual std::unique_ptr<IModelInstance> setModelGeometry(std::unique_ptr<IModelInstance> model, float *positions, size_t numPositions, float *normals, size_t numNormals, float *colors, size_t numColors, float *uvs, size_t numUvs, uint16_t *indices, size_t numIndices) = 0;
+  virtual std::unique_ptr<IModelInstance> setModelTexture(std::unique_ptr<IModelInstance> modelInstance, int width, int height, unsigned char *data, size_t size) = 0;
+  virtual void setBoneTexture(IModelInstance *modelInstance, float *boneTexture, size_t numBoneTexture) = 0;
 	virtual void resetRenderList() = 0;
 	virtual void addToRenderList( IModelInstance *modelInstance ) = 0;
 	virtual void update() = 0;

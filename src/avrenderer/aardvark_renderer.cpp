@@ -2322,24 +2322,24 @@ void CVulkanRendererModelInstance::animate( float animationTimeElapsed )
 	}
 }
 
-std::unique_ptr<IModelInstance> VulkanExample::loadModelInstance(const std::string &modelUrl, std::vector<char> &&data) {
+std::unique_ptr<IModelInstance> VulkanExample::loadModelInstance(const std::string &modelUrl, unsigned char *data, size_t size) {
   std::shared_ptr<tinygltf::Model> model(new tinygltf::Model());
 
   bool planeModelLoaded = false;
-  if (data.size() >= 4) {
+  if (size >= 4) {
     tinygltf::TinyGLTF gltfContext;
 
     std::string error;
     std::string warning;
     
-    const bool bBinary = *((uint32_t *)data.data()) == 0x46546C67;
+    const bool bBinary = *((uint32_t *)data) == 0x46546C67;
     if ( bBinary )
     {
-      planeModelLoaded = gltfContext.LoadBinaryFromMemory( model.get(), &error, &warning, (const unsigned char*)data.data(), (uint32_t)data.size() );
+      planeModelLoaded = gltfContext.LoadBinaryFromMemory( model.get(), &error, &warning, data, size );
     }
     else
     {
-      planeModelLoaded = gltfContext.LoadASCIIFromString( model.get(), &error, &warning, (const char*)data.data(), (uint32_t)data.size(), ""  );
+      planeModelLoaded = gltfContext.LoadASCIIFromString( model.get(), &error, &warning, (char *)data, size, ""  );
     }
   }
   
@@ -2419,30 +2419,30 @@ std::unique_ptr<IModelInstance> VulkanExample::createDefaultModelInstance(const 
 	return std::make_unique<CVulkanRendererModelInstance>( this, modelUrl, planeModelVk );
 }
 
-void VulkanExample::setModelTransform(IModelInstance *modelInstance, std::vector<float> &position, std::vector<float> &quaternion, std::vector<float> &scale) {
+void VulkanExample::setModelTransform(IModelInstance *modelInstance, float *positions, size_t numPositions, float *quaternions, size_t numQuaternions, float *scales, size_t numScales) {
   CVulkanRendererModelInstance *model = dynamic_cast<CVulkanRendererModelInstance *>( modelInstance );
 
-  model->m_model->translation.x = position[0];
-  model->m_model->translation.y = position[1];
-  model->m_model->translation.z = position[2];
+  model->m_model->translation.x = positions[0];
+  model->m_model->translation.y = positions[1];
+  model->m_model->translation.z = positions[2];
 
-  model->m_model->rotation.x = quaternion[0];
-  model->m_model->rotation.y = quaternion[1];
-  model->m_model->rotation.z = quaternion[2];
-  model->m_model->rotation.w = quaternion[3];
+  model->m_model->rotation.x = quaternions[0];
+  model->m_model->rotation.y = quaternions[1];
+  model->m_model->rotation.z = quaternions[2];
+  model->m_model->rotation.w = quaternions[3];
 
-  model->m_model->scale.x = scale[0];
-  model->m_model->scale.y = scale[1];
-  model->m_model->scale.z = scale[2];
+  model->m_model->scale.x = scales[0];
+  model->m_model->scale.y = scales[1];
+  model->m_model->scale.z = scales[2];
 }
 
-void VulkanExample::setModelMatrix(IModelInstance *modelInstance, std::vector<float> &matrix) {
+void VulkanExample::setModelMatrix(IModelInstance *modelInstance, float *matrix, size_t numPositions) {
   CVulkanRendererModelInstance *model = dynamic_cast<CVulkanRendererModelInstance *>( modelInstance );
 
-  decomposeMatrix(matrix.data(), glm::value_ptr(model->m_model->translation), glm::value_ptr(model->m_model->rotation), glm::value_ptr(model->m_model->scale));
+  decomposeMatrix(matrix, glm::value_ptr(model->m_model->translation), glm::value_ptr(model->m_model->rotation), glm::value_ptr(model->m_model->scale));
 }
 
-std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<IModelInstance> modelInstance, std::vector<float> &positions, std::vector<float> &normals, std::vector<float> &colors, std::vector<float> &uvs, std::vector<uint16_t> &indices) {
+std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<IModelInstance> modelInstance, float *positions, size_t numPositions, float *normals, size_t numNormals, float *colors, size_t numColors, float *uvs, size_t numUvs, uint16_t *indices, size_t numIndices) {
   CVulkanRendererModelInstance *model = dynamic_cast<CVulkanRendererModelInstance *>( modelInstance.get() );
 
   std::shared_ptr<tinygltf::Model> model2(new tinygltf::Model(*model->m_model->modelPtr));
@@ -2541,10 +2541,11 @@ std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<
       {
       	auto &attribute = attributes["POSITION"];
       	const auto &src = positions;
+        const auto &size = numPositions;
 
       	auto &accessor = accessors[attribute];
       	accessor.byteOffset = 0;
-      	accessor.count = src.size();
+      	accessor.count = size;
         // auto &count = accessor.count;
         // auto &type = accessor.type;
         // const auto &elementSize = tinygltf::GetTypeSizeInBytes(type);
@@ -2552,8 +2553,8 @@ std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<
         // auto bufferView = bufferViews[accessor.bufferView];
         // bufferViews.push_back(bufferView);
 
-        std::vector<unsigned char> data(src.size() * sizeof(src[0]));
-        memcpy(data.data(), src.data(), data.size());
+        std::vector<unsigned char> data(size * sizeof(src[0]));
+        memcpy(data.data(), src, data.size());
         tinygltf::Buffer buffer{
         	std::string(), // std::string name;
 				  std::move(data), // std::vector<unsigned char> data;
@@ -2564,7 +2565,7 @@ std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<
 
         tinygltf::BufferView bufferView{};
         bufferView.buffer = buffers.size() - 1;
-        bufferView.byteLength = src.size() * sizeof(src[0]);
+        bufferView.byteLength = size * sizeof(src[0]);
         bufferView.target = TINYGLTF_TARGET_ARRAY_BUFFER;
         /* tinygltf::BufferView bufferView{
           "", // std::string name;
@@ -2582,13 +2583,14 @@ std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<
       {
         auto &attribute = attributes["NORMAL"];
         const auto &src = normals;
+        const auto &size = numNormals;
 
       	auto &accessor = accessors[attribute];
       	accessor.byteOffset = 0;
-      	accessor.count = src.size();
+      	accessor.count = size;
 
-        std::vector<unsigned char> data(src.size() * sizeof(src[0]));
-        memcpy(data.data(), src.data(), data.size());
+        std::vector<unsigned char> data(size * sizeof(src[0]));
+        memcpy(data.data(), src, data.size());
         tinygltf::Buffer buffer{
         	std::string(), // std::string name;
 				  std::move(data), // std::vector<unsigned char> data;
@@ -2599,7 +2601,7 @@ std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<
 
         tinygltf::BufferView bufferView{};
         bufferView.buffer = buffers.size() - 1;
-        bufferView.byteLength = src.size() * sizeof(src[0]);
+        bufferView.byteLength = size * sizeof(src[0]);
         bufferView.target = TINYGLTF_TARGET_ARRAY_BUFFER;
         bufferViews.push_back(std::move(bufferView));
         accessor.bufferView = bufferViews.size() - 1;
@@ -2607,13 +2609,14 @@ std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<
       {
         auto &attribute = attributes["COLOR_0"];
         const auto &src = colors;
+        const auto &size = numColors;
 
       	auto &accessor = accessors[attribute];
       	accessor.byteOffset = 0;
-      	accessor.count = src.size();
+      	accessor.count = size;
 
-        std::vector<unsigned char> data(src.size() * sizeof(src[0]));
-        memcpy(data.data(), src.data(), data.size());
+        std::vector<unsigned char> data(size * sizeof(src[0]));
+        memcpy(data.data(), src, data.size());
         tinygltf::Buffer buffer{
         	std::string(), // std::string name;
 				  std::move(data), // std::vector<unsigned char> data;
@@ -2624,7 +2627,7 @@ std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<
 
         tinygltf::BufferView bufferView{};
         bufferView.buffer = buffers.size() - 1;
-        bufferView.byteLength = src.size() * sizeof(src[0]);
+        bufferView.byteLength = size * sizeof(src[0]);
         bufferView.target = TINYGLTF_TARGET_ARRAY_BUFFER;
         bufferViews.push_back(std::move(bufferView));
         accessor.bufferView = bufferViews.size() - 1;
@@ -2632,13 +2635,14 @@ std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<
       {
         auto &attribute = attributes["TEXCOORD_0"];
         const auto &src = uvs;
+        const auto &size = numUvs;
 
       	auto &accessor = accessors[attribute];
       	accessor.byteOffset = 0;
-      	accessor.count = src.size();
+      	accessor.count = size;
 
-        std::vector<unsigned char> data(src.size() * sizeof(src[0]));
-        memcpy(data.data(), src.data(), data.size());
+        std::vector<unsigned char> data(size * sizeof(src[0]));
+        memcpy(data.data(), src, data.size());
         tinygltf::Buffer buffer{
         	std::string(), // std::string name;
 				  std::move(data), // std::vector<unsigned char> data;
@@ -2649,7 +2653,7 @@ std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<
 
         tinygltf::BufferView bufferView{};
         bufferView.buffer = buffers.size() - 1;
-        bufferView.byteLength = src.size() * sizeof(src[0]);
+        bufferView.byteLength = size * sizeof(src[0]);
         bufferView.target = TINYGLTF_TARGET_ARRAY_BUFFER;
         bufferViews.push_back(std::move(bufferView));
         accessor.bufferView = bufferViews.size() - 1;
@@ -2657,10 +2661,11 @@ std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<
       // index
       {
       	const auto &src = indices;
+      	const auto &size = numIndices;
 
 	      auto &accessor = accessors[primitive.indices];
       	accessor.byteOffset = 0;
-      	accessor.count = src.size();
+      	accessor.count = size;
 
         /* auto buffer = tinygltf::Buffer{
         	std::string(), // std::string name;
@@ -2668,8 +2673,8 @@ std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<
 				  std::string(), // std::string uri;  // considered as required here but not in the spec (need to clarify)
 				  tinygltf::Value() // Value extras;
 				}; */
-        std::vector<unsigned char> data(src.size() * sizeof(src[0]));
-        memcpy(data.data(), src.data(), data.size());
+        std::vector<unsigned char> data(size * sizeof(src[0]));
+        memcpy(data.data(), src, data.size());
         tinygltf::Buffer buffer{
         	std::string(), // std::string name;
 				  std::move(data), // std::vector<unsigned char> data;
@@ -2690,7 +2695,7 @@ std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<
         }; */
         tinygltf::BufferView bufferView{};
         bufferView.buffer = buffers.size() - 1;
-        bufferView.byteLength = src.size() * sizeof(src[0]);
+        bufferView.byteLength = size * sizeof(src[0]);
         bufferView.target = TINYGLTF_TARGET_ELEMENT_ARRAY_BUFFER;
         bufferViews.push_back(std::move(bufferView));
         accessor.bufferView = bufferViews.size() - 1;
@@ -2716,7 +2721,7 @@ std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<
   return std::move(result);
 }
 
-std::unique_ptr<IModelInstance> VulkanExample::setModelTexture(std::unique_ptr<IModelInstance> modelInstance, int width, int height, std::vector<unsigned char> &&data) {
+std::unique_ptr<IModelInstance> VulkanExample::setModelTexture(std::unique_ptr<IModelInstance> modelInstance, int width, int height, unsigned char *data, size_t size) {
   CVulkanRendererModelInstance *model = dynamic_cast<CVulkanRendererModelInstance *>( modelInstance.get() );
 
   std::shared_ptr<tinygltf::Model> model2(new tinygltf::Model(*(model->m_model->modelPtr)));
@@ -2724,7 +2729,8 @@ std::unique_ptr<IModelInstance> VulkanExample::setModelTexture(std::unique_ptr<I
   for (auto &image : images) {
     image.width = width;
     image.height = height;
-    image.image = std::move(data);
+    image.image = std::vector<unsigned char>(size);
+    memcpy(image.image.data(), data, size);
   }
   
   auto model3 = std::make_shared<vkglTF::Model>();
@@ -2738,7 +2744,7 @@ std::unique_ptr<IModelInstance> VulkanExample::setModelTexture(std::unique_ptr<I
   return std::move(result);
 }
 
-void VulkanExample::setBoneTexture(IModelInstance *modelInstance, const std::vector<float> &boneTexture) {
+void VulkanExample::setBoneTexture(IModelInstance *modelInstance, float *boneTexture, size_t numBoneTexture) {
   CVulkanRendererModelInstance *model = dynamic_cast<CVulkanRendererModelInstance *>( modelInstance );
 
   size_t numSkins = 0;
@@ -2747,8 +2753,8 @@ void VulkanExample::setBoneTexture(IModelInstance *modelInstance, const std::vec
     auto &mesh = node->mesh;
     auto &skin = node->skin;
     if (mesh && skin) {
-      if (boneTexture.size()*sizeof(boneTexture[0]) <= sizeof(mesh->uniformBlock.jointMatrix)) {
-        memcpy(mesh->uniformBlock.jointMatrix, boneTexture.data(), boneTexture.size()*sizeof(boneTexture[0]));
+      if (numBoneTexture*sizeof(boneTexture[0]) <= sizeof(mesh->uniformBlock.jointMatrix)) {
+        memcpy(mesh->uniformBlock.jointMatrix, boneTexture, numBoneTexture*sizeof(boneTexture[0]));
         /* glm::mat4 jointMat = glm::translate( glm::mat4{1}, glm::vec3(0, 0.2, 0) );
         for (size_t i = 0; i < skin->joints.size(); i++) {
           std::shared_ptr<Node> jointNode = skin->joints[i];
@@ -2757,7 +2763,7 @@ void VulkanExample::setBoneTexture(IModelInstance *modelInstance, const std::vec
           mesh->uniformBlock.jointMatrix[i] = jointMat;
         } */
       } else {
-        getOut() << "bad bones size: " << (boneTexture.size()*sizeof(boneTexture[0])) << " " << sizeof(mesh->uniformBlock.jointMatrix) << " " << boneTexture.size() << std::endl;
+        getOut() << "bad bones size: " << (numBoneTexture*sizeof(boneTexture[0])) << " " << sizeof(mesh->uniformBlock.jointMatrix) << " " << numBoneTexture << std::endl;
         abort();
       }
     }
