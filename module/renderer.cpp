@@ -49,6 +49,7 @@
 
 using json = nlohmann::json;
 using Base64 = macaron::Base64;
+using namespace v8;
 
 std::string logSuffix = "_native_host";
 // HWND g_hWnd = NULL;
@@ -158,267 +159,258 @@ void terminateKnownProcesses() {
 
 NAN_METHOD(handleMessage) {
   Nan::Utf8String methodUtf8(info[0]);
-  std::string method = *methodUtf8;
+  std::string methodString = *methodUtf8;
+  Local<Array> args = Local<Array>::Cast(info[1]);
   
-  std::cout << "got method " << method;
-  
-  /* if (method.is_string() && args.is_array()) {
-    const std::string methodString = method.get<std::string>();
-    getOut() << "method: " << methodString << std::endl;
+  std::cout << "method: " << method << " " << args.Length();
+  if (methodString == "startRenderer") {
+    app.reset(new CAardvarkCefApp());
+    app->startRenderer();
+    auto appPtr = app.get();
+    std::thread([appPtr]() {
+      while (appPtr->tickRenderer()) {
+        // XXX
+        /* float hmd[16];
+        float left[16];
+        float right[16];
+        appPtr->getPoses(hmd, left, right);
 
-    if (methodString == "startRenderer") {
-      app.reset(new CAardvarkCefApp());
-      app->startRenderer();
-      auto appPtr = app.get();
-      std::thread([appPtr]() {
-        while (appPtr->tickRenderer()) {
-          float hmd[16];
-          float left[16];
-          float right[16];
-          appPtr->getPoses(hmd, left, right);
-
-          json hmdArray = json::array();
-          json leftArray = json::array();
-          json rightArray = json::array();
-          for (size_t i = 0; i < ARRAYSIZE(hmd); i++) {
-            hmdArray.push_back(hmd[i]);
-            leftArray.push_back(left[i]);
-            rightArray.push_back(right[i]);
-          }
-
-          // getOut() << "emit event" << hmd[0] << " " << hmd[1] << " " << hmd[2] << " " << hmd[3] << std::endl;
-
-          json event = {
-            {"event", "pose"},
-            {"data", {
-              {"hmd", hmdArray},
-              {"left", leftArray},
-              {"right", rightArray},
-            }},
-          };
-          respond(event);
-
-          std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        json hmdArray = json::array();
+        json leftArray = json::array();
+        json rightArray = json::array();
+        for (size_t i = 0; i < ARRAYSIZE(hmd); i++) {
+          hmdArray.push_back(hmd[i]);
+          leftArray.push_back(left[i]);
+          rightArray.push_back(right[i]);
         }
-        getOut() << "quitting" << std::endl;
-        ExitProcess(0);
-      }).detach();
-      
-      getOut() << "respond 1" << std::endl;
 
-      Sleep(2000);
+        // getOut() << "emit event" << hmd[0] << " " << hmd[1] << " " << hmd[2] << " " << hmd[3] << std::endl;
 
-      getOut() << "respond 2" << std::endl;
+        json event = {
+          {"event", "pose"},
+          {"data", {
+            {"hmd", hmdArray},
+            {"left", leftArray},
+            {"right", rightArray},
+          }},
+        };
+        respond(event); */
 
-      json result = {
-        {"ok", true}
-      };
-      json res = {
-        {"error", nullptr},
-        {"result", result}
-      };
-      respond(res);
-      
-      getOut() << "respond 3" << std::endl;
-    } else if (
-      methodString == "addModel" &&
-      args.size() >= 2 &&
-      args[0].is_string() &&
-      args[1].is_string()
-    ) {
-      getOut() << "add model 1" << std::endl;
-      std::string name = args[0].get<std::string>();
-      std::vector<char> data = Base64::Decode<char>(args[1].get<std::string>());
-      getOut() << "add model 2 " << name << " " << data.size() << std::endl;
-
-      models[name] = app->renderer->m_renderer->loadModelInstance(name, std::move(data));
-
-      std::vector<float> boneTexture(128*16);
-      glm::mat4 jointMat = glm::translate(glm::mat4{1}, glm::vec3(0, 0.2, 0));
-      for (size_t i = 0; i < boneTexture.size(); i += 16) {
-        memcpy(&boneTexture[i], &jointMat, sizeof(float)*16);
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
       }
-      app->renderer->m_renderer->setBoneTexture(models[name].get(), boneTexture);
-      
-      app->renderer->m_renderer->addToRenderList(models[name].get());
+      getOut() << "quitting" << std::endl;
+      ExitProcess(0);
+    }).detach();
+    
+    getOut() << "respond 1" << std::endl;
 
-      getOut() << "add model 3" << std::endl;
+    Sleep(2000);
 
-      json result = {
-        {"id", name}
-      };
-      json res = {
-        {"error", nullptr},
-        {"result", result}
-      };
-      respond(res);
-    } else if (
-      methodString == "addObject" &&
-      args.size() >= 5 &&
-      args[0].is_string() &&
-      args[1].is_string() &&
-      args[2].is_string() &&
-      args[3].is_string() &&
-      args[4].is_string()
-    ) {
-      std::vector<float> positions = Base64::Decode<float>(args[0].get<std::string>());
-      std::vector<float> normals = Base64::Decode<float>(args[1].get<std::string>());
-      std::vector<float> colors = Base64::Decode<float>(args[2].get<std::string>());
-      std::vector<float> uvs = Base64::Decode<float>(args[3].get<std::string>());
-      std::vector<uint16_t> indices = Base64::Decode<uint16_t>(args[4].get<std::string>());
+    getOut() << "respond 2" << std::endl;
 
-      std::string name("object");
-      name += std::to_string(++ids);
+    Local<Object> result = Nan::New<Object>();
+    result->Set(JS_STR("ok"), Nan::New<Boolea>(true));
+    Local<Object> res = Nan::New<Object>();
+    result->Set(JS_STR("result"), result);
+    info.GetReturnValue().Set(result);
+  } else if (
+    methodString == "addModel" &&
+    args.size() >= 2 &&
+    args[0].is_string() &&
+    args[1].is_string()
+  ) {
+    // getOut() << "add model 1" << std::endl;
+    std::string name = args[0].get<std::string>();
+    std::vector<char> data = Base64::Decode<char>(args[1].get<std::string>());
+    // getOut() << "add model 2 " << name << " " << data.size() << std::endl;
 
-      models[name] = app->renderer->m_renderer->createDefaultModelInstance(name);
-      models[name] = app->renderer->m_renderer->setModelGeometry(std::move(models[name]), positions, normals, colors, uvs, indices);
-      std::vector<unsigned char> image = {
-        255,
-        0,
-        0,
-        255,
-      };
-      models[name] = app->renderer->m_renderer->setModelTexture(std::move(models[name]), 1, 1, std::move(image));
-      
-      app->renderer->m_renderer->addToRenderList(models[name].get());
-      
-      json result = {
-        {"id", name}
-      };
-      json res = {
-        {"error", nullptr},
-        {"result", result}
-      };
-      respond(res);
-    } else if (
-      methodString == "updateObjectTransform" &&
-      args.size() >= 4 &&
-      args[0].is_string() &&
-      args[1].is_string() &&
-      args[2].is_string() &&
-      args[3].is_string()
-    ) {
-      std::string name = args[0].get<std::string>();
-      std::vector<float> position = Base64::Decode<float>(args[1].get<std::string>());
-      std::vector<float> quaternion = Base64::Decode<float>(args[2].get<std::string>());
-      std::vector<float> scale = Base64::Decode<float>(args[3].get<std::string>());
+    models[name] = app->renderer->m_renderer->loadModelInstance(name, std::move(data));
 
-      app->renderer->m_renderer->setModelTransform(models[name].get(), position, quaternion, scale);
-      
-      json result = {
-        {"id", name}
-      };
-      json res = {
-        {"error", nullptr},
-        {"result", result}
-      };
-      respond(res);
-    } else if (
-      methodString == "updateObjectMatrix" &&
-      args.size() >= 2 &&
-      args[0].is_string() &&
-      args[1].is_string()
-    ) {
-      std::string name = args[0].get<std::string>();
-      std::vector<float> updateObjectMatrix = Base64::Decode<float>(args[1].get<std::string>());
-
-      app->renderer->m_renderer->setModelMatrix(models[name].get(), updateObjectMatrix);
-
-      json result = {
-        {"id", name}
-      };
-      json res = {
-        {"error", nullptr},
-        {"result", result}
-      };
-      respond(res);
-    } else if (
-      methodString == "updateObjectBoneTexture" &&
-      args.size() >= 2 &&
-      args[0].is_string() &&
-      args[1].is_string()
-    ) {
-      std::string name = args[0].get<std::string>();
-      std::vector<float> boneTexture = Base64::Decode<float>(args[1].get<std::string>());
-
-      app->renderer->m_renderer->setBoneTexture(models[name].get(), boneTexture);
-      
-      json result = {
-        {"id", name}
-      };
-      json res = {
-        {"error", nullptr},
-        {"result", result}
-      };
-      respond(res);
-    } else if (
-      methodString == "updateObjectGeometry" &&
-      args.size() >= 6 &&
-      args[0].is_string() &&
-      args[1].is_string() &&
-      args[2].is_string() &&
-      args[3].is_string() &&
-      args[4].is_string() &&
-      args[5].is_string()
-    ) {
-      std::string name = args[0].get<std::string>();
-      std::vector<float> positions = Base64::Decode<float>(args[1].get<std::string>());
-      std::vector<float> normals = Base64::Decode<float>(args[2].get<std::string>());
-      std::vector<float> colors = Base64::Decode<float>(args[3].get<std::string>());
-      std::vector<float> uvs = Base64::Decode<float>(args[4].get<std::string>());
-      std::vector<uint16_t> indices = Base64::Decode<uint16_t>(args[5].get<std::string>());
-
-      models[name] = app->renderer->m_renderer->setModelGeometry(std::move(models[name]), positions, normals, colors, uvs, indices);
-      
-      json result = {
-        {"id", name}
-      };
-      json res = {
-        {"error", nullptr},
-        {"result", result}
-      };
-      respond(res);
-    } else if (
-      methodString == "updateObjectTexture" &&
-      args.size() >= 4 &&
-      args[0].is_string() &&
-      args[1].is_number() &&
-      args[2].is_number() &&
-      args[3].is_string()
-    ) {
-      std::string name = args[0].get<std::string>();
-      int width = args[1].get<int>();
-      int height = args[2].get<int>();
-      std::vector<uint8_t> data = Base64::Decode<uint8_t>(args[3].get<std::string>());
-
-      models[name] = app->renderer->m_renderer->setModelTexture(std::move(models[name]), width, height, std::move(data));
-      
-      json result = {
-        // {"processId", processId}
-      };
-      json res = {
-        {"error", nullptr},
-        {"result", result}
-      };
-      respond(res);
-    } else if (
-      methodString == "terminate"
-    ) {
-      getOut() << "call terminate 1" << std::endl;
-      terminateKnownProcesses();
-      getOut() << "call terminate 2" << std::endl;
-
-      json res = {
-        {"error", nullptr},
-        {"result", "ok"}
-      };
-      respond(res);
-    } else {
-      json res = {
-        {"error", std::string("unknown method: ") + methodString + " " + std::to_string(args.size())},
-        {"result", nullptr}
-      };
-      respond(res);
+    std::vector<float> boneTexture(128*16);
+    glm::mat4 jointMat = glm::translate(glm::mat4{1}, glm::vec3(0, 0.2, 0));
+    for (size_t i = 0; i < boneTexture.size(); i += 16) {
+      memcpy(&boneTexture[i], &jointMat, sizeof(float)*16);
     }
-  } */
+    app->renderer->m_renderer->setBoneTexture(models[name].get(), boneTexture);
+    
+    app->renderer->m_renderer->addToRenderList(models[name].get());
+
+    // getOut() << "add model 3" << std::endl;
+
+    json result = {
+      {"id", name}
+    };
+    json res = {
+      {"error", nullptr},
+      {"result", result}
+    };
+    respond(res);
+  } else if (
+    methodString == "addObject" &&
+    args.size() >= 5 &&
+    args[0].is_string() &&
+    args[1].is_string() &&
+    args[2].is_string() &&
+    args[3].is_string() &&
+    args[4].is_string()
+  ) {
+    std::vector<float> positions = Base64::Decode<float>(args[0].get<std::string>());
+    std::vector<float> normals = Base64::Decode<float>(args[1].get<std::string>());
+    std::vector<float> colors = Base64::Decode<float>(args[2].get<std::string>());
+    std::vector<float> uvs = Base64::Decode<float>(args[3].get<std::string>());
+    std::vector<uint16_t> indices = Base64::Decode<uint16_t>(args[4].get<std::string>());
+
+    std::string name("object");
+    name += std::to_string(++ids);
+
+    models[name] = app->renderer->m_renderer->createDefaultModelInstance(name);
+    models[name] = app->renderer->m_renderer->setModelGeometry(std::move(models[name]), positions, normals, colors, uvs, indices);
+    std::vector<unsigned char> image = {
+      255,
+      0,
+      0,
+      255,
+    };
+    models[name] = app->renderer->m_renderer->setModelTexture(std::move(models[name]), 1, 1, std::move(image));
+    
+    app->renderer->m_renderer->addToRenderList(models[name].get());
+    
+    json result = {
+      {"id", name}
+    };
+    json res = {
+      {"error", nullptr},
+      {"result", result}
+    };
+    respond(res);
+  } else if (
+    methodString == "updateObjectTransform" &&
+    args.size() >= 4 &&
+    args[0].is_string() &&
+    args[1].is_string() &&
+    args[2].is_string() &&
+    args[3].is_string()
+  ) {
+    std::string name = args[0].get<std::string>();
+    std::vector<float> position = Base64::Decode<float>(args[1].get<std::string>());
+    std::vector<float> quaternion = Base64::Decode<float>(args[2].get<std::string>());
+    std::vector<float> scale = Base64::Decode<float>(args[3].get<std::string>());
+
+    app->renderer->m_renderer->setModelTransform(models[name].get(), position, quaternion, scale);
+    
+    json result = {
+      {"id", name}
+    };
+    json res = {
+      {"error", nullptr},
+      {"result", result}
+    };
+    respond(res);
+  } else if (
+    methodString == "updateObjectMatrix" &&
+    args.size() >= 2 &&
+    args[0].is_string() &&
+    args[1].is_string()
+  ) {
+    std::string name = args[0].get<std::string>();
+    std::vector<float> updateObjectMatrix = Base64::Decode<float>(args[1].get<std::string>());
+
+    app->renderer->m_renderer->setModelMatrix(models[name].get(), updateObjectMatrix);
+
+    json result = {
+      {"id", name}
+    };
+    json res = {
+      {"error", nullptr},
+      {"result", result}
+    };
+    respond(res);
+  } else if (
+    methodString == "updateObjectBoneTexture" &&
+    args.size() >= 2 &&
+    args[0].is_string() &&
+    args[1].is_string()
+  ) {
+    std::string name = args[0].get<std::string>();
+    std::vector<float> boneTexture = Base64::Decode<float>(args[1].get<std::string>());
+
+    app->renderer->m_renderer->setBoneTexture(models[name].get(), boneTexture);
+    
+    json result = {
+      {"id", name}
+    };
+    json res = {
+      {"error", nullptr},
+      {"result", result}
+    };
+    respond(res);
+  } else if (
+    methodString == "updateObjectGeometry" &&
+    args.size() >= 6 &&
+    args[0].is_string() &&
+    args[1].is_string() &&
+    args[2].is_string() &&
+    args[3].is_string() &&
+    args[4].is_string() &&
+    args[5].is_string()
+  ) {
+    std::string name = args[0].get<std::string>();
+    std::vector<float> positions = Base64::Decode<float>(args[1].get<std::string>());
+    std::vector<float> normals = Base64::Decode<float>(args[2].get<std::string>());
+    std::vector<float> colors = Base64::Decode<float>(args[3].get<std::string>());
+    std::vector<float> uvs = Base64::Decode<float>(args[4].get<std::string>());
+    std::vector<uint16_t> indices = Base64::Decode<uint16_t>(args[5].get<std::string>());
+
+    models[name] = app->renderer->m_renderer->setModelGeometry(std::move(models[name]), positions, normals, colors, uvs, indices);
+    
+    json result = {
+      {"id", name}
+    };
+    json res = {
+      {"error", nullptr},
+      {"result", result}
+    };
+    respond(res);
+  } else if (
+    methodString == "updateObjectTexture" &&
+    args.size() >= 4 &&
+    args[0].is_string() &&
+    args[1].is_number() &&
+    args[2].is_number() &&
+    args[3].is_string()
+  ) {
+    std::string name = args[0].get<std::string>();
+    int width = args[1].get<int>();
+    int height = args[2].get<int>();
+    std::vector<uint8_t> data = Base64::Decode<uint8_t>(args[3].get<std::string>());
+
+    models[name] = app->renderer->m_renderer->setModelTexture(std::move(models[name]), width, height, std::move(data));
+    
+    json result = {
+      // {"processId", processId}
+    };
+    json res = {
+      {"error", nullptr},
+      {"result", result}
+    };
+    respond(res);
+  } else if (
+    methodString == "terminate"
+  ) {
+    getOut() << "call terminate 1" << std::endl;
+    terminateKnownProcesses();
+    getOut() << "call terminate 2" << std::endl;
+
+    json res = {
+      {"error", nullptr},
+      {"result", "ok"}
+    };
+    respond(res);
+  } else {
+    json res = {
+      {"error", std::string("unknown method: ") + methodString + " " + std::to_string(args.size())},
+      {"result", nullptr}
+    };
+    respond(res);
+  }
 }

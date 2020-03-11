@@ -73,8 +73,9 @@ wss.on('connection', async (s, req) => {
             }
           };
           await Promise.all(messagePromises);
-          
-          switch (method) {
+
+          handleMessage(method, args);
+          /* switch (method) {
             case 'test': {
               console.log('handle test', method, args);
               s.send(JSON.stringify({
@@ -88,7 +89,7 @@ wss.on('connection', async (s, req) => {
               console.warn('unknown method');
               break;
             }
-          }
+          } */
         }
       } else {
         console.warn('cannot handle message', m);
