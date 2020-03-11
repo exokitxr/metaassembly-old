@@ -63,6 +63,9 @@ wss.on('connection', async (s, req) => {
           let messagePromiseIndex = 0;
           localHandleMessage = m => {
             const messagePromise = messagePromises[messagePromiseIndex++];
+            if (messagePromiseIndex >= messagePromises.length) {
+              localHandleMessage = null;
+            }
             if (typeof m === 'string') {
               messagePromise.accept(jsonParse(m));
             } else {
@@ -70,7 +73,6 @@ wss.on('connection', async (s, req) => {
             }
           };
           await Promise.all(messagePromises);
-          localHandleMessage = null;
           
           switch (method) {
             case 'test': {

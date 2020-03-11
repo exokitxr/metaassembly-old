@@ -62,6 +62,16 @@ import {OrbitControls} from './OrbitControls.js';
 import {XRControllerModelFactory} from './XRControllerModelFactory.js';
 import {initLocalRig, updatePlayerFromCamera, updatePlayerFromXr, updatePlayerFromArrays, getRigBoneTexture, bindPeerConnection} from './peerconnection.js';
 
+function makePromise() {
+  let accept, reject;
+  const p = new Promise((a, r) => {
+    accept = a;
+    reject = r;
+  });
+  p.accept = accept;
+  p.reject = reject;
+  return p;
+}
 function base64ArrayBuffer(arrayBuffer, byteOffset = 0, byteLength = arrayBuffer.byteLength) {
   var base64    = ''
   var encodings = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
@@ -161,20 +171,51 @@ orbitControls.update();
 
 initLocalRig(container);
 
-const s = new WebSocket(`ws://localhost:3000/`);
-s.onopen = () => {
-  console.log('socket open', s);
-  const ab = new ArrayBuffer(8);
-  s.send(JSON.stringify({
-    method: 'test',
-    args: [
-      null,
-    ],
-  }));
-  s.send(ab);
+const socket = new WebSocket(`ws://localhost:3000/`);
+socket.onopen = async () => {
+  console.log('socket open', socket);
+
+  const result = await socket.request('test', [
+    new ArrayBuffer(8)
+  ]);
+  console.log('got result', result);
 };
-s.onclose = () => {
-  console.log('socket close', s);
+const cbs = [];
+socket.onmessage = m => {
+  m = JSON.parse(m.data);
+  const cb = cbs.shift();
+  cb && cb(m);
+};
+socket.onclose = () => {
+  console.log('socket close', socket);
+};
+socket.request = async (method, args) => {
+  const bins = [];
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg instanceof ArrayBuffer || ArrayBuffer.isView(arg)) {
+      bins.push(arg);
+      args[i] = null;
+    }
+  }
+
+  const p = makePromise();
+  cbs.push(o => {
+    const {error, result} = o;
+     if (!error) {
+       p.accept(result);
+     } else {
+       p.reject(error);
+     }
+  });
+  socket.send(JSON.stringify({
+    method,
+    args,
+  }));
+  for (let i = 0; i < bins.length; i++) {
+    socket.send(bins[i]);
+  }
+  return await p;
 };
 
 window.addEventListener('load', async e => {
@@ -426,7 +467,7 @@ window.addEventListener('load', async e => {
   let hmdObject = null;
   const controllerObjects = [null, null];
   document.getElementById('enter-overlay-button').addEventListener('click', async e => {
-    await window.xrchrome.request('startRenderer', []);
+    await socket.request('startRenderer', []);
     console.log('render started');
     
     /* {
@@ -519,21 +560,21 @@ window.addEventListener('load', async e => {
     for (let i = 0; i < colors.length; i += 3) {
       colors[i+2] = 1;
     }
-    /* hmdObject = await window.xrchrome.request('addObject', [
+    /* hmdObject = await socket.request('addObject', [
       base64ArrayBuffer(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset, geometry.attributes.position.array.byteLength),
       base64ArrayBuffer(geometry.attributes.normal.array.buffer, geometry.attributes.normal.array.byteOffset, geometry.attributes.normal.array.byteLength),
       base64ArrayBuffer(colors.buffer, colors.byteOffset, colors.byteLength),
       base64ArrayBuffer(geometry.attributes.uv.array.buffer, geometry.attributes.uv.array.byteOffset, geometry.attributes.uv.array.byteLength),
       base64ArrayBuffer(geometry.index.array.buffer, geometry.index.array.byteOffset, geometry.index.array.byteLength),
     ]); */
-    controllerObjects[0] = await window.xrchrome.request('addObject', [
+    controllerObjects[0] = await socket.request('addObject', [
       base64ArrayBuffer(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset, geometry.attributes.position.array.byteLength),
       base64ArrayBuffer(geometry.attributes.normal.array.buffer, geometry.attributes.normal.array.byteOffset, geometry.attributes.normal.array.byteLength),
       base64ArrayBuffer(colors.buffer, colors.byteOffset, colors.byteLength),
       base64ArrayBuffer(geometry.attributes.uv.array.buffer, geometry.attributes.uv.array.byteOffset, geometry.attributes.uv.array.byteLength),
       base64ArrayBuffer(geometry.index.array.buffer, geometry.index.array.byteOffset, geometry.index.array.byteLength),
     ]);
-    controllerObjects[1] = await window.xrchrome.request('addObject', [
+    controllerObjects[1] = await socket.request('addObject', [
       base64ArrayBuffer(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset, geometry.attributes.position.array.byteLength),
       base64ArrayBuffer(geometry.attributes.normal.array.buffer, geometry.attributes.normal.array.byteOffset, geometry.attributes.normal.array.byteLength),
       base64ArrayBuffer(colors.buffer, colors.byteOffset, colors.byteLength),
@@ -545,7 +586,7 @@ window.addEventListener('load', async e => {
     const res = await fetch('../data/avatar.glb');
     const arrayBuffer = await res.arrayBuffer();
     console.log('model fetched');
-    avatarObject = await window.xrchrome.request('addModel', [
+    avatarObject = await socket.request('addModel', [
       'model',
       base64ArrayBuffer(arrayBuffer),
     ]);
@@ -558,7 +599,7 @@ window.addEventListener('load', async e => {
       const boneTexture = getRigBoneTexture();
       if (boneTexture) {
         // console.log('submit bones', boneTexture);
-        window.xrchrome.request('updateObjectBoneTexture', [
+        socket.request('updateObjectBoneTexture', [
           avatarObject.id,
           base64ArrayBuffer(boneTexture.buffer, boneTexture.byteOffset, boneTexture.byteLength),
         ]);
@@ -566,21 +607,21 @@ window.addEventListener('load', async e => {
     }
     /* if (hmdObject) {
       const hmdArray = Float32Array.from(hmd);
-      window.xrchrome.request('updateObjectMatrix', [
+      socket.request('updateObjectMatrix', [
         hmdObject.id,
         base64ArrayBuffer(hmdArray.buffer, hmdArray.byteOffset, hmdArray.byteLength),
       ]);
     } */
     if (controllerObjects[0]) {
       const leftArray = Float32Array.from(left);
-      window.xrchrome.request('updateObjectMatrix', [
+      socket.request('updateObjectMatrix', [
         controllerObjects[0].id,
         base64ArrayBuffer(leftArray.buffer, leftArray.byteOffset, leftArray.byteLength),
       ]);
     }
     if (controllerObjects[1]) {
       const rightArray = Float32Array.from(right);
-      window.xrchrome.request('updateObjectMatrix', [
+      socket.request('updateObjectMatrix', [
         controllerObjects[1].id,
         base64ArrayBuffer(rightArray.buffer, rightArray.byteOffset, rightArray.byteLength),
       ]);
