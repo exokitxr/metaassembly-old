@@ -48,7 +48,7 @@ cp -Recurse bin\openvr_api.dll build/Release/
 
 echo zipping artifact... 
 # 7z a avrenderer.zip -r .\src\build\avrenderer\Release\
-7z a MetaAssembly.zip -r .\node\ .\build .\Chrome-bin
+7z a MetaAssembly.zip -r .\node\ .\build .\Chrome-bin MetaAssembly.cmd
 echo done zipping artifact
 
 ls
