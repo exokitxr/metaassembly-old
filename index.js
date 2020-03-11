@@ -55,7 +55,7 @@ wss.on('connection', async (s, req) => {
             if (args[i] === null) {
               const p = makePromise();
               p.then(v => {
-                args[i] = v;
+                args[i] = [v.buffer, v.byteOffset, v.byteLength];
               });
               messagePromises.push(p);
             }

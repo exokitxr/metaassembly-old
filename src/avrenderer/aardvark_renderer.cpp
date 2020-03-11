@@ -2420,7 +2420,7 @@ std::unique_ptr<IModelInstance> VulkanExample::createDefaultModelInstance(const 
 }
 
 void VulkanExample::setModelTransform(IModelInstance *modelInstance, float *positions, size_t numPositions, float *quaternions, size_t numQuaternions, float *scales, size_t numScales) {
-  CVulkanRendererModelInstance *model = dynamic_cast<CVulkanRendererModelInstance *>( modelInstance );
+  CVulkanRendererModelInstance *model = (CVulkanRendererModelInstance *)modelInstance;
 
   model->m_model->translation.x = positions[0];
   model->m_model->translation.y = positions[1];
@@ -2437,13 +2437,17 @@ void VulkanExample::setModelTransform(IModelInstance *modelInstance, float *posi
 }
 
 void VulkanExample::setModelMatrix(IModelInstance *modelInstance, float *matrix, size_t numPositions) {
-  CVulkanRendererModelInstance *model = dynamic_cast<CVulkanRendererModelInstance *>( modelInstance );
+  CVulkanRendererModelInstance *model = (CVulkanRendererModelInstance *)modelInstance;
 
   decomposeMatrix(matrix, glm::value_ptr(model->m_model->translation), glm::value_ptr(model->m_model->rotation), glm::value_ptr(model->m_model->scale));
 }
 
 std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<IModelInstance> modelInstance, float *positions, size_t numPositions, float *normals, size_t numNormals, float *colors, size_t numColors, float *uvs, size_t numUvs, uint16_t *indices, size_t numIndices) {
-  CVulkanRendererModelInstance *model = dynamic_cast<CVulkanRendererModelInstance *>( modelInstance.get() );
+  getOut() << "set 0 " << modelInstance.get() << std::endl;
+
+  CVulkanRendererModelInstance *model = (CVulkanRendererModelInstance *)modelInstance.get();
+
+  getOut() << "set 1" << std::endl;
 
   std::shared_ptr<tinygltf::Model> model2(new tinygltf::Model(*model->m_model->modelPtr));
   auto &accessors = model2->accessors;
@@ -2538,6 +2542,7 @@ std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<
 	    }
 
       // attributes
+      getOut() << "set 2" << std::endl;
       {
       	auto &attribute = attributes["POSITION"];
       	const auto &src = positions;
@@ -2580,6 +2585,7 @@ std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<
         bufferViews.push_back(std::move(bufferView));
         accessor.bufferView = bufferViews.size() - 1;
       }
+      getOut() << "set 2" << std::endl;
       {
         auto &attribute = attributes["NORMAL"];
         const auto &src = normals;
@@ -2722,7 +2728,7 @@ std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<
 }
 
 std::unique_ptr<IModelInstance> VulkanExample::setModelTexture(std::unique_ptr<IModelInstance> modelInstance, int width, int height, unsigned char *data, size_t size) {
-  CVulkanRendererModelInstance *model = dynamic_cast<CVulkanRendererModelInstance *>( modelInstance.get() );
+  CVulkanRendererModelInstance *model = (CVulkanRendererModelInstance *)modelInstance.get();
 
   std::shared_ptr<tinygltf::Model> model2(new tinygltf::Model(*(model->m_model->modelPtr)));
   auto &images = model2->images;
@@ -2745,7 +2751,7 @@ std::unique_ptr<IModelInstance> VulkanExample::setModelTexture(std::unique_ptr<I
 }
 
 void VulkanExample::setBoneTexture(IModelInstance *modelInstance, float *boneTexture, size_t numBoneTexture) {
-  CVulkanRendererModelInstance *model = dynamic_cast<CVulkanRendererModelInstance *>( modelInstance );
+  CVulkanRendererModelInstance *model = (CVulkanRendererModelInstance *)modelInstance;
 
   size_t numSkins = 0;
   for (size_t i = 0; i < model->m_model->linearNodes.size(); i++) {
@@ -2777,8 +2783,8 @@ void VulkanExample::resetRenderList()
 
 void VulkanExample::addToRenderList( IModelInstance *modelInstance )
 {
-	CVulkanRendererModelInstance *vulkanModelInstance = dynamic_cast<CVulkanRendererModelInstance *>( modelInstance );
-	m_modelsToRender.push_back( vulkanModelInstance );
+  CVulkanRendererModelInstance *model = (CVulkanRendererModelInstance *)modelInstance;
+	m_modelsToRender.push_back( model );
 }
 
 std::shared_ptr<vkglTF::Model> model;

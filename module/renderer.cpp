@@ -157,6 +157,22 @@ void terminateKnownProcesses() {
   }); */
 }
 
+template<typename T>
+inline std::pair<T, size_t> getArrayData(Local<Value> arg) {
+  Local<Array> dataArray = Local<Array>::Cast(arg);
+  Local<ArrayBuffer> dataValue = Local<ArrayBuffer>::Cast(dataArray->Get(Isolate::GetCurrent()->GetCurrentContext(), 0).ToLocalChecked());
+  unsigned char *data = (unsigned char *)dataValue->GetContents().Data();
+  uintptr_t byteOffset = dataArray->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked()->Uint32Value(Isolate::GetCurrent()->GetCurrentContext()).ToChecked();
+  data += byteOffset;
+  size_t size = dataArray->Get(Isolate::GetCurrent()->GetCurrentContext(), 2).ToLocalChecked()->Uint32Value(Isolate::GetCurrent()->GetCurrentContext()).ToChecked();
+  T datas = (T)data;
+  size_t numDatas = size/sizeof(datas[0]);
+  return std::pair<T, size_t>{
+    datas,
+    numDatas,
+  };
+}
+
 std::unique_ptr<CAardvarkCefApp> app;
 size_t ids = 0;
 std::map<std::string, std::unique_ptr<IModelInstance>> models;
@@ -224,16 +240,13 @@ NAN_METHOD(handleMessage) {
     methodString == "addModel" &&
     args->Length() >= 2 &&
     args->Get(Isolate::GetCurrent()->GetCurrentContext(), 0).ToLocalChecked()->IsString() &&
-    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked()->IsArrayBuffer()
+    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked()->IsArray()
   ) {
-    // getOut() << "add model 1" << std::endl;
     Nan::Utf8String nameUtf8(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 0).ToLocalChecked());
     std::string name = *nameUtf8;
-    Local<ArrayBuffer> dataValue = Local<ArrayBuffer>::Cast(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked());
-    unsigned char *data = (unsigned char *)dataValue->GetContents().Data();
-    size_t size = dataValue->ByteLength();
+    auto data = getArrayData<unsigned char *>(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked());
 
-    models[name] = app->renderer->m_renderer->loadModelInstance(name, data, size);
+    models[name] = app->renderer->m_renderer->loadModelInstance(name, data.first, data.second);
 
     std::vector<float> boneTexture(128*16);
     glm::mat4 jointMat = glm::translate(glm::mat4{1}, glm::vec3(0, 0.2, 0));
@@ -244,8 +257,6 @@ NAN_METHOD(handleMessage) {
     
     app->renderer->m_renderer->addToRenderList(models[name].get());
 
-    // getOut() << "add model 3" << std::endl;
-
     Local<Object> result = Nan::New<Object>();
     result->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("id").ToLocalChecked(), Nan::New<String>(name).ToLocalChecked());
     Local<Object> res = Nan::New<Object>();
@@ -254,33 +265,23 @@ NAN_METHOD(handleMessage) {
   } else if (
     methodString == "addObject" &&
     args->Length() >= 5 &&
-    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 0).ToLocalChecked()->IsArrayBuffer() &&
-    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked()->IsArrayBuffer() &&
-    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 2).ToLocalChecked()->IsArrayBuffer() &&
-    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 3).ToLocalChecked()->IsArrayBuffer() &&
-    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 4).ToLocalChecked()->IsArrayBuffer()
+    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 0).ToLocalChecked()->IsArray() &&
+    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked()->IsArray() &&
+    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 2).ToLocalChecked()->IsArray() &&
+    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 3).ToLocalChecked()->IsArray() &&
+    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 4).ToLocalChecked()->IsArray()
   ) {
-    Local<ArrayBuffer> positionsValue = Local<ArrayBuffer>::Cast(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 0).ToLocalChecked());
-    float *positions = (float *)positionsValue->GetContents().Data();
-    size_t numPositions = positionsValue->ByteLength();
-    Local<ArrayBuffer> normalsValue = Local<ArrayBuffer>::Cast(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked());
-    float *normals = (float *)normalsValue->GetContents().Data();
-    size_t numNormals = normalsValue->ByteLength();
-    Local<ArrayBuffer> colorsValue = Local<ArrayBuffer>::Cast(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 2).ToLocalChecked());
-    float *colors = (float *)colorsValue->GetContents().Data();
-    size_t numColors = colorsValue->ByteLength();
-    Local<ArrayBuffer> uvsValue = Local<ArrayBuffer>::Cast(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 3).ToLocalChecked());
-    float *uvs = (float *)uvsValue->GetContents().Data();
-    size_t numUvs = uvsValue->ByteLength();
-    Local<ArrayBuffer> indicesValue = Local<ArrayBuffer>::Cast(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 4).ToLocalChecked());
-    uint16_t *indices = (uint16_t *)indicesValue->GetContents().Data();
-    size_t numIndices = indicesValue->ByteLength();
+    auto positions = getArrayData<float *>(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 0).ToLocalChecked());
+    auto normals = getArrayData<float *>(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked());
+    auto colors = getArrayData<float *>(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 2).ToLocalChecked());
+    auto uvs = getArrayData<float *>(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 3).ToLocalChecked());
+    auto indices = getArrayData<uint16_t *>(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 4).ToLocalChecked());
 
     std::string name("object");
     name += std::to_string(++ids);
 
     models[name] = app->renderer->m_renderer->createDefaultModelInstance(name);
-    models[name] = app->renderer->m_renderer->setModelGeometry(std::move(models[name]), positions, numPositions, normals, numNormals, colors, numColors, uvs, numUvs, indices, numIndices);
+    models[name] = app->renderer->m_renderer->setModelGeometry(std::move(models[name]), positions.first, positions.second, normals.first, normals.second, colors.first, colors.second, uvs.first, uvs.second, indices.first, indices.second);
     std::vector<unsigned char> image = {
       255,
       0,
@@ -288,7 +289,7 @@ NAN_METHOD(handleMessage) {
       255,
     };
     models[name] = app->renderer->m_renderer->setModelTexture(std::move(models[name]), 1, 1, image.data(), image.size());
-    
+
     app->renderer->m_renderer->addToRenderList(models[name].get());
 
     Local<Object> result = Nan::New<Object>();
@@ -300,23 +301,17 @@ NAN_METHOD(handleMessage) {
     methodString == "updateObjectTransform" &&
     args->Length() >= 4 &&
     args->Get(Isolate::GetCurrent()->GetCurrentContext(), 0).ToLocalChecked()->IsString() &&
-    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked()->IsArrayBuffer() &&
-    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 2).ToLocalChecked()->IsArrayBuffer() &&
-    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 3).ToLocalChecked()->IsArrayBuffer()
+    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked()->IsArray() &&
+    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 2).ToLocalChecked()->IsArray() &&
+    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 3).ToLocalChecked()->IsArray()
   ) {
     Nan::Utf8String nameUtf8(info[0]);
     std::string name = *nameUtf8;
-    Local<ArrayBuffer> positionsValue = Local<ArrayBuffer>::Cast(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked());
-    float *positions = (float *)positionsValue->GetContents().Data();
-    size_t numPositions = positionsValue->ByteLength();
-    Local<ArrayBuffer> quaternionValue = Local<ArrayBuffer>::Cast(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 2).ToLocalChecked());
-    float *quaternions = (float *)quaternionValue->GetContents().Data();
-    size_t numQuaternions = quaternionValue->ByteLength();
-    Local<ArrayBuffer> scaleValue = Local<ArrayBuffer>::Cast(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 3).ToLocalChecked());
-    float *scales = (float *)scaleValue->GetContents().Data();
-    size_t numScales = scaleValue->ByteLength();
+    auto positions = getArrayData<float *>(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked());
+    auto quaternions = getArrayData<float *>(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 2).ToLocalChecked());
+    auto scales = getArrayData<float *>(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 3).ToLocalChecked());
 
-    app->renderer->m_renderer->setModelTransform(models[name].get(), positions, numPositions, quaternions, numQuaternions, scales, numScales);
+    app->renderer->m_renderer->setModelTransform(models[name].get(), positions.first, positions.second, quaternions.first, quaternions.second, scales.first, scales.second);
     
     Local<Object> result = Nan::New<Object>();
     result->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("id").ToLocalChecked(), Nan::New<String>(name).ToLocalChecked());
@@ -346,15 +341,13 @@ NAN_METHOD(handleMessage) {
     methodString == "updateObjectBoneTexture" &&
     args->Length() >= 2 &&
     args->Get(Isolate::GetCurrent()->GetCurrentContext(), 0).ToLocalChecked()->IsString() &&
-    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked()->IsArrayBuffer()
+    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked()->IsArray()
   ) {
     Nan::Utf8String nameUtf8(info[0]);
     std::string name = *nameUtf8;
-    Local<ArrayBuffer> boneTextureValue = Local<ArrayBuffer>::Cast(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked());
-    float *boneTexture = (float *)boneTextureValue->GetContents().Data();
-    size_t numBoneTexture = boneTextureValue->ByteLength();
+    auto boneTexture = getArrayData<float *>(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked());
 
-    app->renderer->m_renderer->setBoneTexture(models[name].get(), boneTexture, numBoneTexture);
+    app->renderer->m_renderer->setBoneTexture(models[name].get(), boneTexture.first, boneTexture.second);
     
     Local<Object> result = Nan::New<Object>();
     result->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("id").ToLocalChecked(), Nan::New<String>(name).ToLocalChecked());
@@ -365,31 +358,21 @@ NAN_METHOD(handleMessage) {
     methodString == "updateObjectGeometry" &&
     args->Length() >= 6 &&
     args->Get(Isolate::GetCurrent()->GetCurrentContext(), 0).ToLocalChecked()->IsString() &&
-    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked()->IsArrayBuffer() &&
-    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 2).ToLocalChecked()->IsArrayBuffer() &&
-    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 3).ToLocalChecked()->IsArrayBuffer() &&
-    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 4).ToLocalChecked()->IsArrayBuffer() &&
-    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 5).ToLocalChecked()->IsArrayBuffer()
+    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked()->IsArray() &&
+    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 2).ToLocalChecked()->IsArray() &&
+    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 3).ToLocalChecked()->IsArray() &&
+    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 4).ToLocalChecked()->IsArray() &&
+    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 5).ToLocalChecked()->IsArray()
   ) {
     Nan::Utf8String nameUtf8(info[0]);
     std::string name = *nameUtf8;
-    Local<ArrayBuffer> positionsValue = Local<ArrayBuffer>::Cast(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked());
-    float *positions = (float *)positionsValue->GetContents().Data();
-    size_t numPositions = positionsValue->ByteLength();
-    Local<ArrayBuffer> normalsValue = Local<ArrayBuffer>::Cast(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked());
-    float *normals = (float *)normalsValue->GetContents().Data();
-    size_t numNormals = normalsValue->ByteLength();
-    Local<ArrayBuffer> colorsValue = Local<ArrayBuffer>::Cast(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked());
-    float *colors = (float *)colorsValue->GetContents().Data();
-    size_t numColors = colorsValue->ByteLength();
-    Local<ArrayBuffer> uvsValue = Local<ArrayBuffer>::Cast(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked());
-    float *uvs = (float *)uvsValue->GetContents().Data();
-    size_t numUvs = uvsValue->ByteLength();
-    Local<ArrayBuffer> indicesValue = Local<ArrayBuffer>::Cast(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked());
-    uint16_t *indices = (uint16_t *)indicesValue->GetContents().Data();
-    size_t numIndices = indicesValue->ByteLength();
+    auto positions = getArrayData<float *>(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked());
+    auto normals = getArrayData<float *>(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 2).ToLocalChecked());
+    auto colors = getArrayData<float *>(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 3).ToLocalChecked());
+    auto uvs = getArrayData<float *>(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 4).ToLocalChecked());
+    auto indices = getArrayData<uint16_t *>(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 5).ToLocalChecked());
 
-    models[name] = app->renderer->m_renderer->setModelGeometry(std::move(models[name]), positions, numPositions, normals, numNormals, colors, numColors, uvs, numUvs, indices, numIndices);
+    models[name] = app->renderer->m_renderer->setModelGeometry(std::move(models[name]), positions.first, positions.second, normals.first, normals.second, colors.first, colors.second, uvs.first, uvs.second, indices.first, indices.second);
     
     Local<Object> result = Nan::New<Object>();
     result->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("id").ToLocalChecked(), Nan::New<String>(name).ToLocalChecked());
@@ -402,7 +385,7 @@ NAN_METHOD(handleMessage) {
     args->Get(Isolate::GetCurrent()->GetCurrentContext(), 0).ToLocalChecked()->IsString() &&
     args->Get(Isolate::GetCurrent()->GetCurrentContext(), 1).ToLocalChecked()->IsNumber() &&
     args->Get(Isolate::GetCurrent()->GetCurrentContext(), 2).ToLocalChecked()->IsNumber() &&
-    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 3).ToLocalChecked()->IsArrayBuffer()
+    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 3).ToLocalChecked()->IsArray()
   ) {
     Nan::Utf8String nameUtf8(info[0]);
     std::string name = *nameUtf8;
@@ -410,11 +393,9 @@ NAN_METHOD(handleMessage) {
     int width = widthValue->Int32Value(Isolate::GetCurrent()->GetCurrentContext()).ToChecked();
     Local<Number> heightValue = Local<Number>::Cast(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 2).ToLocalChecked());
     int height = heightValue->Int32Value(Isolate::GetCurrent()->GetCurrentContext()).ToChecked();
-    Local<ArrayBuffer> dataValue = Local<ArrayBuffer>::Cast(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 2).ToLocalChecked());
-    unsigned char *data = (unsigned char *)dataValue->GetContents().Data();
-    size_t size = dataValue->ByteLength();
+    auto data = getArrayData<unsigned char *>(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 3).ToLocalChecked());
 
-    models[name] = app->renderer->m_renderer->setModelTexture(std::move(models[name]), width, height, data, size); // XXX
+    models[name] = app->renderer->m_renderer->setModelTexture(std::move(models[name]), width, height, data.first, data.second);
     
     Local<Object> result = Nan::New<Object>();
     result->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("id").ToLocalChecked(), Nan::New<String>(name).ToLocalChecked());
