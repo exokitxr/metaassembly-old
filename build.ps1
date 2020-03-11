@@ -44,8 +44,11 @@ cp -Recurse userdata src\build\avrenderer\Release\Chrome-bin\
 cp -Recurse bin\openvr_api.dll src\build\avrenderer\Release\
 cp steam_appid.txt src\build\avrenderer\Release\
 
+cp -Recurse bin\openvr_api.dll build/Release/
+
 echo zipping artifact... 
-7z a avrenderer.zip -r .\src\build\avrenderer\Release\
+# 7z a avrenderer.zip -r .\src\build\avrenderer\Release\
+7z a MetaAssembly.zip -r .\node\ .\build
 echo done zipping artifact
 
 ls
