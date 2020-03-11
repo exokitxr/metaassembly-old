@@ -5,7 +5,7 @@ const http = require('http');
 const https = require('https');
 const express = require('express');
 const ws = require('ws');
-const {handleMessage} = require('./build/Release/exokit.node');
+const {setEventHandler, handleMessage} = require('./build/Release/exokit.node');
 
 function jsonParse(s) {
   try {
@@ -55,6 +55,11 @@ wss.on('connection', async (s, req) => {
             if (args[i] === null) {
               const p = makePromise();
               p.then(v => {
+                if (v.byteOffset % 4 !== 0) { // alignment
+                  const ab = new ArrayBuffer(v.byteLength);
+                  new Uint8Array(ab).set(new Uint8Array(v.buffer, v.byteOffset, v.byteLength));
+                  v = new v.constructor(ab);
+                }
                 args[i] = [v.buffer, v.byteOffset, v.byteLength];
               });
               messagePromises.push(p);
@@ -90,6 +95,12 @@ wss.on('connection', async (s, req) => {
         console.warn('cannot handle message', m);
       }
     }
+  });
+  
+  setEventHandler(e => {
+    s.send(e.hmd);
+    s.send(e.left);
+    s.send(e.right);
   });
 });
 wss.on('error', err => {
