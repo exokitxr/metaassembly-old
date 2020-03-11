@@ -253,7 +253,7 @@ NAN_METHOD(handleMessage) {
   std::string methodString = *methodUtf8;
   Local<Array> args = Local<Array>::Cast(info[1]);
   
-  std::cout << "method: " << methodString << " " << args->Length() << std::endl;
+  // std::cout << "method: " << methodString << " " << args->Length() << std::endl;
   if (
     methodString == "startRenderer"
   ) {

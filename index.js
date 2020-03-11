@@ -68,7 +68,6 @@ wss.on('connection', async (s, req) => {
           if (messagePromises.length > 0) {
             let messagePromiseIndex = 0;
             localHandleMessage = m => {
-              console.log('got arg', messagePromiseIndex);
               const messagePromise = messagePromises[messagePromiseIndex++];
               if (messagePromiseIndex >= messagePromises.length) {
                 localHandleMessage = null;
@@ -82,7 +81,7 @@ wss.on('connection', async (s, req) => {
             await Promise.all(messagePromises);
           }
 
-          console.log('calling', method, args);
+          // console.log('calling', method, args);
 
           const o = handleMessage(method, args);
           const {error, result} = o;
