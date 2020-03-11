@@ -60,36 +60,31 @@ wss.on('connection', async (s, req) => {
               messagePromises.push(p);
             }
           }
-          let messagePromiseIndex = 0;
-          localHandleMessage = m => {
-            const messagePromise = messagePromises[messagePromiseIndex++];
-            if (messagePromiseIndex >= messagePromises.length) {
-              localHandleMessage = null;
-            }
-            if (typeof m === 'string') {
-              messagePromise.accept(jsonParse(m));
-            } else {
-              messagePromise.accept(m);
-            }
-          };
-          await Promise.all(messagePromises);
+          if (messagePromises.length > 0) {
+            let messagePromiseIndex = 0;
+            localHandleMessage = m => {
+              console.log('got arg', messagePromiseIndex);
+              const messagePromise = messagePromises[messagePromiseIndex++];
+              if (messagePromiseIndex >= messagePromises.length) {
+                localHandleMessage = null;
+              }
+              if (typeof m === 'string') {
+                messagePromise.accept(jsonParse(m));
+              } else {
+                messagePromise.accept(m);
+              }
+            };
+            await Promise.all(messagePromises);
+          }
 
-          handleMessage(method, args);
-          /* switch (method) {
-            case 'test': {
-              console.log('handle test', method, args);
-              s.send(JSON.stringify({
-                result: {
-                  numArgs: args.length,
-                },
-              }));
-              break;
-            }
-            default: {
-              console.warn('unknown method');
-              break;
-            }
-          } */
+          console.log('calling', method, args);
+
+          const o = handleMessage(method, args);
+          const {error, result} = o;
+          s.send(JSON.stringify({
+            error,
+            result,
+          }));
         }
       } else {
         console.warn('cannot handle message', m);
