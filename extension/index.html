@@ -568,19 +568,24 @@ window.addEventListener('load', async e => {
       base64ArrayBuffer(geometry.index.array.buffer, geometry.index.array.byteOffset, geometry.index.array.byteLength),
     ]); */
     controllerObjects[0] = await socket.request('addObject', [
+      geometry.attributes.position.array,
+      geometry.attributes.normal.array,
+      colors,
+      geometry.attributes.uv.array,
+      geometry.index.array,
+      /* base64ArrayBuffer(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset, geometry.attributes.position.array.byteLength),
+      base64ArrayBuffer(geometry.attributes.normal.array.buffer, geometry.attributes.normal.array.byteOffset, geometry.attributes.normal.array.byteLength),
+      base64ArrayBuffer(colors.buffer, colors.byteOffset, colors.byteLength),
+      base64ArrayBuffer(geometry.attributes.uv.array.buffer, geometry.attributes.uv.array.byteOffset, geometry.attributes.uv.array.byteLength),
+      base64ArrayBuffer(geometry.index.array.buffer, geometry.index.array.byteOffset, geometry.index.array.byteLength), */
+    ]);
+    /* controllerObjects[1] = await socket.request('addObject', [
       base64ArrayBuffer(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset, geometry.attributes.position.array.byteLength),
       base64ArrayBuffer(geometry.attributes.normal.array.buffer, geometry.attributes.normal.array.byteOffset, geometry.attributes.normal.array.byteLength),
       base64ArrayBuffer(colors.buffer, colors.byteOffset, colors.byteLength),
       base64ArrayBuffer(geometry.attributes.uv.array.buffer, geometry.attributes.uv.array.byteOffset, geometry.attributes.uv.array.byteLength),
       base64ArrayBuffer(geometry.index.array.buffer, geometry.index.array.byteOffset, geometry.index.array.byteLength),
-    ]);
-    controllerObjects[1] = await socket.request('addObject', [
-      base64ArrayBuffer(geometry.attributes.position.array.buffer, geometry.attributes.position.array.byteOffset, geometry.attributes.position.array.byteLength),
-      base64ArrayBuffer(geometry.attributes.normal.array.buffer, geometry.attributes.normal.array.byteOffset, geometry.attributes.normal.array.byteLength),
-      base64ArrayBuffer(colors.buffer, colors.byteOffset, colors.byteLength),
-      base64ArrayBuffer(geometry.attributes.uv.array.buffer, geometry.attributes.uv.array.byteOffset, geometry.attributes.uv.array.byteLength),
-      base64ArrayBuffer(geometry.index.array.buffer, geometry.index.array.byteOffset, geometry.index.array.byteLength),
-    ]);
+    ]); */
     console.log('got objects', hmdObject, controllerObjects[0], controllerObjects[1]);
     
     const res = await fetch('../data/avatar.glb');
