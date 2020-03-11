@@ -17,9 +17,10 @@ data/avcmd
 packages/aardvark-cli/lib
 packages/aardvark-react/lib
 packages/aardvark-shared/lib
-node_modules
 
 package-lock.json
+node_modules
+node
 chrome.7z
 Chrome-bin
 steamworks_sdk_148.zip
