@@ -180,11 +180,22 @@ socket.onopen = async () => {
   ]);
   console.log('got result', result); */
 };
+socket.binaryType = 'arraybuffer';
 const cbs = [];
+const socketData = [];
+let handlePose = null;
 socket.onmessage = m => {
-  m = JSON.parse(m.data);
-  const cb = cbs.shift();
-  cb && cb(m);
+  if (typeof m.data === 'string') {
+    m = JSON.parse(m.data);
+    const cb = cbs.shift();
+    cb && cb(m);
+  } else {
+    socketData.push(m.data);
+    if (socketData.length >= 3) {
+      handlePose && handlePose.apply(null, socketData);
+      socketData.length = 0;
+    }
+  }
 };
 socket.onclose = () => {
   console.log('socket close', socket);
@@ -592,10 +603,9 @@ window.addEventListener('load', async e => {
     ]);
     console.log('model added');
   });
-  window.addEventListener('pose', e => {
-    const {hmd, left, right} = e.data;
+  handlePose = (hmd, left, right) => {
     if (avatarObject) {
-      updatePlayerFromArrays(renderer.xr, hmd, left, right);
+      updatePlayerFromArrays(renderer.xr, new Float32Array(hmd), new Float32Array(left), new Float32Array(right));
       const boneTexture = getRigBoneTexture();
       if (boneTexture) {
         // console.log('submit bones', boneTexture);
@@ -606,27 +616,24 @@ window.addEventListener('load', async e => {
       }
     }
     if (hmdObject) {
-      const hmdArray = Float32Array.from(hmd);
       socket.request('updateObjectMatrix', [
         hmdObject.id,
-        hmdArray,
+        hmd,
       ]);
     }
     if (controllerObjects[0]) {
-      const leftArray = Float32Array.from(left);
       socket.request('updateObjectMatrix', [
         controllerObjects[0].id,
-        leftArray,
+        left,
       ]);
     }
     if (controllerObjects[1]) {
-      const rightArray = Float32Array.from(right);
       socket.request('updateObjectMatrix', [
         controllerObjects[1].id,
-        rightArray,
+        right,
       ]);
     }
-  });
+  };
 });
 
 </script>
