@@ -7,9 +7,9 @@ Invoke-WebRequest "https://github.com/Hibbiki/chromium-win64/releases/download/v
 7z x chrome.7z -aoa
 rm chrome.7z
 
-Invoke-WebRequest "https://raw.githubusercontent.com/avaer/swsdk/master/steamworks_sdk_148.zip" -OutFile "steamworks_sdk_148.zip"
-7z x steamworks_sdk_148.zip -aoa
-rm steamworks_sdk_148.zip
+# Invoke-WebRequest "https://raw.githubusercontent.com/avaer/swsdk/master/steamworks_sdk_148.zip" -OutFile "steamworks_sdk_148.zip"
+# 7z x steamworks_sdk_148.zip -aoa
+# rm steamworks_sdk_148.zip
 
 Invoke-WebRequest 'https://nodejs.org/dist/v13.10.1/node-v13.10.1-win-x64.zip' -OutFile "node.zip"
 7z x node.zip -aoa
