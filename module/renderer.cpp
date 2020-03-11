@@ -222,7 +222,8 @@ NAN_METHOD(handleMessage) {
     args[1]->IsString()
   ) {
     // getOut() << "add model 1" << std::endl;
-    std::string name = args[0].get<std::string>();
+    Nan::Utf8String nameUtf8(info[0]);
+    std::string name = *nameUtf8;
     std::vector<char> data = Base64::Decode<char>(args[1].get<std::string>());
     // getOut() << "add model 2 " << name << " " << data.size() << std::endl;
 
@@ -287,7 +288,8 @@ NAN_METHOD(handleMessage) {
     args[2]->IsString() &&
     args[3]->IsString()
   ) {
-    std::string name = args[0].get<std::string>();
+    Nan::Utf8String nameUtf8(info[0]);
+    std::string name = *nameUtf8;
     std::vector<float> position = Base64::Decode<float>(args[1].get<std::string>());
     std::vector<float> quaternion = Base64::Decode<float>(args[2].get<std::string>());
     std::vector<float> scale = Base64::Decode<float>(args[3].get<std::string>());
@@ -305,7 +307,8 @@ NAN_METHOD(handleMessage) {
     args[0]->IsString() &&
     args[1]->IsString()
   ) {
-    std::string name = args[0].get<std::string>();
+    Nan::Utf8String nameUtf8(info[0]);
+    std::string name = *nameUtf8;
     std::vector<float> updateObjectMatrix = Base64::Decode<float>(args[1].get<std::string>());
 
     app->renderer->m_renderer->setModelMatrix(models[name].get(), updateObjectMatrix);
@@ -321,7 +324,8 @@ NAN_METHOD(handleMessage) {
     args[0]->IsString() &&
     args[1]->IsString()
   ) {
-    std::string name = args[0].get<std::string>();
+    Nan::Utf8String nameUtf8(info[0]);
+    std::string name = *nameUtf8;
     std::vector<float> boneTexture = Base64::Decode<float>(args[1].get<std::string>());
 
     app->renderer->m_renderer->setBoneTexture(models[name].get(), boneTexture);
@@ -341,7 +345,8 @@ NAN_METHOD(handleMessage) {
     args[4]->IsString() &&
     args[5]->IsString()
   ) {
-    std::string name = args[0].get<std::string>();
+    Nan::Utf8String nameUtf8(info[0]);
+    std::string name = *nameUtf8;
     std::vector<float> positions = Base64::Decode<float>(args[1].get<std::string>());
     std::vector<float> normals = Base64::Decode<float>(args[2].get<std::string>());
     std::vector<float> colors = Base64::Decode<float>(args[3].get<std::string>());
@@ -361,14 +366,19 @@ NAN_METHOD(handleMessage) {
     args[0]->IsString() &&
     args[1]->IsNumber() &&
     args[2]->IsNumber() &&
-    args[3]->IsString()
+    args[3]->IsArrayBuffer()
   ) {
-    std::string name = args[0].get<std::string>();
-    int width = args[1].get<int>();
-    int height = args[2].get<int>();
-    std::vector<uint8_t> data = Base64::Decode<uint8_t>(args[3].get<std::string>());
+    Nan::Utf8String nameUtf8(info[0]);
+    std::string name = *nameUtf8;
+    Local<Number> widthValue = Local<Number>(args[1]).ToLocalChecked();
+    int width = widthValue->Int32Value();
+    Local<Number> heightValue = Local<Number>(args[2]).ToLocalChecked();
+    int height = heightValue->Int32Value();
+    Local<ArrayBuffer> dataValue = Local<ArrayBuffer>(args[1]).ToLocalChecked();
+    unsigned char *data = (unsigned char *)dataValue->Contents().GetData();
+    size_t size = dataValue->Contents()->ByteLength();
 
-    models[name] = app->renderer->m_renderer->setModelTexture(std::move(models[name]), width, height, std::move(data));
+    models[name] = app->renderer->m_renderer->setModelTexture(std::move(models[name]), width, height, data, size); // XXX
     
     Local<Object> result = Nan::New<Object>();
     result->Set(JS_STR("id"), Nan::New<String>(name));
