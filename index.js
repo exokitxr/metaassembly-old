@@ -3,6 +3,7 @@
 const fs = require('fs');
 const http = require('http');
 const https = require('https');
+const child_process = require('child_process');
 const express = require('express');
 const ws = require('ws');
 const {setEventHandler, handleMessage} = require('./build/Release/exokit.node');
@@ -24,6 +25,8 @@ function makePromise() {
   p.reject = reject;
   return p;
 }
+
+const port = 3000;
 
 const app = express();
 /* app.get('*', async (req, res, next) => {
@@ -111,6 +114,17 @@ const _ws = (req, socket, head) => {
   });
 };
 server.on('upgrade', _ws);
-server.listen(3000);
-
-console.log(`http://127.0.0.1:3000`);
+server.listen(port);
+server.once('listening', () => {
+  child_process.spawn(`.\Chrome-bin\chrome.exe`, [
+    /* '--enable-features="WebXR,OpenVR"',
+    '--disable-features="WindowsMixedReality"',
+    '--no-sandbox',
+    '--test-type',
+    '--disable-xr-device-consent-prompt-for-testing',
+    '--load-extension="..\..\extension"'
+    '--whitelisted-extension-id="glmgcjligejadkfhgebnplablaggjbmm"', */
+    `--app=http://localhost:${port}`,
+  ]);
+  console.log(`http://127.0.0.1:${port}`);
+});
