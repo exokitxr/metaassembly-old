@@ -163,7 +163,9 @@ NAN_METHOD(handleMessage) {
   Local<Array> args = Local<Array>::Cast(info[1]);
   
   std::cout << "method: " << method << " " << args.Length();
-  if (methodString == "startRenderer") {
+  if (
+    methodString == "startRenderer"
+  ) {
     app.reset(new CAardvarkCefApp());
     app->startRenderer();
     auto appPtr = app.get();
@@ -215,9 +217,9 @@ NAN_METHOD(handleMessage) {
     info.GetReturnValue().Set(result);
   } else if (
     methodString == "addModel" &&
-    args.size() >= 2 &&
-    args[0].is_string() &&
-    args[1].is_string()
+    args.Length() >= 2 &&
+    args[0]->IsString() &&
+    args[1]->IsString()
   ) {
     // getOut() << "add model 1" << std::endl;
     std::string name = args[0].get<std::string>();
@@ -244,12 +246,12 @@ NAN_METHOD(handleMessage) {
     info.GetReturnValue().Set(result);
   } else if (
     methodString == "addObject" &&
-    args.size() >= 5 &&
-    args[0].is_string() &&
-    args[1].is_string() &&
-    args[2].is_string() &&
-    args[3].is_string() &&
-    args[4].is_string()
+    args.Length() >= 5 &&
+    args[0]->IsString() &&
+    args[1]->IsString() &&
+    args[2]->IsString() &&
+    args[3]->IsString() &&
+    args[4]->IsString()
   ) {
     std::vector<float> positions = Base64::Decode<float>(args[0].get<std::string>());
     std::vector<float> normals = Base64::Decode<float>(args[1].get<std::string>());
@@ -279,11 +281,11 @@ NAN_METHOD(handleMessage) {
     info.GetReturnValue().Set(result);
   } else if (
     methodString == "updateObjectTransform" &&
-    args.size() >= 4 &&
-    args[0].is_string() &&
-    args[1].is_string() &&
-    args[2].is_string() &&
-    args[3].is_string()
+    args.Length() >= 4 &&
+    args[0]->IsString() &&
+    args[1]->IsString() &&
+    args[2]->IsString() &&
+    args[3]->IsString()
   ) {
     std::string name = args[0].get<std::string>();
     std::vector<float> position = Base64::Decode<float>(args[1].get<std::string>());
@@ -299,9 +301,9 @@ NAN_METHOD(handleMessage) {
     info.GetReturnValue().Set(result);
   } else if (
     methodString == "updateObjectMatrix" &&
-    args.size() >= 2 &&
-    args[0].is_string() &&
-    args[1].is_string()
+    args.Length() >= 2 &&
+    args[0]->IsString() &&
+    args[1]->IsString()
   ) {
     std::string name = args[0].get<std::string>();
     std::vector<float> updateObjectMatrix = Base64::Decode<float>(args[1].get<std::string>());
@@ -315,9 +317,9 @@ NAN_METHOD(handleMessage) {
     info.GetReturnValue().Set(result);
   } else if (
     methodString == "updateObjectBoneTexture" &&
-    args.size() >= 2 &&
-    args[0].is_string() &&
-    args[1].is_string()
+    args.Length() >= 2 &&
+    args[0]->IsString() &&
+    args[1]->IsString()
   ) {
     std::string name = args[0].get<std::string>();
     std::vector<float> boneTexture = Base64::Decode<float>(args[1].get<std::string>());
@@ -331,13 +333,13 @@ NAN_METHOD(handleMessage) {
     info.GetReturnValue().Set(result);
   } else if (
     methodString == "updateObjectGeometry" &&
-    args.size() >= 6 &&
-    args[0].is_string() &&
-    args[1].is_string() &&
-    args[2].is_string() &&
-    args[3].is_string() &&
-    args[4].is_string() &&
-    args[5].is_string()
+    args.Length() >= 6 &&
+    args[0]->IsString() &&
+    args[1]->IsString() &&
+    args[2]->IsString() &&
+    args[3]->IsString() &&
+    args[4]->IsString() &&
+    args[5]->IsString()
   ) {
     std::string name = args[0].get<std::string>();
     std::vector<float> positions = Base64::Decode<float>(args[1].get<std::string>());
@@ -355,11 +357,11 @@ NAN_METHOD(handleMessage) {
     info.GetReturnValue().Set(result);
   } else if (
     methodString == "updateObjectTexture" &&
-    args.size() >= 4 &&
-    args[0].is_string() &&
-    args[1].is_number() &&
-    args[2].is_number() &&
-    args[3].is_string()
+    args.Length() >= 4 &&
+    args[0]->IsString() &&
+    args[1]->IsNumber() &&
+    args[2]->IsNumber() &&
+    args[3]->IsString()
   ) {
     std::string name = args[0].get<std::string>();
     int width = args[1].get<int>();
