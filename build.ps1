@@ -14,6 +14,9 @@ rm steamworks_sdk_148.zip
 Invoke-WebRequest 'https://nodejs.org/dist/v13.10.1/node-v13.10.1-win-x64.zip' -OutFile "node.zip"
 7z x node.zip -aoa
 rm node.zip
+mv node-v13.10.1-win-x64 node
+
+& 'node/npm.cmd' install
 
 ls
 cd src
