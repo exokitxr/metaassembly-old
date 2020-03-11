@@ -1,5 +1,5 @@
 {
-  "name": "aardvark",
+  "name": "metaassembly",
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
@@ -9,14 +9,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/avaer/aardvark.git"
+    "url": "git+https://github.com/exokitxr/metaassembly.git"
   },
   "author": "Avaer Kazmer <a@modules.io>",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/avaer/aardvark/issues"
+    "url": "https://github.com/avaer/exokitxr/issues"
   },
-  "homepage": "https://github.com/avaer/aardvark#readme",
+  "homepage": "https://github.com/avaer/exokitxr#readme",
   "dependencies": {
     "express": "^4.17.1",
     "nan": "^2.14.0",
