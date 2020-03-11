@@ -1,11 +1,12 @@
 #ifndef _openvr_test_out_h_
 #define _openvr_test_out_h_
 
-#include <fstream>
+#include <iostream>
+// #include <fstream>
 #include <functional>
 
 extern std::string dllDir;
-extern std::ofstream out;
+// extern std::ofstream out;
 extern std::string logSuffix;
 
 std::ostream &getOut();
