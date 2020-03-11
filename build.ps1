@@ -30,25 +30,28 @@ msbuild /p:Configuration=Release -m Aardvark.sln
 
 cd ../..
 ls
-cp -Recurse Chrome-bin src\build\avrenderer\Debug\
-cp -Recurse extension src\build\avrenderer\Debug\
-cp -Recurse data src\build\avrenderer\Debug\
-cp -Recurse userdata src\build\avrenderer\Debug\Chrome-bin\
-cp -Recurse bin\openvr_api.dll src\build\avrenderer\Debug\
-cp steam_appid.txt src\build\avrenderer\Debug\
+# cp -Recurse Chrome-bin src\build\avrenderer\Debug\
+# cp -Recurse extension src\build\avrenderer\Debug\
+# cp -Recurse data src\build\avrenderer\Debug\
+# cp -Recurse userdata src\build\avrenderer\Debug\Chrome-bin\
+# cp -Recurse bin\openvr_api.dll src\build\avrenderer\Debug\
+# cp steam_appid.txt src\build\avrenderer\Debug\
 
-cp -Recurse Chrome-bin src\build\avrenderer\Release\
-cp -Recurse extension src\build\avrenderer\Release\
-cp -Recurse data src\build\avrenderer\Release\
-cp -Recurse userdata src\build\avrenderer\Release\Chrome-bin\
-cp -Recurse bin\openvr_api.dll src\build\avrenderer\Release\
-cp steam_appid.txt src\build\avrenderer\Release\
+# cp -Recurse Chrome-bin src\build\avrenderer\Release\
+# cp -Recurse extension src\build\avrenderer\Release\
+# cp -Recurse data src\build\avrenderer\Release\
+# cp -Recurse userdata src\build\avrenderer\Release\Chrome-bin\
+# cp -Recurse bin\openvr_api.dll src\build\avrenderer\Release\
+# cp steam_appid.txt src\build\avrenderer\Release\
 
 cp -Recurse bin\openvr_api.dll build/Release/
 
+mkdir -Force MetaAssembly
+mv .\node\ .\node_modules\ .\build\ .\Chrome-bin\ MetaAssembly.cmd .\MetaAssembly\
+
 echo zipping artifact... 
 # 7z a avrenderer.zip -r .\src\build\avrenderer\Release\
-7z a MetaAssembly.zip -r .\node\ .\node_modules\ .\build\ .\Chrome-bin\ MetaAssembly.cmd
+7z a MetaAssembly.zip -r .\MetaAssembly\
 echo done zipping artifact
 
 ls
