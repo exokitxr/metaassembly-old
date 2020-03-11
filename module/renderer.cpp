@@ -23,6 +23,7 @@
 #include <fcntl.h>
 #include <iostream>
 #include <filesystem>
+#include <mutex>
 
 // #define CINTERFACE
 // #define D3D11_NO_HELPERS
@@ -50,6 +51,71 @@
 using json = nlohmann::json;
 using Base64 = macaron::Base64;
 using namespace v8;
+
+class MessageStruct {
+public:
+  float hmd[16];
+  float left[16];
+  float right[16];
+};
+
+uv_async_t eventAsync;
+std::mutex mutex;
+Nan::Persistent<Function> eventCbFn;
+std::vector<MessageStruct> messages;
+void RunAsync(uv_async_t *handle) {
+  Nan::HandleScope scope;
+
+  {
+    std::lock_guard<std::mutex> lock(mutex);
+
+    if (!eventCbFn.IsEmpty()) {
+      Local<Function> localEventCbFn = Nan::New(eventCbFn);
+
+      for (size_t i = 0; i < messages.size(); i++) {
+        const MessageStruct &message = messages[i];
+
+        Local<Object> event = Nan::New<Object>();
+        Local<ArrayBuffer> hmdBuffer = ArrayBuffer::New(Isolate::GetCurrent(), sizeof(message.hmd));
+        memcpy(hmdBuffer->GetContents().Data(), message.hmd, sizeof(message.hmd));
+        Local<Float32Array> hmd = Float32Array::New(hmdBuffer, 0, ARRAYSIZE(message.hmd));
+
+        Local<ArrayBuffer> leftBuffer = ArrayBuffer::New(Isolate::GetCurrent(), sizeof(message.left));
+        memcpy(leftBuffer->GetContents().Data(), message.left, sizeof(message.left));
+        Local<Float32Array> left = Float32Array::New(leftBuffer, 0, ARRAYSIZE(message.left));
+
+        Local<ArrayBuffer> rightBuffer = ArrayBuffer::New(Isolate::GetCurrent(), sizeof(message.right));
+        memcpy(rightBuffer->GetContents().Data(), message.right, sizeof(message.right));
+        Local<Float32Array> right = Float32Array::New(rightBuffer, 0, ARRAYSIZE(message.right));
+
+        event->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("hmd").ToLocalChecked(), hmd);
+        event->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("left").ToLocalChecked(), left);
+        event->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("right").ToLocalChecked(), right);
+
+        /* json event = {
+          {"event", "pose"},
+          {"data", {
+            {"hmd", hmdArray},
+            {"left", leftArray},
+            {"right", rightArray},
+          }},
+        };
+        respond(event); */
+
+        Local<Value> argv[] = {
+          event,
+        };
+        localEventCbFn->Call(Isolate::GetCurrent()->GetCurrentContext(), Nan::Null(), sizeof(argv)/sizeof(argv[0]), argv);
+      }
+
+      messages.clear();
+    }
+  }
+}
+void initAsync() {
+  uv_loop_t *loop = node::GetCurrentEventLoop(Isolate::GetCurrent());
+  uv_async_init(loop, &eventAsync, RunAsync);
+}
 
 std::string logSuffix = "_native_host";
 // HWND g_hWnd = NULL;
@@ -173,6 +239,12 @@ inline std::pair<T, size_t> getArrayData(Local<Value> arg) {
   };
 }
 
+NAN_METHOD(setEventHandler) {
+  std::lock_guard<std::mutex> lock(mutex);
+  
+  eventCbFn.Reset(Local<Function>::Cast(info[0]));
+}
+
 std::unique_ptr<CAardvarkCefApp> app;
 size_t ids = 0;
 std::map<std::string, std::unique_ptr<IModelInstance>> models;
@@ -190,32 +262,16 @@ NAN_METHOD(handleMessage) {
     auto appPtr = app.get();
     std::thread([appPtr]() {
       while (appPtr->tickRenderer()) {
-        // XXX
-        /* float hmd[16];
-        float left[16];
-        float right[16];
-        appPtr->getPoses(hmd, left, right);
-
-        json hmdArray = json::array();
-        json leftArray = json::array();
-        json rightArray = json::array();
-        for (size_t i = 0; i < ARRAYSIZE(hmd); i++) {
-          hmdArray.push_back(hmd[i]);
-          leftArray.push_back(left[i]);
-          rightArray.push_back(right[i]);
-        }
+        MessageStruct message;
+        appPtr->getPoses(message.hmd, message.left, message.right);
 
         // getOut() << "emit event" << hmd[0] << " " << hmd[1] << " " << hmd[2] << " " << hmd[3] << std::endl;
-
-        json event = {
-          {"event", "pose"},
-          {"data", {
-            {"hmd", hmdArray},
-            {"left", leftArray},
-            {"right", rightArray},
-          }},
-        };
-        respond(event); */
+        
+        {
+          std::lock_guard<std::mutex> lock(mutex);
+          messages.push_back(message);
+        }
+        uv_async_send(&eventAsync);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
       }

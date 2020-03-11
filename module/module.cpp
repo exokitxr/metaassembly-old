@@ -24,6 +24,12 @@ namespace exokit {
 } */
 
 NAN_MODULE_INIT(InitAll) {
+  initAsync();
+  
+  Local<FunctionTemplate> setEventHandlerFnTemplate = Nan::New<FunctionTemplate>(setEventHandler);
+  Local<Function> setEventHandlerFn = Nan::GetFunction(setEventHandlerFnTemplate).ToLocalChecked();
+  target->Set(Isolate::GetCurrent()->GetCurrentContext(), JS_STR("setEventHandler"), setEventHandlerFn);
+  
   Local<FunctionTemplate> handleMessageFnTemplate = Nan::New<FunctionTemplate>(handleMessage);
   Local<Function> handleMessageFn = Nan::GetFunction(handleMessageFnTemplate).ToLocalChecked();
   target->Set(Isolate::GetCurrent()->GetCurrentContext(), JS_STR("handleMessage"), handleMessageFn);

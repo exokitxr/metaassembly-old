@@ -3,6 +3,8 @@
 
 #include <nan.h>
 
+void initAsync();
+NAN_METHOD(setEventHandler);
 NAN_METHOD(handleMessage);
 
 #endif
