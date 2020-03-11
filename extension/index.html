@@ -161,6 +161,22 @@ orbitControls.update();
 
 initLocalRig(container);
 
+const s = new WebSocket(`ws://localhost:3000/`);
+s.onopen = () => {
+  console.log('socket open', s);
+  const ab = new ArrayBuffer(8);
+  s.send(JSON.stringify({
+    method: 'test',
+    args: [
+      null,
+    ],
+  }));
+  s.send(ab);
+};
+s.onclose = () => {
+  console.log('socket close', s);
+};
+
 window.addEventListener('load', async e => {
   const enterXrButton = document.getElementById('enter-xr-button');
   let currentSession = null;
