@@ -175,10 +175,10 @@ const socket = new WebSocket(`ws://localhost:3000/`);
 socket.onopen = async () => {
   console.log('socket open', socket);
 
-  const result = await socket.request('test', [
+  /* const result = await socket.request('test', [
     new ArrayBuffer(8)
   ]);
-  console.log('got result', result);
+  console.log('got result', result); */
 };
 const cbs = [];
 socket.onmessage = m => {
