@@ -16,7 +16,7 @@ Invoke-WebRequest 'https://nodejs.org/dist/v13.10.1/node-v13.10.1-win-x64.zip' -
 rm node.zip
 mv node-v13.10.1-win-x64 node
 
-& 'node/npm.cmd' install
+& 'node/node.exe' node/node_modules/npm/bin/npm-cli.js install
 
 ls
 cd src
