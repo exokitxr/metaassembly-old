@@ -481,9 +481,14 @@ const uiMesh = (() => {
   highlightMesh.scale.x = highlightMesh.scale.y = 150/uiSize*uiWorldSize; */
   mesh.add(highlightMesh);
 
+  let text = '';
   let anchors = [];
   mesh.update = () => {
-    uiRenderer.render('ABCD')
+    let t = text;
+    while (t.length < 4) {
+      t += '-';
+    }
+    uiRenderer.render(t)
       .then(result => {
         // console.log('got dfata', result.data);
         imageData.data.set(result.data);
@@ -521,22 +526,28 @@ const uiMesh = (() => {
       }
     }
   };
-  mesh.click = () => {
+  mesh.press = () => {
     if (hoveredAnchor) {
       const {id} = hoveredAnchor;
-      if (/^(?:tool-|color-)/.test(id)) {
-        interfaceDocument.getElementById(id).click();
-      } else {
-        switch (id) {
-          default: {
-            console.warn('unknown anchor click', id);
-            break;
+      let match;
+      console.log('got id', id);
+      if (id === 'enter') {
+        console.log('enter', text);
+      } else if (id === 'new') {
+        console.log('new', text);
+      } else if (id && (match = id.match(/^key-([0-9]+)$/))) {
+        const n = parseInt(match[1], 10);
+        if (n === 8) {
+          text = text.slice(0, -1);
+          mesh.update();
+        } else {
+          if (text.length < 4) {
+            const c = String.fromCharCode(n);
+            text += c;
+            mesh.update();
           }
         }
       }
-      return true;
-    } else {
-      return false;
     }
   };
   mesh.update();
@@ -712,9 +723,10 @@ function onSessionStarted(session) {
       controller.userData.data = e.data;
     });
     controller.addEventListener('selectstart', e => {
-      /* if (controller.userData.data && controller.userData.data.handedness === 'right') {
-        _beginTool(true, false, false);
-      } */
+      if (controller.userData.data && controller.userData.data.handedness === 'right') {
+        uiMesh.press();
+        // _beginTool(true, false, false);
+      }
       triggerDowns[i] = true;
     });
     controller.addEventListener('selectend', e => {
