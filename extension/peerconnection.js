@@ -24,7 +24,7 @@ export async function initLocalRig(container) {
     fingers: true,
     hair: true,
     visemes: true,
-    decapitate: true,
+    decapitate: false,
     microphoneMediaStream: null,
     // debug: !newModel,
   });
