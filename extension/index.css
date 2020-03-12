@@ -348,9 +348,6 @@ header .wallet
   border-radius: 7px;
   align-items: center;
 }
-header .room {
-  margin-right: auto;
-}
 header .room.disconnected,
 header .room.dialog,
 header .room.connected {
@@ -361,6 +358,9 @@ header.dialog .room.dialog,
 header:not(.dialog):not(.connected) .room.disconnected {
   display: flex;
 
+}
+header .tools {
+  margin-right: auto;
 }
 header .button {
   display: flex;
@@ -524,3 +524,61 @@ canvas {
 section:nth-child(odd) {
   background-color: #EEE;
 } */
+.tools {
+  display: flex;
+  padding: 10px;
+}
+.tools > .tool {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+  cursor: pointer;
+}
+.tools > .tool {
+  width: 30px;
+  height: 30px;
+}
+.tools > .tool {
+  background-color: #FFF;
+}
+.tools > .tool:hover {
+  background-color: #42a5f5;
+  color: #FFF;
+}
+.tools > .tool:active,
+.tools > .tool.selected,
+.tools > .tool.open {
+  background-color: #1e88e5;
+  color: #FFF;
+}
+.tools > .tool.hidden {
+  display: none;
+}
+.tools > .tool > .label {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  bottom: -24px;
+  height: 24px;
+  padding: 5px;
+  background-color: #111;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.tools > .tool:not(:hover) > .label {
+  display: none;
+}
+.tools > .tool > .label {
+  left: 0;
+}
+.tools > .tool > .fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  overflow: hidden;
+}

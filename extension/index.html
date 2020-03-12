@@ -31,6 +31,20 @@
       <div class=room-code>Room code: <span class=room-code-text id=room-code-text>VKGS</span> Link: <a href="#" target="_blank" class=room-link id=room-link><i class="fa fa-external-link"></i></a></div>
       <div class=button id=disconnect-button>Disconnect</div>
     </div>
+    <div class=tools>
+      <a id=tool-1 class="tool selected" tool="orbit">
+        <i class="fal fa-camera"></i>
+        <div class=label>Camera tool</div>
+      </a>
+      <a id=tool-2 class="tool" tool="firstperson">
+        <i class="fal fa-eye"></i>
+        <div class=label>First person</div>
+      </a>
+      <a id=tool-3 class="tool" tool="thirdperson">
+        <i class="fal fa-walking"></i>
+        <div class=label>Third person</div>
+      </a>
+    </div>
     <div class="wallet">
       <div class=button id=enter-xr-button>Enter XR</div>
       <div class=button id=enter-overlay-button>Enter AR</div>
@@ -169,6 +183,147 @@ orbitControls.enableMiddleZoom = false;
 orbitControls.update();
 
 initLocalRig(container);
+
+// tools
+
+const keys = {
+  up: false,
+  down: false,
+  left: false,
+  right: false,
+  shift: false,
+};
+(() => {
+  const w = window;
+  w.addEventListener('keydown', e => {
+    switch (e.which) {
+      case 49: // 1
+      case 50:
+      case 51: // 3
+      {
+        tools[e.which - 49].click();
+        break;
+      }
+      case 87: { // W
+        if (!document.pointerLockElement) {
+          // nothing
+        } else {
+          keys.up = true;
+        }
+        break;
+      }
+      case 65: { // A
+        if (!document.pointerLockElement) {
+          // nothing
+        } else {
+          keys.left = true;
+        }
+        break;
+      }
+      case 83: { // S
+        if (!document.pointerLockElement) {
+          // nothing
+        } else {
+          keys.down = true;
+        }
+        break;
+      }
+      case 68: { // D
+        if (!document.pointerLockElement) {
+          // nothing
+        } else {
+          keys.right = true;
+        }
+        break;
+      }
+      case 16: { // shift
+        if (document.pointerLockElement) {
+          keys.shift = true;
+        }
+        break;
+      }
+    }
+  });
+  w.addEventListener('keyup', e => {
+    switch (e.which) {
+      case 87: { // W
+        if (document.pointerLockElement) {
+          keys.up = false;
+        }
+        break;
+      }
+      case 65: { // A
+        if (document.pointerLockElement) {
+          keys.left = false;
+        }
+        break;
+      }
+      case 83: { // S
+        if (document.pointerLockElement) {
+          keys.down = false;
+        }
+        break;
+      }
+      case 68: { // D
+        if (document.pointerLockElement) {
+          keys.right = false;
+        }
+        break;
+      }
+      case 16: { // shift
+        if (document.pointerLockElement) {
+          keys.shift = false;
+        }
+        break;
+      }
+    }
+  });
+  w.addEventListener('mousemove', e => {
+    if (document.pointerLockElement) {
+      const {movementX, movementY} = e;
+      camera.rotation.y -= movementX * Math.PI*2*0.001;
+      camera.rotation.x -= movementY * Math.PI*2*0.001;
+    }
+  });
+})();
+
+const tools = document.querySelectorAll('.tool');
+Array.from(tools).forEach((tool, i) => {
+  /* tool.addEventListener('mousedown', e => {
+    e.stopPropagation();
+  }); */
+  tool.addEventListener('click', e => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const newTool = tool.getAttribute('tool');
+    if (newTool !== cameraMode) {
+      Array.from(tools).forEach(tool => {
+        tool.classList.remove('selected');
+      });
+      cameraMode = newTool;
+      tool.classList.add('selected');
+    }
+
+    if (cameraMode === 'orbit') {
+      document.pointerLockElement && document.exitPointerLock();
+      orbitControls.enabled = true;
+    } else if (cameraMode === 'firstperson' || cameraMode === 'thirdperson') {
+      renderer.domElement.requestPointerLock();
+      camera.position.y = 1.2;
+      orbitControls.enabled = false;
+    } else {
+      document.pointerLockElement && document.exitPointerLock();
+      orbitControls.enabled = false;
+    }
+  });
+});
+document.addEventListener('pointerlockchange', e => {
+  if (!document.pointerLockElement) {
+    Array.from(tools).find(tool => tool.matches('.tool[tool=orbit]')).click();
+  }
+});
+let cameraMode = 'orbit';
 
 // multiplayer
 
@@ -425,9 +580,7 @@ function animate() {
     _updateControllers(); */
 
     updatePlayerFromXr(renderer.xr, camera);
-  } else {
-    updatePlayerDefault();
-  } /* else {
+  } else if (cameraMode !== 'orbit') {
     const speed = 0.015 * (keys.shift ? 3 : 1);
     const cameraEuler = camera.rotation.clone();
     cameraEuler.x = 0;
@@ -455,14 +608,16 @@ function animate() {
     orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, 0, -1.5).applyQuaternion(camera.quaternion));
     
     updatePlayerFromCamera(camera);
-  } */
+  } else {
+    updatePlayerDefault();
+  }
 
-  /* for (let i = 0; i < peerConnections.length; i++) {
+  for (let i = 0; i < peerConnections.length; i++) {
     const peerConnection = peerConnections[i];
     peerConnection.rig && peerConnection.rig.update();
   }
 
-  tickObjectScript(objectState);
+  /* tickObjectScript(objectState);
 
   if (ammo) {
     ammo.simulate();
@@ -471,16 +626,16 @@ function animate() {
     }
   } */
 
-  /* const thirdperson = selectedTool === 'thirdperson';
+  const thirdperson = cameraMode === 'thirdperson';
   let oldCameraPosition;
   if (thirdperson) {
     oldCameraPosition = camera.position.clone();
     camera.position.add(new THREE.Vector3(0, 0, 2).applyQuaternion(camera.quaternion));
-  } */
+  }
   renderer.render(scene, camera);
-  /* if (thirdperson) {
+  if (thirdperson) {
     camera.position.copy(oldCameraPosition);
-  } */
+  }
 }
 renderer.setAnimationLoop(animate);
 
