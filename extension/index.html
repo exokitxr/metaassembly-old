@@ -1,45 +1,43 @@
 <!doctype html>
 <html>
 <head>
-<script src="https://rawcdn.githack.com/ConsenSys/eth-lightwallet/d21df74dd2d5e09632bf38309f147784668b1498/dist/lightwallet.js"></script>
-<style>
-body {
-  display: flex;
-  height: 100vh;
-  margin: 0;
-  flex-direction: column;
-}
-header {
-  display: flex;
-  flex-direction: column;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-}
-h1 {
-  padding: 0 30px;
-}
-a {
-  text-decoration: underline;
-  color: #64b5f6;
-  cursor: pointer;
-}
-a:active {
-  color: #1e88e5;
-}
-form {
-  display: none;
-  flex-direction: column;
-}
-body.phase-1 #form-1,
-body.phase-2 #form-2
-{
-  display: block;
-}
-</style>
+  <link href="index.css" rel=stylesheet>
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/0735724151.js" crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.9.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.9.2/firebase-database.js"></script>
+  <script src="https://rawcdn.githack.com/ConsenSys/eth-lightwallet/d21df74dd2d5e09632bf38309f147784668b1498/dist/lightwallet.js"></script>
 </head>
-<body class=phase-1>
+<body>
+  <header id=header>
+    <!-- <a href="https://browser.exokit.org">
+      <img class=icon src="logo.svg"/>
+    </a> -->
+    <a href="/" class="nav" id="explore-dropdown">ムらサ</a>
+    <a href="/" class="nav open" id="explore-dropdown">Augment</a>
+    <div class="room disconnected">
+      <div class="connect-status disconnected">Multiplayer disconnected</div>
+      <div class=button id=create-room-button>Create room</div>
+      <div class=button id=use-code-button>Use code</div>
+    </div>
+    <div class="room dialog">
+      <div class="connect-status disconnected">Multiplayer disconnected</div>
+      <input type=text id=room-code-input placeholder="Enter room code">
+      <div class=button id=connect-button>Connect</div>
+      <div class=button id=cancel-button>Cancel</div>
+    </div>
+    <div class="room connected">
+      <div class=users><i class="fa fa-user"></i> <span id=user-count-text>1</span></div>
+      <div class=room-code>Room code: <span class=room-code-text id=room-code-text>VKGS</span> Link: <a href="#" target="_blank" class=room-link id=room-link><i class="fa fa-external-link"></i></a></div>
+      <div class=button id=disconnect-button>Disconnect</div>
+    </div>
+    <div class="wallet">
+      <div class=button id=enter-xr-button>Enter XR</div>
+      <div class=button id=enter-overlay-button>Enter AR</div>
+    </div>
+  </header>
+  <canvas id=canvas></canvas>
+<!-- <body class=phase-1>
   <header>
     <h1>Metachromium Lite</h1>
     <form id=form-1>
@@ -52,14 +50,15 @@ body.phase-2 #form-2
       <input type=button id=enter-overlay-button value="Enter Overlay">
     </form>
   </header>
-  <canvas id=canvas></canvas>
+  <canvas id=canvas></canvas> -->
 <script type=module>
-  import THREE from './three.module.js';
-  window.THREE = THREE;
+import THREE from './three.module.js';
+window.THREE = THREE;
 </script>
 <script type=module>
 import {OrbitControls} from './OrbitControls.js';
 import {XRControllerModelFactory} from './XRControllerModelFactory.js';
+import {makeId, XRChannelConnection} from './multiplayer.js';
 import {initLocalRig, updatePlayerFromCamera, updatePlayerFromXr, updatePlayerFromArrays, getRigBoneTexture, bindPeerConnection} from './peerconnection.js';
 
 function makePromise() {
@@ -170,6 +169,80 @@ orbitControls.enableMiddleZoom = false;
 orbitControls.update();
 
 initLocalRig(container);
+
+// multiplayer
+
+let channelConnection = null;
+const peerConnections = [];
+const _connectMultiplayer = async rid => {
+  const roomId = rid || makeId();
+
+  channelConnection = new XRChannelConnection(roomId);
+  channelConnection.addEventListener('peerconnection', e => {
+    const peerConnection = e.detail;
+
+    bindPeerConnection(peerConnection, container);
+
+    peerConnection.addEventListener('open', () => {
+      peerConnections.push(peerConnection);
+      document.getElementById('user-count-text').innerText = peerConnections.length + 1;
+    });
+    peerConnection.addEventListener('close', () => {
+      peerConnections.splice(peerConnections.indexOf(peerConnection), 1);
+      document.getElementById('user-count-text').innerText = peerConnections.length + 1;
+    });
+  });
+
+  document.getElementById('room-code-text').innerText = roomId;
+  const href = `${window.location.protocol}//${window.location.host}${window.location.pathname}?r=${roomId}`;
+  document.getElementById('room-link').href = href;
+
+  history.replaceState(null, '', href);
+};
+const _disconnectMultiplayer = async () => {
+  if (channelConnection) {
+    channelConnection.disconnect()
+    channelConnection = null;
+
+    const href = `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
+    history.replaceState(null, '', href);
+  }
+};
+window.addEventListener('beforeunload', _disconnectMultiplayer);
+
+const header = document.getElementById('header');
+const _clearMultiplayerClasses = () => {
+  ['connected', 'dialog'].forEach(c => {
+    header.classList.remove(c);
+  });
+};
+document.getElementById('create-room-button').addEventListener('click', async e => {
+  await _connectMultiplayer();
+
+  _clearMultiplayerClasses();
+  header.classList.add('connected');
+});
+document.getElementById('use-code-button').addEventListener('click', e => {
+  _clearMultiplayerClasses();
+  header.classList.add('dialog');
+  document.getElementById('room-code-input').value = '';
+});
+document.getElementById('connect-button').addEventListener('click', async e => {
+  await _connectMultiplayer(document.getElementById('room-code-input').value);
+
+  _clearMultiplayerClasses();
+  header.classList.add('connected');
+});
+document.getElementById('cancel-button').addEventListener('click', e => {
+  _clearMultiplayerClasses();
+});
+document.getElementById('disconnect-button').addEventListener('click', async e => {
+  await _disconnectMultiplayer();
+
+  _clearMultiplayerClasses();
+});
+
+// engine
 
 const socket = new WebSocket(`ws://localhost:3000/`);
 socket.onopen = async () => {
@@ -422,7 +495,7 @@ window.addEventListener('load', async e => {
     console.log('got first pose', e.data);
   }, {once: true}); */
 
-  document.getElementById('form-1').addEventListener('submit', e => {
+  /* document.getElementById('form-1').addEventListener('submit', e => {
     e.preventDefault();
 
     // the seed is stored encrypted by a user-defined password
@@ -473,7 +546,8 @@ window.addEventListener('load', async e => {
       document.body.classList.remove(`phase-${i}`);
     }
     document.body.classList.add('phase-2');
-  });
+  }); */
+
   let avatarObject = null;
   let hmdObject = null;
   const controllerObjects = [null, null];
