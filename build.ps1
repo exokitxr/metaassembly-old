@@ -17,6 +17,8 @@ rm node.zip
 mv node-v13.10.1-win-x64 node
 
 rm -Recurse -Force node_modules
+node --version
+& 'node/node.exe' node/node_modules/npm/bin/npm-cli.js
 & 'node/node.exe' node/node_modules/npm/bin/npm-cli.js install
 
 ls
