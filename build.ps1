@@ -50,11 +50,12 @@ mkdir -Force MetaAssembly
 mv ./node/ ./MetaAssembly/
 mv ./node_modules/ ./MetaAssembly/
 mv ./build/ ./MetaAssembly/
+mv ./index.js ./MetaAssembly/
 mv ./Chrome-bin/ ./MetaAssembly/
 mv ./extension/ ./MetaAssembly/
 mv ./MetaAssembly.cmd ./MetaAssembly/
 
-echo zipping artifact... 
+echo zipping artifact...
 # 7z a avrenderer.zip -r .\src\build\avrenderer\Release\
 7z a MetaAssembly.zip -r .\MetaAssembly\
 echo done zipping artifact
