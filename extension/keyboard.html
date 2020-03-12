@@ -90,15 +90,6 @@ h1 {
     width: 3.5em;
 }
 
-.keyboard__row > div[data-pressed],
-.keyboard__row > div:active {
-    background: #2a2a2a;
-    color: #aaa;
-    position: relative;
-    top: 0.2em;
-    box-shadow: 0 0 0 0.05em black;
-}
-
 .key--w3 {
     width: 4.6em;
 }
@@ -141,6 +132,9 @@ h1 {
     right: 0.4em;
 }
 
+a {
+  display: block;
+}
 .key--fn > * {
     font-size: 0.6em;
     line-height: 1em;
@@ -180,217 +174,217 @@ h1 {
 <div class="keyboard">
   <h1><span class=label>Room code: </span><span class=box>AAAA</span><span class=buttons><span class=button>Enter</span><span class=button>New room</span></span></h1>
   <div class="keyboard__row keyboard__row--h1">
-    <div data-key="27" class="key--word">
+    <a data-key="27" class="key--word">
       <span>esc</span>
-    </div>
-    <div data-key="112" class="key--fn">
+    </a>
+    <a data-key="112" class="key--fn">
       <span>F1</span>
-    </div>
-    <div data-key="113" class="key--fn">
+    </a>
+    <a data-key="113" class="key--fn">
       <span>F2</span>
-    </div>
-    <div data-key="114" class="key--fn">
+    </a>
+    <a data-key="114" class="key--fn">
       <span>F3</span>
-    </div>
-    <div data-key="115" class="key--fn">
+    </a>
+    <a data-key="115" class="key--fn">
       <span>F4</span>
-    </div>
-    <div data-key="116" class="key--fn">
+    </a>
+    <a data-key="116" class="key--fn">
       <span>F5</span>
-    </div>
-    <div data-key="117" class="key--fn">
+    </a>
+    <a data-key="117" class="key--fn">
       <span>F6</span>
-    </div>
-    <div data-key="118" class="key--fn">
+    </a>
+    <a data-key="118" class="key--fn">
       <span>F7</span>
-    </div>
-    <div data-key="119" class="key--fn">
+    </a>
+    <a data-key="119" class="key--fn">
       <span>F8</span>
-    </div>
-    <div data-key="120" class="key--fn">
+    </a>
+    <a data-key="120" class="key--fn">
       <span>F9</span>
-    </div>
-    <div data-key="121" class="key--fn">
+    </a>
+    <a data-key="121" class="key--fn">
       <span>F10</span>
-    </div>
-    <div data-key="122" class="key--fn">
+    </a>
+    <a data-key="122" class="key--fn">
       <span>F11</span>
-    </div>
-    <div data-key="123" class="key--fn">
+    </a>
+    <a data-key="123" class="key--fn">
       <span>F12</span>
-    </div>
-    <div data-key="n/a" class="key--word">
+    </a>
+    <a data-key="n/a" class="key--word">
       <span>pwr</span>
-    </div>
+    </a>
   </div>
   <div class="keyboard__row">
-    <div class="key--double" data-key="192">
+    <a class="key--double" data-key="192">
       <div>~</div>
       <div>`</div>
-    </div>
-    <div class="key--double" data-key="49">
+    </a>
+    <a class="key--double" data-key="49">
       <div>!</div>
       <div>1</div>
-    </div>
-    <div class="key--double" data-key="50">
+    </a>
+    <a class="key--double" data-key="50">
       <div>@</div>
       <div>2</div>
-    </div>
-    <div class="key--double" data-key="51">
+    </a>
+    <a class="key--double" data-key="51">
       <div>#</div>
       <div>3</div>
-    </div>
-    <div class="key--double" data-key="52">
+    </a>
+    <a class="key--double" data-key="52">
       <div>$</div>
       <div>4</div>
-    </div>
-    <div class="key--double" data-key="53">
+    </a>
+    <a class="key--double" data-key="53">
       <div>%</div>
       <div>5</div>
-    </div>
-    <div class="key--double" data-key="54">
+    </a>
+    <a class="key--double" data-key="54">
       <div>^</div>
       <div>6</div>
-    </div>
-    <div class="key--double" data-key="55">
+    </a>
+    <a class="key--double" data-key="55">
       <div>&</div>
       <div>7</div>
-    </div>
-    <div class="key--double" data-key="56">
+    </a>
+    <a class="key--double" data-key="56">
       <div>*</div>
       <div>8</div>
-    </div>
-    <div class="key--double" data-key="57">
+    </a>
+    <a class="key--double" data-key="57">
       <div>(</div>
       <div>9</div>
-    </div>
-    <div class="key--double" data-key="48">
+    </a>
+    <a class="key--double" data-key="48">
       <div>)</div>
       <div>0</div>
-    </div>
-    <div class="key--double" data-key="189">
+    </a>
+    <a class="key--double" data-key="189">
       <div>_</div>
       <div>-</div>
-    </div>
-    <div class="key--double" data-key="187">
+    </a>
+    <a class="key--double" data-key="187">
       <div>+</div>
       <div>=</div>
-    </div>
-    <div class="key--bottom-right key--word key--w4" data-key="8">
+    </a>
+    <a class="key--bottom-right key--word key--w4" data-key="8">
       <span>delete</span>
-    </div>
+    </a>
   </div>
   <div class="keyboard__row">
-    <div class="key--bottom-left key--word key--w4" data-key="9">
+    <a class="key--bottom-left key--word key--w4" data-key="9">
       <span>tab</span>
-    </div>
-    <div class="key--letter" data-char="Q">Q</div>
-    <div class="key--letter" data-char="W">W</div>
-    <div class="key--letter" data-char="E">E</div>
-    <div class="key--letter" data-char="R">R</div>
-    <div class="key--letter" data-char="T">T</div>
-    <div class="key--letter" data-char="Y">Y</div>
-    <div class="key--letter" data-char="U">U</div>
-    <div class="key--letter" data-char="I">I</div>
-    <div class="key--letter" data-char="O">O</div>
-    <div class="key--letter" data-char="P">P</div>
-    <div class="key--double" data-key="219" data-char="{[">
+    </a>
+    <a class="key--letter" data-char="Q">Q</a>
+    <a class="key--letter" data-char="W">W</a>
+    <a class="key--letter" data-char="E">E</a>
+    <a class="key--letter" data-char="R">R</a>
+    <a class="key--letter" data-char="T">T</a>
+    <a class="key--letter" data-char="Y">Y</a>
+    <a class="key--letter" data-char="U">U</a>
+    <a class="key--letter" data-char="I">I</a>
+    <a class="key--letter" data-char="O">O</a>
+    <a class="key--letter" data-char="P">P</a>
+    <a class="key--double" data-key="219" data-char="{[">
       <div>{</div>
       <div>[</div>
-    </div>
-    <div class="key--double" data-key="221" data-char="}]">
+    </a>
+    <a class="key--double" data-key="221" data-char="}]">
       <div>}</div>
       <div>]</div>
-    </div>
-    <div class="key--double" data-key="220" data-char="|\">
+    </a>
+    <a class="key--double" data-key="220" data-char="|\">
       <div>|</div>
       <div>\</div>
-    </div>
+    </a>
   </div>
   <div class="keyboard__row">
     <div class="key--bottom-left key--word key--w5" data-key="20">
       <span>caps lock</span>
     </div>
-    <div class="key--letter" data-char="A">A</div>
-    <div class="key--letter" data-char="S">S</div>
-    <div class="key--letter" data-char="D">D</div>
-    <div class="key--letter" data-char="F">F</div>
-    <div class="key--letter" data-char="G">G</div>
-    <div class="key--letter" data-char="H">H</div>
-    <div class="key--letter" data-char="J">J</div>
-    <div class="key--letter" data-char="K">K</div>
-    <div class="key--letter" data-char="L">L</div>
-    <div class="key--double" data-key="186">
+    <a class="key--letter" data-char="A">A</a>
+    <a class="key--letter" data-char="S">S</a>
+    <a class="key--letter" data-char="D">D</a>
+    <a class="key--letter" data-char="F">F</a>
+    <a class="key--letter" data-char="G">G</a>
+    <a class="key--letter" data-char="H">H</a>
+    <a class="key--letter" data-char="J">J</a>
+    <a class="key--letter" data-char="K">K</a>
+    <a class="key--letter" data-char="L">L</a>
+    <a class="key--double" data-key="186">
       <div>:</div>
       <div>;</div>
-    </div>
-    <div class="key--double" data-key="222">
+    </a>
+    <a class="key--double" data-key="222">
       <div>"</div>
       <div>'</div>
-    </div>
-    <div class="key--bottom-right key--word key--w5" data-key="13">
+    </a>
+    <a class="key--bottom-right key--word key--w5" data-key="13">
       <span>return</span>
-    </div>
+    </a>
   </div>
   <div class="keyboard__row">
-    <div class="key--bottom-left key--word key--w6" data-key="16">
+    <a class="key--bottom-left key--word key--w6" data-key="16">
       <span>shift</span>
-    </div>
-    <div class="key--letter" data-char="Z">Z</div>
-    <div class="key--letter" data-char="X">X</div>
-    <div class="key--letter" data-char="C">C</div>
-    <div class="key--letter" data-char="V">V</div>
-    <div class="key--letter" data-char="B">B</div>
-    <div class="key--letter" data-char="N">N</div>
-    <div class="key--letter" data-char="M">M</div>
-    <div class="key--double" data-key="188">
+    </a>
+    <a class="key--letter" data-char="Z">Z</a>
+    <a class="key--letter" data-char="X">X</a>
+    <a class="key--letter" data-char="C">C</a>
+    <a class="key--letter" data-char="V">V</a>
+    <a class="key--letter" data-char="B">B</a>
+    <a class="key--letter" data-char="N">N</a>
+    <a class="key--letter" data-char="M">M</a>
+    <a class="key--double" data-key="188">
       <div>&lt;</div>
       <div>,</div>
-    </div>
-    <div class="key--double" data-key="190">
+    </a>
+    <a class="key--double" data-key="190">
       <div>&gt;</div>
       <div>.</div>
-    </div>
-    <div class="key--double" data-key="191">
+    </a>
+    <a class="key--double" data-key="191">
       <div>?</div>
       <div>/</div>
-    </div>
-    <div class="key--bottom-right key--word key--w6" data-key="16-R">
+    </a>
+    <a class="key--bottom-right key--word key--w6" data-key="16-R">
       <span>shift</span>
-    </div>
+    </a>
   </div>
   <div class="keyboard__row keyboard__row--h3">
-    <div class="key--bottom-left key--word">
+    <a class="key--bottom-left key--word">
       <span>fn</span>
-    </div>
-    <div class="key--bottom-left key--word key--w1" data-key="17">
+    </a>
+    <a class="key--bottom-left key--word key--w1" data-key="17">
       <span>control</span>
-    </div>
-    <div class="key--bottom-left key--word key--w1" data-key="18">
+    </a>
+    <a class="key--bottom-left key--word key--w1" data-key="18">
       <span>option</span>
-    </div>
-    <div class="key--bottom-right key--word key--w3" data-key="91">
+    </a>
+    <a class="key--bottom-right key--word key--w3" data-key="91">
       <span>command</span>
-    </div>
-    <div class="key--double key--right key--space" data-key="32" data-char=" ">
+    </a>
+    <a class="key--double key--right key--space" data-key="32" data-char=" ">
       &nbsp;
-    </div>
-    <div class="key--bottom-left key--word key--w3" data-key="93-R">
+    </a>
+    <a class="key--bottom-left key--word key--w3" data-key="93-R">
       <span>command</span>
-    </div>
-    <div class="key--bottom-left key--word key--w1" data-key="18-R">
+    </a>
+    <a class="key--bottom-left key--word key--w1" data-key="18-R">
       <span>option</span>
-    </div>
-    <div data-key="37" class="key--arrow">
+    </a>
+    <a data-key="37" class="key--arrow">
       <span>&#9664;</span>
+    </a>
+    <div class="key--double key--arrow--tall">
+      <a data-key="38">&#9650;</a>
+      <a data-key="40">&#9660;</a>
     </div>
-    <div class="key--double key--arrow--tall" data-key="38">
-      <div>&#9650;</div>
-      <div>&#9660;</div>
-    </div>
-    <div data-key="39" class="key--arrow">
+    <a data-key="39" class="key--arrow">
       <span>&#9654;</span>
-    </div>
+    </a>
   </div>
 </div>
 
