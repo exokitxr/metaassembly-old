@@ -436,7 +436,10 @@ const uiRenderer = (() => {
   };
 })();
 const uiMesh = (() => {
-  const geometry = new THREE.PlaneBufferGeometry(uiWorldSize, uiWorldSize/2);
+  const geometry = new THREE.PlaneBufferGeometry(uiWorldSize, uiWorldSize * uiHeight/uiWidth)
+    .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI/2)))
+    .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI/2)))
+    .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.1, 0));
   const canvas = document.createElement('canvas');
   canvas.width = uiWidth;
   canvas.height = uiHeight;
@@ -782,12 +785,25 @@ enterXrButton.addEventListener('click', e => {
   }
 });
 
+const localRaycaster = new THREE.Raycaster();
+/* const _updateRaycasterFromMouseEvent = (raycaster, e) => {
+  const mouse = new THREE.Vector2(( ( e.clientX ) / window.innerWidth ) * 2 - 1, - ( ( e.clientY ) / window.innerHeight ) * 2 + 1);
+  raycaster.setFromCamera(mouse, camera);
+  if (selectedTool === 'brush') {
+    raycaster.ray.origin.add(raycaster.ray.direction);
+  }
+}; */
+const _updateRaycasterFromObject = (raycaster, o) => {
+  raycaster.ray.origin.copy(o.position);
+  raycaster.ray.direction.set(0, 0, -1).applyQuaternion(o.quaternion);
+};
+
 const velocity = new THREE.Vector3();
 function animate() {
   orbitControls.enabled && orbitControls.update();
 
   if (currentSession) {
-    /* for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < 2; i++) {
       const controller = renderer.xr.getController(i);
       if (controller.userData.data) {
         if (controller.userData.data.handedness === 'left') {
@@ -795,12 +811,12 @@ function animate() {
           uiMesh.quaternion.copy(controller.quaternion);
         } else if (controller.userData.data.handedness === 'right') {
           _updateRaycasterFromObject(localRaycaster, controller);
-          _updateTool(localRaycaster);
+          // _updateTool(localRaycaster);
         }
       }
     }
 
-    _updateControllers(); */
+    // _updateControllers();
 
     updatePlayerFromXr(renderer.xr, camera);
   } else if (cameraMode !== 'orbit') {
