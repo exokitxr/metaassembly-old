@@ -6,7 +6,9 @@ const https = require('https');
 const child_process = require('child_process');
 const express = require('express');
 const ws = require('ws');
-const {setEventHandler, handleMessage} = require('./build/Release/exokit.node');
+
+const noLaunch = (process.env['NO_LAUNCH'] || '').length > 0;
+const {setEventHandler, handleMessage} = !noLaunch ? require('./build/Release/exokit.node') : {};
 
 function jsonParse(s) {
   try {
@@ -37,86 +39,87 @@ const app = express();
 }); */
 app.use(express.static(__dirname));
 const server = http.createServer(app);
-const globalObjects = [];
-const wss = new ws.Server({
-  noServer: true,
-});
-wss.on('connection', async (s, req) => {
-  // const o = url.parse(req.url, true);
-  let localHandleMessage = null;
-  s.on('message', async m => {
-    if (localHandleMessage) {
-      localHandleMessage(m);
-    } else {
-      if (typeof m === 'string') {
-        const data = jsonParse(m);
-        if (data) {
-          const {method = '', args = []} = data;
-          
-          const messagePromises = [];
-          for (let i = 0; i < args.length; i++) {
-            if (args[i] === null) {
-              const p = makePromise();
-              p.then(v => {
-                if (v.byteOffset % 4 !== 0) { // alignment
-                  const ab = new ArrayBuffer(v.byteLength);
-                  new Uint8Array(ab).set(new Uint8Array(v.buffer, v.byteOffset, v.byteLength));
-                  v = new v.constructor(ab);
-                }
-                args[i] = [v.buffer, v.byteOffset, v.byteLength];
-              });
-              messagePromises.push(p);
-            }
-          }
-          if (messagePromises.length > 0) {
-            let messagePromiseIndex = 0;
-            localHandleMessage = m => {
-              const messagePromise = messagePromises[messagePromiseIndex++];
-              if (messagePromiseIndex >= messagePromises.length) {
-                localHandleMessage = null;
-              }
-              if (typeof m === 'string') {
-                messagePromise.accept(jsonParse(m));
-              } else {
-                messagePromise.accept(m);
-              }
-            };
-            await Promise.all(messagePromises);
-          }
-
-          // console.log('calling', method, args);
-
-          const o = handleMessage(method, args);
-          const {error, result} = o;
-          s.send(JSON.stringify({
-            error,
-            result,
-          }));
-        }
+if (!noLaunch) {
+  const wss = new ws.Server({
+    noServer: true,
+  });
+  wss.on('connection', async (s, req) => {
+    // const o = url.parse(req.url, true);
+    let localHandleMessage = null;
+    s.on('message', async m => {
+      if (localHandleMessage) {
+        localHandleMessage(m);
       } else {
-        console.warn('cannot handle message', m);
+        if (typeof m === 'string') {
+          const data = jsonParse(m);
+          if (data) {
+            const {method = '', args = []} = data;
+            
+            const messagePromises = [];
+            for (let i = 0; i < args.length; i++) {
+              if (args[i] === null) {
+                const p = makePromise();
+                p.then(v => {
+                  if (v.byteOffset % 4 !== 0) { // alignment
+                    const ab = new ArrayBuffer(v.byteLength);
+                    new Uint8Array(ab).set(new Uint8Array(v.buffer, v.byteOffset, v.byteLength));
+                    v = new v.constructor(ab);
+                  }
+                  args[i] = [v.buffer, v.byteOffset, v.byteLength];
+                });
+                messagePromises.push(p);
+              }
+            }
+            if (messagePromises.length > 0) {
+              let messagePromiseIndex = 0;
+              localHandleMessage = m => {
+                const messagePromise = messagePromises[messagePromiseIndex++];
+                if (messagePromiseIndex >= messagePromises.length) {
+                  localHandleMessage = null;
+                }
+                if (typeof m === 'string') {
+                  messagePromise.accept(jsonParse(m));
+                } else {
+                  messagePromise.accept(m);
+                }
+              };
+              await Promise.all(messagePromises);
+            }
+
+            // console.log('calling', method, args);
+
+            const o = handleMessage(method, args);
+            const {error, result} = o;
+            s.send(JSON.stringify({
+              error,
+              result,
+            }));
+          }
+        } else {
+          console.warn('cannot handle message', m);
+        }
       }
-    }
+    });
+    
+    setEventHandler(e => {
+      s.send(e.hmd);
+      s.send(e.left);
+      s.send(e.right);
+    });
   });
-  
-  setEventHandler(e => {
-    s.send(e.hmd);
-    s.send(e.left);
-    s.send(e.right);
+  wss.on('error', err => {
+    console.warn(err.stack);
   });
-});
-wss.on('error', err => {
-  console.warn(err.stack);
-});
-const _ws = (req, socket, head) => {
-  wss.handleUpgrade(req, socket, head, s => {
-    wss.emit('connection', s, req);
-  });
-};
-server.on('upgrade', _ws);
+  const _ws = (req, socket, head) => {
+    wss.handleUpgrade(req, socket, head, s => {
+      wss.emit('connection', s, req);
+    });
+  };
+  server.on('upgrade', _ws);
+}
 server.listen(port);
 server.once('listening', () => {
-  if (!process.env['NO_LAUNCH']) {
+  if (!noLaunch) {
     const cp = child_process.spawn(`./Chrome-bin/chrome.exe`, [
       /* '--enable-features="WebXR,OpenVR"',
       '--disable-features="WindowsMixedReality"',
