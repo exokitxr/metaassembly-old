@@ -302,412 +302,418 @@ socket.request = async (method, args) => {
   return await p;
 };
 
-window.addEventListener('load', async e => {
-  const enterXrButton = document.getElementById('enter-xr-button');
-  let currentSession = null;
-  const triggerDowns = [false, false];
-  const gripDowns = [false, false];
-  let scaleState = null;
-  const lastSqueezes = [false, false];
-  function onSessionStarted(session) {
-    session.addEventListener('end', onSessionEnded);
+// window.addEventListener('load', async e => {
+const enterXrButton = document.getElementById('enter-xr-button');
+let currentSession = null;
+const triggerDowns = [false, false];
+const gripDowns = [false, false];
+let scaleState = null;
+const lastSqueezes = [false, false];
+function onSessionStarted(session) {
+  session.addEventListener('end', onSessionEnded);
 
-    renderer.xr.setSession(session);
+  renderer.xr.setSession(session);
 
-    currentSession = session;
+  currentSession = session;
 
-    const controllerModelFactory = new XRControllerModelFactory();
-    for (let i = 0; i < 2; i++) {
-      const controller = renderer.xr.getController(i);
-      controller.addEventListener('connected', e => {
-        controller.userData.data = e.data;
-      });
-      controller.addEventListener('selectstart', e => {
-        if (controller.userData.data && controller.userData.data.handedness === 'right') {
-          _beginTool(true, false, false);
-        }
-        triggerDowns[i] = true;
-      });
-      controller.addEventListener('selectend', e => {
-        if (controller.userData.data && controller.userData.data.handedness === 'right') {
-          _endTool(true, false, false);
-        }
-        triggerDowns[i] = false;
-      });
-
-      const controllerGrip = renderer.xr.getControllerGrip(i);
-      controllerGrip.add(controllerModelFactory.createControllerModel(controllerGrip));
-      controllerGrip.addEventListener('squeezestart', e => {
-        if (controller.userData.data && controller.userData.data.handedness === 'right') {
-          _beginTool(false, true, false);
-        }
-        const oldGripDownsAll = gripDowns.every(gripDown => gripDown);
-        gripDowns[i] = true;
-        const newGripDownsAll = gripDowns.every(gripDown => gripDown);
-        if (newGripDownsAll && !oldGripDownsAll) {
-          _commitMiningMeshes();
-          
-          scaleState = {
-            startPosition: renderer.xr.getControllerGrip(0).position.clone()
-              .add(renderer.xr.getControllerGrip(1).position)
-              .divideScalar(2),
-            startDirection: renderer.xr.getControllerGrip(0).position.clone()
-              .sub(renderer.xr.getControllerGrip(1).position)
-              .normalize(),
-            startWorldWidth: renderer.xr.getControllerGrip(0).position
-              .distanceTo(renderer.xr.getControllerGrip(1).position),
-            containerStartPosition: container.position.clone(),
-            containerStartQuaternion: container.quaternion.clone(),
-            containerStartScale: container.scale.clone(),
-            containerStartMatrix: container.matrix.clone(),
-          };
-        }
-      });
-      controllerGrip.addEventListener('squeezeend', e => {
-        if (controller.userData.data && controller.userData.data.handedness === 'right') {
-          _endTool(false, true, false);
-        }
-        gripDowns[i] = false;
-        const newGripDownsAll = gripDowns.every(gripDown => gripDown);
-        if (!newGripDownsAll) {
-          scaleState = null;
-        }
-      });
-      scene.add(controllerGrip);
-    }
-  }
-  function onSessionEnded() {
-    currentSession.removeEventListener('end', onSessionEnded);
-
-    currentSession = null;
-  }
-  enterXrButton.addEventListener('click', e => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (currentSession === null) {
-      // WebXR's requestReferenceSpace only works if the corresponding feature
-      // was requested at session creation time. For simplicity, just ask for
-      // the interesting ones as optional features, but be aware that the
-      // requestReferenceSpace call will fail if it turns out to be unavailable.
-      // ('local' is always available for immersive sessions and doesn't need to
-      // be requested separately.)
-      var sessionInit = {
-        optionalFeatures: [
-          'local-floor',
-          'bounded-floor',
-        ],
-      };
-      navigator.xr.requestSession('immersive-vr', sessionInit).then(onSessionStarted);
-    } else {
-      currentSession.end();
-    }
-  });
-
-  const velocity = new THREE.Vector3();
-  function animate() {
-    orbitControls.enabled && orbitControls.update();
-
-    if (currentSession) {
-      /* for (let i = 0; i < 2; i++) {
-        const controller = renderer.xr.getController(i);
-        if (controller.userData.data) {
-          if (controller.userData.data.handedness === 'left') {
-            uiMesh.position.copy(controller.position);
-            uiMesh.quaternion.copy(controller.quaternion);
-          } else if (controller.userData.data.handedness === 'right') {
-            _updateRaycasterFromObject(localRaycaster, controller);
-            _updateTool(localRaycaster);
-          }
-        }
+  const controllerModelFactory = new XRControllerModelFactory();
+  for (let i = 0; i < 2; i++) {
+    const controller = renderer.xr.getController(i);
+    controller.addEventListener('connected', e => {
+      controller.userData.data = e.data;
+    });
+    controller.addEventListener('selectstart', e => {
+      if (controller.userData.data && controller.userData.data.handedness === 'right') {
+        _beginTool(true, false, false);
       }
-
-      _updateControllers(); */
-
-      updatePlayerFromXr(renderer.xr, camera);
-    } /* else {
-      const speed = 0.015 * (keys.shift ? 3 : 1);
-      const cameraEuler = camera.rotation.clone();
-      cameraEuler.x = 0;
-      cameraEuler.z = 0;
-      const extraVelocity = new THREE.Vector3();
-      if (keys.left) {
-        extraVelocity.add(new THREE.Vector3(-1, 0, 0).applyEuler(cameraEuler));
+      triggerDowns[i] = true;
+    });
+    controller.addEventListener('selectend', e => {
+      if (controller.userData.data && controller.userData.data.handedness === 'right') {
+        _endTool(true, false, false);
       }
-      if (keys.right) {
-        extraVelocity.add(new THREE.Vector3(1, 0, 0).applyEuler(cameraEuler));
-      }
-      if (keys.up) {
-        extraVelocity.add(new THREE.Vector3(0, 0, -1).applyEuler(cameraEuler));
-      }
-      if (keys.down) {
-        extraVelocity.add(new THREE.Vector3(0, 0, 1).applyEuler(cameraEuler));
-      }
-      if (extraVelocity.length() > 0) {
-        extraVelocity.normalize().multiplyScalar(speed);
-      }
-      velocity.add(extraVelocity);
-      camera.position.add(velocity);
-      velocity.multiplyScalar(0.7);
-      
-      orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, 0, -1.5).applyQuaternion(camera.quaternion));
-      
-      updatePlayerFromCamera(camera);
-    } */
-
-    /* for (let i = 0; i < peerConnections.length; i++) {
-      const peerConnection = peerConnections[i];
-      peerConnection.rig && peerConnection.rig.update();
-    }
-
-    tickObjectScript(objectState);
-
-    if (ammo) {
-      ammo.simulate();
-      for (let i = 0; i < objectMeshes.length; i++) {
-        ammo.updateObjectMesh(objectMeshes[i]);
-      }
-    } */
-
-    /* const thirdperson = selectedTool === 'thirdperson';
-    let oldCameraPosition;
-    if (thirdperson) {
-      oldCameraPosition = camera.position.clone();
-      camera.position.add(new THREE.Vector3(0, 0, 2).applyQuaternion(camera.quaternion));
-    } */
-    renderer.render(scene, camera);
-    /* if (thirdperson) {
-      camera.position.copy(oldCameraPosition);
-    } */
-  }
-  renderer.setAnimationLoop(animate);
-
-  navigator.xr && navigator.xr.isSessionSupported('immersive-vr').then(supported => {
-    if (supported) {
-      renderer.xr.enabled = true;
-      enterXrButton.classList.remove('disabled');
-    } else {
-      // nothing
-    }
-  });
-
-  /* window.addEventListener('pose', e => {
-    console.log('got first pose', e.data);
-  }, {once: true}); */
-
-  /* document.getElementById('form-1').addEventListener('submit', e => {
-    e.preventDefault();
-
-    // the seed is stored encrypted by a user-defined password
-    var password = document.getElementById('password').value;
-    var seedPhrase = document.getElementById('seed-phrase').value;
-    // var seedPhrase = lightwallet.keystore.generateRandomSeed();
-
-    lightwallet.keystore.createVault({
-      password,
-      seedPhrase, // Optionally provide a 12-word seed phrase
-      // salt: fixture.salt,     // Optionally provide a salt.
-                                 // A unique salt will be generated otherwise.
-      hdPathString: `m/44'/60'/0'/0`,    // Optional custom HD Path String
-    },
-    function (err, ks) {
-      console.log('got keystore', ks);
-
-      // Some methods will require providing the `pwDerivedKey`,
-      // Allowing you to only decrypt private keys on an as-needed basis.
-      // You can generate that value with this convenient method:
-      ks.keyFromPassword(password, function (err, pwDerivedKey) {
-        if (err) throw err;
-
-        // generate five new address/private key pairs
-        // the corresponding private keys are also encrypted
-        ks.generateNewAddress(pwDerivedKey, 5);
-        var addr = ks.getAddresses();
-
-        ks.passwordProvider = function (callback) {
-          var pw = prompt("Please enter password", "Password");
-          callback(null, pw);
-        };
-
-        // Now set ks as transaction_signer in the hooked web3 provider
-        // and you can start using web3 using the keys/addresses in ks!
-      });
+      triggerDowns[i] = false;
     });
 
-    for (let i = 1; i <= 2; i++) {
-      document.body.classList.remove(`phase-${i}`);
-    }
-    document.body.classList.add('phase-2');
-  });
-  document.getElementById('form-2').addEventListener('submit', e => {
-    e.preventDefault();
-
-    for (let i = 1; i <= 2; i++) {
-      document.body.classList.remove(`phase-${i}`);
-    }
-    document.body.classList.add('phase-2');
-  }); */
-
-  let avatarObject = null;
-  let hmdObject = null;
-  const controllerObjects = [null, null];
-  document.getElementById('enter-overlay-button').addEventListener('click', async e => {
-    await socket.request('startRenderer', []);
-    console.log('render started');
-    
-    /* {
-      if (
-        methodString == "addObject" &&
-        args.size() >= 5 &&
-        args[0].is_string() &&
-        args[1].is_string() &&
-        args[2].is_string() &&
-        args[3].is_string() &&
-        args[4].is_string()
-      ) {
-        std::vector<float> positions = Base64::Decode<float>(args[0].get<std::string>());
-        std::vector<float> normals = Base64::Decode<float>(args[1].get<std::string>());
-        std::vector<float> colors = Base64::Decode<float>(args[2].get<std::string>());
-        std::vector<float> uvs = Base64::Decode<float>(args[3].get<std::string>());
-        std::vector<uint16_t> indices = Base64::Decode<uint16_t>(args[4].get<std::string>());
-
-        std::string name("object");
-        name += std::to_string(++ids);
-
-        models[name] = app->renderer->m_renderer->createDefaultModelInstance(name);
-        app->renderer->m_renderer->addToRenderList(models[name].get());
-        // std::shared_ptr<vkglTF::Model> VulkanExample::findOrLoadModel( std::string modelUri, std::string *psError)
-        
-        json result = {
-          {"id", name}
-        };
-        json res = {
-          {"error", nullptr},
-          {"result", result}
-        };
-        respond(res);
-      } else if (
-        methodString == "updateObjectTransform" &&
-        args.size() >= 4 &&
-        args[0].is_string() &&
-        args[1].is_string() &&
-        args[2].is_string() &&
-        args[3].is_string()
-      ) {
-        std::string name = args[0].get<std::string>();
-        std::vector<float> position = Base64::Decode<float>(args[1].get<std::string>());
-        std::vector<float> quaternion = Base64::Decode<float>(args[2].get<std::string>());
-        std::vector<float> scale = Base64::Decode<float>(args[3].get<std::string>());
-
-        auto model = models[name].get();
-        app->renderer->m_renderer->setModelTransform(models[name].get(), position, quaternion, scale);
-        // XXX update geometry
-        
-        json result = {
-          // {"processId", processId}
-        };
-        json res = {
-          {"error", nullptr},
-          {"result", result}
-        };
-        respond(res);
-      } else if (
-        methodString == "updateObjectGeometry" &&
-        args.size() >= 6 &&
-        args[0].is_string() &&
-        args[1].is_string() &&
-        args[2].is_string() &&
-        args[3].is_string() &&
-        args[4].is_string() &&
-        args[5].is_string()
-      ) {
-        std::string name = args[0].get<std::string>();
-        std::vector<float> positions = Base64::Decode<float>(args[1].get<std::string>());
-        std::vector<float> normals = Base64::Decode<float>(args[2].get<std::string>());
-        std::vector<float> colors = Base64::Decode<float>(args[3].get<std::string>());
-        std::vector<float> uvs = Base64::Decode<float>(args[4].get<std::string>());
-        std::vector<uint16_t> indices = Base64::Decode<uint16_t>(args[5].get<std::string>());
-
-        models[name] = app->renderer->m_renderer->setModelGeometry(std::move(models[name]), positions, normals, colors, uvs, indices);
-        
-        json result = {
-          // {"processId", processId}
-        };
-        json res = {
-          {"error", nullptr},
-          {"result", result}
-        };
-        respond(res);
+    const controllerGrip = renderer.xr.getControllerGrip(i);
+    controllerGrip.add(controllerModelFactory.createControllerModel(controllerGrip));
+    controllerGrip.addEventListener('squeezestart', e => {
+      if (controller.userData.data && controller.userData.data.handedness === 'right') {
+        _beginTool(false, true, false);
       }
-    } */
-    const geometry = new THREE.CylinderBufferGeometry(0, 0.1, 0.1, 3, 1);
-    const colors = new Float32Array(geometry.attributes.position.array.length);
-    for (let i = 0; i < colors.length; i += 3) {
-      colors[i+2] = 1;
-    }
-    /* hmdObject = await socket.request('addObject', [
-      geometry.attributes.position.array,
-      geometry.attributes.normal.array,
-      colors,
-      geometry.attributes.uv.array,
-      geometry.index.array,
-    ]); */
-    controllerObjects[0] = await socket.request('addObject', [
-      geometry.attributes.position.array,
-      geometry.attributes.normal.array,
-      colors,
-      geometry.attributes.uv.array,
-      geometry.index.array,
-    ]);
-    controllerObjects[1] = await socket.request('addObject', [
-      geometry.attributes.position.array,
-      geometry.attributes.normal.array,
-      colors,
-      geometry.attributes.uv.array,
-      geometry.index.array,
-    ]);
-    console.log('got objects', hmdObject, controllerObjects[0], controllerObjects[1]);
-    
-    const res = await fetch('../data/avatar.glb');
-    const arrayBuffer = await res.arrayBuffer();
-    console.log('model fetched');
-    avatarObject = await socket.request('addModel', [
-      'model',
-      arrayBuffer,
-    ]);
-    console.log('model added');
-  });
-  handlePose = (hmd, left, right) => {
-    if (avatarObject) {
-      updatePlayerFromArrays(renderer.xr, new Float32Array(hmd), new Float32Array(left), new Float32Array(right));
-      const boneTexture = getRigBoneTexture();
-      if (boneTexture) {
-        // console.log('submit bones', boneTexture);
-        socket.request('updateObjectBoneTexture', [
-          avatarObject.id,
-          boneTexture.buffer,
-        ]);
+      const oldGripDownsAll = gripDowns.every(gripDown => gripDown);
+      gripDowns[i] = true;
+      const newGripDownsAll = gripDowns.every(gripDown => gripDown);
+      if (newGripDownsAll && !oldGripDownsAll) {
+        _commitMiningMeshes();
+        
+        scaleState = {
+          startPosition: renderer.xr.getControllerGrip(0).position.clone()
+            .add(renderer.xr.getControllerGrip(1).position)
+            .divideScalar(2),
+          startDirection: renderer.xr.getControllerGrip(0).position.clone()
+            .sub(renderer.xr.getControllerGrip(1).position)
+            .normalize(),
+          startWorldWidth: renderer.xr.getControllerGrip(0).position
+            .distanceTo(renderer.xr.getControllerGrip(1).position),
+          containerStartPosition: container.position.clone(),
+          containerStartQuaternion: container.quaternion.clone(),
+          containerStartScale: container.scale.clone(),
+          containerStartMatrix: container.matrix.clone(),
+        };
+      }
+    });
+    controllerGrip.addEventListener('squeezeend', e => {
+      if (controller.userData.data && controller.userData.data.handedness === 'right') {
+        _endTool(false, true, false);
+      }
+      gripDowns[i] = false;
+      const newGripDownsAll = gripDowns.every(gripDown => gripDown);
+      if (!newGripDownsAll) {
+        scaleState = null;
+      }
+    });
+    scene.add(controllerGrip);
+  }
+}
+function onSessionEnded() {
+  currentSession.removeEventListener('end', onSessionEnded);
+
+  currentSession = null;
+}
+enterXrButton.addEventListener('click', e => {
+  e.preventDefault();
+  e.stopPropagation();
+  
+  if (currentSession === null) {
+    // WebXR's requestReferenceSpace only works if the corresponding feature
+    // was requested at session creation time. For simplicity, just ask for
+    // the interesting ones as optional features, but be aware that the
+    // requestReferenceSpace call will fail if it turns out to be unavailable.
+    // ('local' is always available for immersive sessions and doesn't need to
+    // be requested separately.)
+    var sessionInit = {
+      optionalFeatures: [
+        'local-floor',
+        'bounded-floor',
+      ],
+    };
+    navigator.xr.requestSession('immersive-vr', sessionInit).then(onSessionStarted);
+  } else {
+    currentSession.end();
+  }
+});
+
+const velocity = new THREE.Vector3();
+function animate() {
+  orbitControls.enabled && orbitControls.update();
+
+  if (currentSession) {
+    /* for (let i = 0; i < 2; i++) {
+      const controller = renderer.xr.getController(i);
+      if (controller.userData.data) {
+        if (controller.userData.data.handedness === 'left') {
+          uiMesh.position.copy(controller.position);
+          uiMesh.quaternion.copy(controller.quaternion);
+        } else if (controller.userData.data.handedness === 'right') {
+          _updateRaycasterFromObject(localRaycaster, controller);
+          _updateTool(localRaycaster);
+        }
       }
     }
-    if (hmdObject) {
-      socket.request('updateObjectMatrix', [
-        hmdObject.id,
-        hmd,
+
+    _updateControllers(); */
+
+    updatePlayerFromXr(renderer.xr, camera);
+  } /* else {
+    const speed = 0.015 * (keys.shift ? 3 : 1);
+    const cameraEuler = camera.rotation.clone();
+    cameraEuler.x = 0;
+    cameraEuler.z = 0;
+    const extraVelocity = new THREE.Vector3();
+    if (keys.left) {
+      extraVelocity.add(new THREE.Vector3(-1, 0, 0).applyEuler(cameraEuler));
+    }
+    if (keys.right) {
+      extraVelocity.add(new THREE.Vector3(1, 0, 0).applyEuler(cameraEuler));
+    }
+    if (keys.up) {
+      extraVelocity.add(new THREE.Vector3(0, 0, -1).applyEuler(cameraEuler));
+    }
+    if (keys.down) {
+      extraVelocity.add(new THREE.Vector3(0, 0, 1).applyEuler(cameraEuler));
+    }
+    if (extraVelocity.length() > 0) {
+      extraVelocity.normalize().multiplyScalar(speed);
+    }
+    velocity.add(extraVelocity);
+    camera.position.add(velocity);
+    velocity.multiplyScalar(0.7);
+    
+    orbitControls.target.copy(camera.position).add(new THREE.Vector3(0, 0, -1.5).applyQuaternion(camera.quaternion));
+    
+    updatePlayerFromCamera(camera);
+  } */
+
+  /* for (let i = 0; i < peerConnections.length; i++) {
+    const peerConnection = peerConnections[i];
+    peerConnection.rig && peerConnection.rig.update();
+  }
+
+  tickObjectScript(objectState);
+
+  if (ammo) {
+    ammo.simulate();
+    for (let i = 0; i < objectMeshes.length; i++) {
+      ammo.updateObjectMesh(objectMeshes[i]);
+    }
+  } */
+
+  /* const thirdperson = selectedTool === 'thirdperson';
+  let oldCameraPosition;
+  if (thirdperson) {
+    oldCameraPosition = camera.position.clone();
+    camera.position.add(new THREE.Vector3(0, 0, 2).applyQuaternion(camera.quaternion));
+  } */
+  renderer.render(scene, camera);
+  /* if (thirdperson) {
+    camera.position.copy(oldCameraPosition);
+  } */
+}
+renderer.setAnimationLoop(animate);
+
+navigator.xr && navigator.xr.isSessionSupported('immersive-vr').then(supported => {
+  if (supported) {
+    renderer.xr.enabled = true;
+    enterXrButton.classList.remove('disabled');
+  } else {
+    // nothing
+  }
+});
+
+/* window.addEventListener('pose', e => {
+  console.log('got first pose', e.data);
+}, {once: true}); */
+
+/* document.getElementById('form-1').addEventListener('submit', e => {
+  e.preventDefault();
+
+  // the seed is stored encrypted by a user-defined password
+  var password = document.getElementById('password').value;
+  var seedPhrase = document.getElementById('seed-phrase').value;
+  // var seedPhrase = lightwallet.keystore.generateRandomSeed();
+
+  lightwallet.keystore.createVault({
+    password,
+    seedPhrase, // Optionally provide a 12-word seed phrase
+    // salt: fixture.salt,     // Optionally provide a salt.
+                               // A unique salt will be generated otherwise.
+    hdPathString: `m/44'/60'/0'/0`,    // Optional custom HD Path String
+  },
+  function (err, ks) {
+    console.log('got keystore', ks);
+
+    // Some methods will require providing the `pwDerivedKey`,
+    // Allowing you to only decrypt private keys on an as-needed basis.
+    // You can generate that value with this convenient method:
+    ks.keyFromPassword(password, function (err, pwDerivedKey) {
+      if (err) throw err;
+
+      // generate five new address/private key pairs
+      // the corresponding private keys are also encrypted
+      ks.generateNewAddress(pwDerivedKey, 5);
+      var addr = ks.getAddresses();
+
+      ks.passwordProvider = function (callback) {
+        var pw = prompt("Please enter password", "Password");
+        callback(null, pw);
+      };
+
+      // Now set ks as transaction_signer in the hooked web3 provider
+      // and you can start using web3 using the keys/addresses in ks!
+    });
+  });
+
+  for (let i = 1; i <= 2; i++) {
+    document.body.classList.remove(`phase-${i}`);
+  }
+  document.body.classList.add('phase-2');
+});
+document.getElementById('form-2').addEventListener('submit', e => {
+  e.preventDefault();
+
+  for (let i = 1; i <= 2; i++) {
+    document.body.classList.remove(`phase-${i}`);
+  }
+  document.body.classList.add('phase-2');
+}); */
+
+let avatarObject = null;
+let hmdObject = null;
+const controllerObjects = [null, null];
+document.getElementById('enter-overlay-button').addEventListener('click', async e => {
+  await socket.request('startRenderer', []);
+  console.log('render started');
+  
+  /* {
+    if (
+      methodString == "addObject" &&
+      args.size() >= 5 &&
+      args[0].is_string() &&
+      args[1].is_string() &&
+      args[2].is_string() &&
+      args[3].is_string() &&
+      args[4].is_string()
+    ) {
+      std::vector<float> positions = Base64::Decode<float>(args[0].get<std::string>());
+      std::vector<float> normals = Base64::Decode<float>(args[1].get<std::string>());
+      std::vector<float> colors = Base64::Decode<float>(args[2].get<std::string>());
+      std::vector<float> uvs = Base64::Decode<float>(args[3].get<std::string>());
+      std::vector<uint16_t> indices = Base64::Decode<uint16_t>(args[4].get<std::string>());
+
+      std::string name("object");
+      name += std::to_string(++ids);
+
+      models[name] = app->renderer->m_renderer->createDefaultModelInstance(name);
+      app->renderer->m_renderer->addToRenderList(models[name].get());
+      // std::shared_ptr<vkglTF::Model> VulkanExample::findOrLoadModel( std::string modelUri, std::string *psError)
+      
+      json result = {
+        {"id", name}
+      };
+      json res = {
+        {"error", nullptr},
+        {"result", result}
+      };
+      respond(res);
+    } else if (
+      methodString == "updateObjectTransform" &&
+      args.size() >= 4 &&
+      args[0].is_string() &&
+      args[1].is_string() &&
+      args[2].is_string() &&
+      args[3].is_string()
+    ) {
+      std::string name = args[0].get<std::string>();
+      std::vector<float> position = Base64::Decode<float>(args[1].get<std::string>());
+      std::vector<float> quaternion = Base64::Decode<float>(args[2].get<std::string>());
+      std::vector<float> scale = Base64::Decode<float>(args[3].get<std::string>());
+
+      auto model = models[name].get();
+      app->renderer->m_renderer->setModelTransform(models[name].get(), position, quaternion, scale);
+      // XXX update geometry
+      
+      json result = {
+        // {"processId", processId}
+      };
+      json res = {
+        {"error", nullptr},
+        {"result", result}
+      };
+      respond(res);
+    } else if (
+      methodString == "updateObjectGeometry" &&
+      args.size() >= 6 &&
+      args[0].is_string() &&
+      args[1].is_string() &&
+      args[2].is_string() &&
+      args[3].is_string() &&
+      args[4].is_string() &&
+      args[5].is_string()
+    ) {
+      std::string name = args[0].get<std::string>();
+      std::vector<float> positions = Base64::Decode<float>(args[1].get<std::string>());
+      std::vector<float> normals = Base64::Decode<float>(args[2].get<std::string>());
+      std::vector<float> colors = Base64::Decode<float>(args[3].get<std::string>());
+      std::vector<float> uvs = Base64::Decode<float>(args[4].get<std::string>());
+      std::vector<uint16_t> indices = Base64::Decode<uint16_t>(args[5].get<std::string>());
+
+      models[name] = app->renderer->m_renderer->setModelGeometry(std::move(models[name]), positions, normals, colors, uvs, indices);
+      
+      json result = {
+        // {"processId", processId}
+      };
+      json res = {
+        {"error", nullptr},
+        {"result", result}
+      };
+      respond(res);
+    }
+  } */
+  const geometry = new THREE.CylinderBufferGeometry(0, 0.1, 0.1, 3, 1);
+  const colors = new Float32Array(geometry.attributes.position.array.length);
+  for (let i = 0; i < colors.length; i += 3) {
+    colors[i+2] = 1;
+  }
+  /* hmdObject = await socket.request('addObject', [
+    geometry.attributes.position.array,
+    geometry.attributes.normal.array,
+    colors,
+    geometry.attributes.uv.array,
+    geometry.index.array,
+  ]); */
+  controllerObjects[0] = await socket.request('addObject', [
+    geometry.attributes.position.array,
+    geometry.attributes.normal.array,
+    colors,
+    geometry.attributes.uv.array,
+    geometry.index.array,
+  ]);
+  controllerObjects[1] = await socket.request('addObject', [
+    geometry.attributes.position.array,
+    geometry.attributes.normal.array,
+    colors,
+    geometry.attributes.uv.array,
+    geometry.index.array,
+  ]);
+  console.log('got objects', hmdObject, controllerObjects[0], controllerObjects[1]);
+  
+  const res = await fetch('../data/avatar.glb');
+  const arrayBuffer = await res.arrayBuffer();
+  console.log('model fetched');
+  avatarObject = await socket.request('addModel', [
+    'model',
+    arrayBuffer,
+  ]);
+  console.log('model added');
+});
+handlePose = (hmd, left, right) => {
+  if (avatarObject) {
+    updatePlayerFromArrays(renderer.xr, new Float32Array(hmd), new Float32Array(left), new Float32Array(right));
+    const boneTexture = getRigBoneTexture();
+    if (boneTexture) {
+      // console.log('submit bones', boneTexture);
+      socket.request('updateObjectBoneTexture', [
+        avatarObject.id,
+        boneTexture.buffer,
       ]);
     }
-    if (controllerObjects[0]) {
-      socket.request('updateObjectMatrix', [
-        controllerObjects[0].id,
-        left,
-      ]);
-    }
-    if (controllerObjects[1]) {
-      socket.request('updateObjectMatrix', [
-        controllerObjects[1].id,
-        right,
-      ]);
-    }
-  };
+  }
+  if (hmdObject) {
+    socket.request('updateObjectMatrix', [
+      hmdObject.id,
+      hmd,
+    ]);
+  }
+  if (controllerObjects[0]) {
+    socket.request('updateObjectMatrix', [
+      controllerObjects[0].id,
+      left,
+    ]);
+  }
+  if (controllerObjects[1]) {
+    socket.request('updateObjectMatrix', [
+      controllerObjects[1].id,
+      right,
+    ]);
+  }
+};
+// });
+
+window.addEventListener('resize', e => {
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
 });
 
 </script>
