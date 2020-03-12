@@ -59,7 +59,7 @@ window.THREE = THREE;
 import {OrbitControls} from './OrbitControls.js';
 import {XRControllerModelFactory} from './XRControllerModelFactory.js';
 import {makeId, XRChannelConnection} from './multiplayer.js';
-import {initLocalRig, updatePlayerFromCamera, updatePlayerFromXr, updatePlayerFromArrays, getRigBoneTexture, bindPeerConnection} from './peerconnection.js';
+import {initLocalRig, updatePlayerFromCamera, updatePlayerFromXr, updatePlayerFromArrays, updatePlayerDefault, getRigBoneTexture, bindPeerConnection} from './peerconnection.js';
 
 function makePromise() {
   let accept, reject;
@@ -425,6 +425,8 @@ function animate() {
     _updateControllers(); */
 
     updatePlayerFromXr(renderer.xr, camera);
+  } else {
+    updatePlayerDefault();
   } /* else {
     const speed = 0.015 * (keys.shift ? 3 : 1);
     const cameraEuler = camera.rotation.clone();

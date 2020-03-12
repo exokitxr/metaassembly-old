@@ -7,6 +7,12 @@ const localVector = new THREE.Vector3();
 
 let rig = null;
 let modelUrl = null;
+const _alignRigHandsToHead = rig => {
+  rig.inputs.leftGamepad.position.copy(rig.inputs.hmd.position).add(localVector.set(0.3, -0.15, -0.5).applyQuaternion(rig.inputs.hmd.quaternion));
+  rig.inputs.leftGamepad.quaternion.copy(rig.inputs.hmd.quaternion);
+  rig.inputs.rightGamepad.position.copy(rig.inputs.hmd.position).add(localVector.set(-0.3, -0.15, -0.5).applyQuaternion(rig.inputs.hmd.quaternion));
+  rig.inputs.rightGamepad.quaternion.copy(rig.inputs.hmd.quaternion);
+};
 export async function initLocalRig(container) {
   const {url} = avatarModels[0];
   modelUrl = `https://avatar-models.exokit.org/${url}`;
@@ -22,16 +28,17 @@ export async function initLocalRig(container) {
     microphoneMediaStream: null,
     // debug: !newModel,
   });
+  rig.inputs.hmd.position.set(-2 + Math.random()*4, 1.2, Math.random()*-1);
+  rig.inputs.hmd.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+  _alignRigHandsToHead(rig);
+  rig.update();
   container.add(rig.model);
 }
 export function updatePlayerFromCamera(camera) {
   if (rig) {
     rig.inputs.hmd.position.copy(camera.position);
     rig.inputs.hmd.quaternion.copy(camera.quaternion);
-    rig.inputs.leftGamepad.position.copy(camera.position).add(localVector.set(0.3, -0.15, -0.5).applyQuaternion(camera.quaternion));
-    rig.inputs.leftGamepad.quaternion.copy(camera.quaternion);
-    rig.inputs.rightGamepad.position.copy(camera.position).add(localVector.set(-0.3, -0.15, -0.5).applyQuaternion(camera.quaternion));
-    rig.inputs.rightGamepad.quaternion.copy(camera.quaternion);
+    _alignRigHandsToHead(rig);
 
     rig.update();
   }
@@ -80,6 +87,9 @@ export function updatePlayerFromArrays(xr, hmd, left, right) {
 
     rig.update();
   }
+}
+export function updatePlayerDefault() {
+  rig && rig.update();
 }
 export function getRigBoneTexture() {
   if (rig && rig.skinnedMeshes.length > 0) {
