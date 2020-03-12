@@ -21,6 +21,10 @@ node --version
 & 'node/node.exe' node/node_modules/npm/bin/npm-cli.js
 & 'node/node.exe' node/node_modules/npm/bin/npm-cli.js install
 
+rm -Recurse -Force build
+& 'node/node.exe' ./node_modules/node-gyp/bin/node-gyp.js configure
+& 'node/node.exe' ./node_modules/node-gyp/bin/node-gyp.js build
+
 ls
 cd src
 mkdir -Force build
