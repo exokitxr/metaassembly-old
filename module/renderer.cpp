@@ -566,6 +566,7 @@ NAN_METHOD(handleMessage) {
       } else {
         getOut() << "failed to get tex" << std::endl;
       }
+      tex2->Release();
       resource->Release();
     } else {
       getOut() << "failed to get resource" << std::endl;
