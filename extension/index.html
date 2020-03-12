@@ -436,10 +436,7 @@ const uiRenderer = (() => {
   };
 })();
 const uiMesh = (() => {
-  const geometry = new THREE.PlaneBufferGeometry(uiWorldSize, uiWorldSize * uiHeight/uiWidth)
-    .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI/2)))
-    .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI/2)))
-    .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 0.1, 0));
+  const geometry = new THREE.PlaneBufferGeometry(uiWorldSize, uiWorldSize * uiHeight/uiWidth);
   const canvas = document.createElement('canvas');
   canvas.width = uiWidth;
   canvas.height = uiHeight;
@@ -511,14 +508,13 @@ const uiMesh = (() => {
       for (let i = 0; i < anchors.length; i++) {
         const anchor = anchors[i];
         const {top, bottom, left, right, width, height} = anchor;
-        // console.log('check', {x: uv.x, y: uv.y, top, bottom, left, right});
         if (uv.x >= left && uv.x < right && uv.y >= top && uv.y < bottom) {
           hoveredAnchor = anchor;
           
           highlightMesh.position.x = -uiWorldSize/2 + (left + width/2)/uiWidth*uiWorldSize;
-          highlightMesh.position.y = uiWorldSize - (top + height/2)/uiHeight*uiWorldSize;
+          highlightMesh.position.y = uiWorldSize/2/2 - (top + height/2)/uiHeight*uiWorldSize/2;
           highlightMesh.scale.x = width/uiWidth*uiWorldSize;
-          highlightMesh.scale.y = height/uiHeight*uiWorldSize;
+          highlightMesh.scale.y = height/uiHeight*uiWorldSize/2;
           highlightMesh.visible = true;
           break;
         }
@@ -549,6 +545,20 @@ const uiMesh = (() => {
 })();
 uiMesh.position.set(0.5, 0.5, 1);
 scene.add(uiMesh);
+
+const rayMesh = (() => {
+  const geometry = new THREE.CylinderBufferGeometry(0.002, 0.002, 1, 3, 1, false, 0, Math.PI*2)
+    .applyMatrix4(new THREE.Matrix4().makeTranslation(0, 1/2, 0))
+    .applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI/2)));
+  const material = new THREE.MeshBasicMaterial({
+    color: 0x42a5f5,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.visible = false;
+  mesh.frustumCulled = false;
+  return mesh;
+})();
+scene.add(rayMesh);
 
 // multiplayer
 
@@ -702,27 +712,27 @@ function onSessionStarted(session) {
       controller.userData.data = e.data;
     });
     controller.addEventListener('selectstart', e => {
-      if (controller.userData.data && controller.userData.data.handedness === 'right') {
+      /* if (controller.userData.data && controller.userData.data.handedness === 'right') {
         _beginTool(true, false, false);
-      }
+      } */
       triggerDowns[i] = true;
     });
     controller.addEventListener('selectend', e => {
-      if (controller.userData.data && controller.userData.data.handedness === 'right') {
+      /* if (controller.userData.data && controller.userData.data.handedness === 'right') {
         _endTool(true, false, false);
-      }
+      } */
       triggerDowns[i] = false;
     });
 
     const controllerGrip = renderer.xr.getControllerGrip(i);
     controllerGrip.add(controllerModelFactory.createControllerModel(controllerGrip));
     controllerGrip.addEventListener('squeezestart', e => {
-      if (controller.userData.data && controller.userData.data.handedness === 'right') {
+      /* if (controller.userData.data && controller.userData.data.handedness === 'right') {
         _beginTool(false, true, false);
       }
-      const oldGripDownsAll = gripDowns.every(gripDown => gripDown);
+      const oldGripDownsAll = gripDowns.every(gripDown => gripDown); */
       gripDowns[i] = true;
-      const newGripDownsAll = gripDowns.every(gripDown => gripDown);
+      /* const newGripDownsAll = gripDowns.every(gripDown => gripDown);
       if (newGripDownsAll && !oldGripDownsAll) {
         _commitMiningMeshes();
         
@@ -740,17 +750,17 @@ function onSessionStarted(session) {
           containerStartScale: container.scale.clone(),
           containerStartMatrix: container.matrix.clone(),
         };
-      }
+      } */
     });
     controllerGrip.addEventListener('squeezeend', e => {
-      if (controller.userData.data && controller.userData.data.handedness === 'right') {
+      /* if (controller.userData.data && controller.userData.data.handedness === 'right') {
         _endTool(false, true, false);
-      }
+      } */
       gripDowns[i] = false;
-      const newGripDownsAll = gripDowns.every(gripDown => gripDown);
+      /* const newGripDownsAll = gripDowns.every(gripDown => gripDown);
       if (!newGripDownsAll) {
         scaleState = null;
-      }
+      } */
     });
     scene.add(controllerGrip);
   }
@@ -797,6 +807,26 @@ const _updateRaycasterFromObject = (raycaster, o) => {
   raycaster.ray.origin.copy(o.position);
   raycaster.ray.direction.set(0, 0, -1).applyQuaternion(o.quaternion);
 };
+const _updateControllers = raycaster => {
+  const intersections = raycaster.intersectObject(uiMesh);
+  if (intersections.length > 0 && intersections[0].distance < 3) {
+    const [{distance, uv}] = intersections;
+    rayMesh.position.copy(raycaster.ray.origin);
+    rayMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), raycaster.ray.direction);
+    rayMesh.scale.z = distance;
+    rayMesh.visible = true;
+
+    // orbitControls.enabled = false;
+
+    uiMesh.intersect(uv);
+  } else {
+    rayMesh.visible = false;
+    
+    // orbitControls.enabled = selectedTool === 'camera';
+
+    uiMesh.intersect(null);
+  }
+};
 
 const velocity = new THREE.Vector3();
 function animate() {
@@ -807,8 +837,12 @@ function animate() {
       const controller = renderer.xr.getController(i);
       if (controller.userData.data) {
         if (controller.userData.data.handedness === 'left') {
-          uiMesh.position.copy(controller.position);
-          uiMesh.quaternion.copy(controller.quaternion);
+          const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI/2)
+            .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI/2));
+          uiMesh.quaternion.copy(controller.quaternion)
+            .multiply(q);
+          uiMesh.position.copy(controller.position)
+            .add(new THREE.Vector3(0, 0, 0.05).applyQuaternion(uiMesh.quaternion));
         } else if (controller.userData.data.handedness === 'right') {
           _updateRaycasterFromObject(localRaycaster, controller);
           // _updateTool(localRaycaster);
@@ -816,7 +850,7 @@ function animate() {
       }
     }
 
-    // _updateControllers();
+    _updateControllers(localRaycaster);
 
     updatePlayerFromXr(renderer.xr, camera);
   } else if (cameraMode !== 'orbit') {
