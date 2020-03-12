@@ -116,7 +116,7 @@ const _ws = (req, socket, head) => {
 server.on('upgrade', _ws);
 server.listen(port);
 server.once('listening', () => {
-  child_process.spawn(`.\Chrome-bin\chrome.exe`, [
+  child_process.spawn(`./Chrome-bin/chrome.exe`, [
     /* '--enable-features="WebXR,OpenVR"',
     '--disable-features="WindowsMixedReality"',
     '--no-sandbox',
@@ -124,7 +124,7 @@ server.once('listening', () => {
     '--disable-xr-device-consent-prompt-for-testing',
     '--load-extension="..\..\extension"'
     '--whitelisted-extension-id="glmgcjligejadkfhgebnplablaggjbmm"', */
-    `--app=http://localhost:${port}`,
+    `--app=http://localhost:${port}/extension/`,
   ]);
   console.log(`http://127.0.0.1:${port}`);
 });
