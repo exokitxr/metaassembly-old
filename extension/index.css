@@ -419,6 +419,7 @@ canvas {
   width: 100vw;
   height: 100vh;
   /* background-color: #000; */
+  outline: none;
 }
 .body {
   background-color: #ff5722;
