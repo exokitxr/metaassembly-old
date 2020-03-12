@@ -2422,32 +2422,37 @@ std::unique_ptr<IModelInstance> VulkanExample::createDefaultModelInstance(const 
 void VulkanExample::setModelTransform(IModelInstance *modelInstance, float *positions, size_t numPositions, float *quaternions, size_t numQuaternions, float *scales, size_t numScales) {
   CVulkanRendererModelInstance *model = (CVulkanRendererModelInstance *)modelInstance;
 
-  model->m_model->translation.x = positions[0];
-  model->m_model->translation.y = positions[1];
-  model->m_model->translation.z = positions[2];
-
-  model->m_model->rotation.x = quaternions[0];
-  model->m_model->rotation.y = quaternions[1];
-  model->m_model->rotation.z = quaternions[2];
-  model->m_model->rotation.w = quaternions[3];
-
-  model->m_model->scale.x = scales[0];
-  model->m_model->scale.y = scales[1];
-  model->m_model->scale.z = scales[2];
+  if (numPositions >= 3) {
+	  model->m_model->translation.x = positions[0];
+	  model->m_model->translation.y = positions[1];
+	  model->m_model->translation.z = positions[2];
+	}
+  if (numQuaternions >= 4) {
+	  model->m_model->rotation.x = quaternions[0];
+	  model->m_model->rotation.y = quaternions[1];
+	  model->m_model->rotation.z = quaternions[2];
+	  model->m_model->rotation.w = quaternions[3];
+	}
+  if (numScales >= 3) {
+	  model->m_model->scale.x = scales[0];
+	  model->m_model->scale.y = scales[1];
+	  model->m_model->scale.z = scales[2];
+	}
 }
 
-void VulkanExample::setModelMatrix(IModelInstance *modelInstance, float *matrix, size_t numPositions) {
-  CVulkanRendererModelInstance *model = (CVulkanRendererModelInstance *)modelInstance;
-
-  decomposeMatrix(matrix, glm::value_ptr(model->m_model->translation), glm::value_ptr(model->m_model->rotation), glm::value_ptr(model->m_model->scale));
+void VulkanExample::setModelMatrix(IModelInstance *modelInstance, float *matrix, size_t numMatrix) {
+  if (numMatrix >= 16) {
+  	CVulkanRendererModelInstance *model = (CVulkanRendererModelInstance *)modelInstance;
+    decomposeMatrix(matrix, glm::value_ptr(model->m_model->translation), glm::value_ptr(model->m_model->rotation), glm::value_ptr(model->m_model->scale));
+  }
 }
 
 std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<IModelInstance> modelInstance, float *positions, size_t numPositions, float *normals, size_t numNormals, float *colors, size_t numColors, float *uvs, size_t numUvs, uint16_t *indices, size_t numIndices) {
-  getOut() << "set 0 " << modelInstance.get() << std::endl;
+  if (numPositions == 0 || numNormals == 0 || numColors == 0 || numUvs == 0 || numIndices == 0) {
+  	return std::move(modelInstance);
+  }
 
   CVulkanRendererModelInstance *model = (CVulkanRendererModelInstance *)modelInstance.get();
-
-  getOut() << "set 1" << std::endl;
 
   std::shared_ptr<tinygltf::Model> model2(new tinygltf::Model(*model->m_model->modelPtr));
   auto &accessors = model2->accessors;
@@ -2542,7 +2547,6 @@ std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<
 	    }
 
       // attributes
-      getOut() << "set 2" << std::endl;
       {
       	auto &attribute = attributes["POSITION"];
       	const auto &src = positions;
@@ -2728,6 +2732,10 @@ std::unique_ptr<IModelInstance> VulkanExample::setModelGeometry(std::unique_ptr<
 }
 
 std::unique_ptr<IModelInstance> VulkanExample::setModelTexture(std::unique_ptr<IModelInstance> modelInstance, int width, int height, unsigned char *data, size_t size) {
+	if (width == 0 || height == 0 || size != width*height*4) {
+		return std::move(modelInstance);
+	}
+
   CVulkanRendererModelInstance *model = (CVulkanRendererModelInstance *)modelInstance.get();
 
   std::shared_ptr<tinygltf::Model> model2(new tinygltf::Model(*(model->m_model->modelPtr)));
