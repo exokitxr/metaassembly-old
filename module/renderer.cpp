@@ -501,6 +501,8 @@ NAN_METHOD(handleMessage) {
   ) {
     getOut() << "get mirror texture " << (void *)app->m_pD3D11Device << std::endl;
 
+    uint32_t width = 0;
+    uint32_t height = 0;
     Local<ArrayBuffer> arrayBuffer;
 
     ID3D11ShaderResourceView *resourceView;
@@ -554,6 +556,8 @@ NAN_METHOD(handleMessage) {
         if (SUCCEEDED(hr)) {
           getOut() << "map ok" << std::endl;
           
+          width = desc.Width;
+          height = desc.Height;
           arrayBuffer = ArrayBuffer::New(Isolate::GetCurrent(), desc.Width*desc.Height*4);
           void *data = arrayBuffer->GetContents().Data();
           
@@ -595,6 +599,8 @@ NAN_METHOD(handleMessage) {
     if (!arrayBuffer.IsEmpty()) {
       getOut() << "result ok" << std::endl;
       Local<Object> result = Nan::New<Object>();
+      result->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("width").ToLocalChecked(), Nan::New<Number>(width));
+      result->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("height").ToLocalChecked(), Nan::New<Number>(height));
       result->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("data").ToLocalChecked(), arrayBuffer);
       res->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("result").ToLocalChecked(), result);
     } else {

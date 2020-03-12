@@ -90,6 +90,13 @@ if (!noLaunch) {
 
             const o = handleMessage(method, args);
             const {error, result} = o;
+            if (result && result.data && result.data instanceof ArrayBuffer) {
+              console.log('send mirror texture', result.data);
+              s.send('mirrorTexture');
+              s.send(Uint32Array.from([result.width]).buffer);
+              s.send(Uint32Array.from([result.height]).buffer);
+              s.send(result.data);
+            }
             s.send(JSON.stringify({
               error,
               result,
@@ -102,6 +109,7 @@ if (!noLaunch) {
     });
     
     setEventHandler(e => {
+      s.send('pose');
       s.send(e.hmd);
       s.send(e.left);
       s.send(e.right);
