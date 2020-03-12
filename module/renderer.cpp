@@ -501,6 +501,8 @@ NAN_METHOD(handleMessage) {
   ) {
     getOut() << "get mirror texture " << (void *)app->m_pD3D11Device << std::endl;
 
+    Local<ArrayBuffer> arrayBuffer;
+
     ID3D11ShaderResourceView *resourceView;
     vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Left, app->m_pD3D11Device, (void **)&resourceView);
 
@@ -511,8 +513,8 @@ NAN_METHOD(handleMessage) {
       if (SUCCEEDED(resource->QueryInterface(&tex))) {
         D3D11_TEXTURE2D_DESC desc;
         tex->GetDesc(&desc); //Correct data gets filled out
-        D3D11_RESOURCE_DIMENSION dim;
-        resource->GetType(&dim); //value gets set as Texture2D which it should
+        // D3D11_RESOURCE_DIMENSION dim;
+        // resource->GetType(&dim); //value gets set as Texture2D which it should
 
         getOut() << "got tex desc " <<
           desc.Width << " " << desc.Height << " " <<
@@ -552,6 +554,21 @@ NAN_METHOD(handleMessage) {
         if (SUCCEEDED(hr)) {
           getOut() << "map ok" << std::endl;
           
+          arrayBuffer = ArrayBuffer::New(Isolate::GetCurrent(), desc.Width*desc.Height*4);
+          void *data = arrayBuffer->GetContents().Data();
+          
+          UINT lBmpRowPitch = desc.Width * 4;
+          BYTE *sptr = (BYTE *)mappedResource.pData;
+          BYTE *dptr = (BYTE *)data;
+          for (size_t h = 0; h < desc.Height; ++h) {
+            memcpy(dptr, sptr, lBmpRowPitch);
+            sptr += mappedResource.RowPitch;
+            // dptr -= lBmpRowPitch;
+            dptr += lBmpRowPitch;
+          }
+          // memcpy(, message.hmd, sizeof(message.hmd));
+          // Local<Float32Array> hmd = Float32Array::New(hmdBuffer, 0, ARRAYSIZE(message.hmd));
+          
           app->m_pD3D11ImmediateContext->Unmap(
             resource,
             0
@@ -563,10 +580,10 @@ NAN_METHOD(handleMessage) {
         }
 
         tex->Release();
+        tex2->Release();
       } else {
         getOut() << "failed to get tex" << std::endl;
       }
-      tex2->Release();
       resource->Release();
     } else {
       getOut() << "failed to get resource" << std::endl;
@@ -575,7 +592,15 @@ NAN_METHOD(handleMessage) {
     vr::VRCompositor()->ReleaseMirrorTextureD3D11(resourceView);
 
     Local<Object> res = Nan::New<Object>();
-    // res->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("result").ToLocalChecked(), result);
+    if (!arrayBuffer.IsEmpty()) {
+      getOut() << "result ok" << std::endl;
+      Local<Object> result = Nan::New<Object>();
+      result->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("data").ToLocalChecked(), arrayBuffer);
+      res->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("result").ToLocalChecked(), result);
+    } else {
+      getOut() << "result empty" << std::endl;
+      res->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("result").ToLocalChecked(), Nan::Null());
+    }
     info.GetReturnValue().Set(res);
   } else if (
     methodString == "terminate"
