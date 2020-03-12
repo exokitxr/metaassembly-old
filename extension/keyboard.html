@@ -177,7 +177,21 @@ a {
 <body>
 
 <div class="keyboard">
-  <h1><span class=label>Room code: </span><span class=box>{{text}}</span><span class=buttons><a class=button id=enter>Enter</a><a class=button id=new>New room</a></span></h1>
+  <h1>
+    <span class=label>Room code: </span>
+    <span class=box>{{text}}</span>
+    {{^connected}}
+    <span class=buttons>
+      <a class=button id=enter>Enter</a>
+      <a class=button id=new>New room</a>
+    </span>
+    {{/connected}}
+    {{#connected}}
+    <span class=buttons>
+      <a class=button id=disconnect>Disconnect</a>
+    </span>
+    {{/connected}}
+  </h1>
   <div class="keyboard__row keyboard__row--h1">
     <a data-key="27" class="key--word">
       <span>esc</span>

@@ -392,7 +392,7 @@ const uiRenderer = (() => {
 
   let renderIds = 0;
   return {
-    async render(text) {
+    async render(text, connected) {
       const [iframe, interfaceHtml] = await loadPromise;
 
       if (renderIds > 0) {
@@ -406,6 +406,7 @@ const uiRenderer = (() => {
       const mc = new MessageChannel();
       const templateData = {
         text,
+        connected,
       };
       iframe.contentWindow.postMessage({
         method: 'render',
@@ -482,13 +483,14 @@ const uiMesh = (() => {
   mesh.add(highlightMesh);
 
   let text = '';
+  let connected = false;
   let anchors = [];
   mesh.update = () => {
     let t = text;
     while (t.length < 4) {
       t += '-';
     }
-    uiRenderer.render(t)
+    uiRenderer.render(t, connected)
       .then(result => {
         // console.log('got dfata', result.data);
         imageData.data.set(result.data);
@@ -499,6 +501,17 @@ const uiMesh = (() => {
         anchors = result.anchors;
         // console.log(anchors);
       });
+  };
+  mesh.setConnected = c => {
+    connected = c;
+    if (!c) {
+      text = '';
+    }
+    mesh.update();
+  };
+  mesh.setText = t => {
+    text = t;
+    mesh.update();
   };
   let hoveredAnchor = null;
   mesh.intersect = uv => {
@@ -532,9 +545,12 @@ const uiMesh = (() => {
       let match;
       console.log('got id', id);
       if (id === 'enter') {
-        console.log('enter', text);
+        document.getElementById('room-code-input').value = text;
+        document.getElementById('connect-button').click();
       } else if (id === 'new') {
-        console.log('new', text);
+        document.getElementById('create-room-button').click();
+      } else if (id === 'disconnect') {
+        document.getElementById('disconnect-button').click();
       } else if (id && (match = id.match(/^key-([0-9]+)$/))) {
         const n = parseInt(match[1], 10);
         if (n === 8) {
@@ -595,6 +611,7 @@ const _connectMultiplayer = async rid => {
   });
 
   document.getElementById('room-code-text').innerText = roomId;
+  uiMesh.setText(roomId);
   const href = `${window.location.protocol}//${window.location.host}${window.location.pathname}?r=${roomId}`;
   document.getElementById('room-link').href = href;
 
@@ -622,6 +639,7 @@ document.getElementById('create-room-button').addEventListener('click', async e 
 
   _clearMultiplayerClasses();
   header.classList.add('connected');
+  uiMesh.setConnected(true);
 });
 document.getElementById('use-code-button').addEventListener('click', e => {
   _clearMultiplayerClasses();
@@ -633,6 +651,7 @@ document.getElementById('connect-button').addEventListener('click', async e => {
 
   _clearMultiplayerClasses();
   header.classList.add('connected');
+  uiMesh.setConnected(true);
 });
 document.getElementById('cancel-button').addEventListener('click', e => {
   _clearMultiplayerClasses();
@@ -641,6 +660,7 @@ document.getElementById('disconnect-button').addEventListener('click', async e =
   await _disconnectMultiplayer();
 
   _clearMultiplayerClasses();
+  uiMesh.setConnected(false);
 });
 
 // engine
