@@ -378,7 +378,7 @@ header .button:hover {
 header .button:active {
   transform: translateY(1px);
 }
-header .button,
+header .button:not(:first-child),
 header .room .room-code {
   margin-left: 10px;
 }
