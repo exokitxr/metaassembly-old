@@ -116,19 +116,21 @@ const _ws = (req, socket, head) => {
 server.on('upgrade', _ws);
 server.listen(port);
 server.once('listening', () => {
-  const cp = child_process.spawn(`./Chrome-bin/chrome.exe`, [
-    /* '--enable-features="WebXR,OpenVR"',
-    '--disable-features="WindowsMixedReality"',
-    '--no-sandbox',
-    '--test-type',
-    '--disable-xr-device-consent-prompt-for-testing',
-    '--load-extension="..\..\extension"'
-    '--whitelisted-extension-id="glmgcjligejadkfhgebnplablaggjbmm"', */
-    `--app=http://localhost:${port}/extension/`,
-  ]);
-  cp.once('exit', () => {
-    process.exit();
-  });
+  if (!process.env['NO_LAUNCH']) {
+    const cp = child_process.spawn(`./Chrome-bin/chrome.exe`, [
+      /* '--enable-features="WebXR,OpenVR"',
+      '--disable-features="WindowsMixedReality"',
+      '--no-sandbox',
+      '--test-type',
+      '--disable-xr-device-consent-prompt-for-testing',
+      '--load-extension="..\..\extension"'
+      '--whitelisted-extension-id="glmgcjligejadkfhgebnplablaggjbmm"', */
+      `--app=http://localhost:${port}/extension/`,
+    ]);
+    cp.once('exit', () => {
+      process.exit();
+    });
+  }
   console.log(`http://127.0.0.1:${port}`);
 });
 
