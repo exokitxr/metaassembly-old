@@ -677,17 +677,36 @@ socket.onopen = async () => {
 socket.binaryType = 'arraybuffer';
 const cbs = [];
 const socketData = [];
+let binaryMode = null;
 let handlePose = null;
+let handleMirrorTexture = null;
 socket.onmessage = m => {
   if (typeof m.data === 'string') {
-    m = JSON.parse(m.data);
-    const cb = cbs.shift();
-    cb && cb(m);
+    if (m.data === 'pose' || m.data === 'mirrorTexture') {
+      binaryMode = m.data;
+    } else {
+      m = JSON.parse(m.data);
+      const cb = cbs.shift();
+      cb && cb(m);
+    }
   } else {
-    socketData.push(m.data);
-    if (socketData.length >= 3) {
-      handlePose && handlePose.apply(null, socketData);
-      socketData.length = 0;
+    // console.log('got message', m.data);
+    if (binaryMode === 'pose') {
+      socketData.push(m.data);
+      if (socketData.length >= 3) {
+        handlePose && handlePose.apply(null, socketData);
+        socketData.length = 0;
+        binaryMode = null;
+      }
+    } else if (binaryMode === 'mirrorTexture') {
+      socketData.push(m.data);
+      if (socketData.length >= 3) {
+        handlePose && handleMirrorTexture.apply(null, socketData);
+        socketData.length = 0;
+        binaryMode = null;
+      }
+    } else {
+      console.warn('got unexpected binary message');
     }
   }
 };
@@ -721,6 +740,22 @@ socket.request = async (method, args) => {
     socket.send(bins[i]);
   }
   return await p;
+};
+
+handleMirrorTexture = (w, h, d) => {
+  w = new Uint32Array(w)[0];
+  h = new Uint32Array(h)[0];
+  console.log('got mirror texture', w, h, d);
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  canvas.style.width = '800px';
+  canvas.style.height = '800px';
+  const ctx = canvas.getContext('2d');
+  const imageData = ctx.createImageData(w, h);
+  imageData.data.set(new Uint8ClampedArray(d));
+  ctx.putImageData(imageData, 0, 0);
+  document.body.appendChild(canvas);
 };
 
 // window.addEventListener('load', async e => {
