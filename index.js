@@ -137,6 +137,9 @@ server.once('listening', () => {
   console.log(`http://127.0.0.1:${port}`);
 });
 
+process.stdin.on('end', () => {
+  process.exit();
+});
 process.on('SIGINT', () => {
   process.exit();
 });
