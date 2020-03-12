@@ -71,6 +71,7 @@ window.THREE = THREE;
 </script>
 <script type=module>
 import {OrbitControls} from './OrbitControls.js';
+import {GLTFLoader} from './GLTFLoader.js';
 import {XRControllerModelFactory} from './XRControllerModelFactory.js';
 import {makeId, XRChannelConnection} from './multiplayer.js';
 import {initLocalRig, updatePlayerFromCamera, updatePlayerFromXr, updatePlayerFromArrays, updatePlayerDefault, getRigBoneTexture, bindPeerConnection} from './peerconnection.js';
@@ -182,7 +183,26 @@ orbitControls.screenSpacePanning = true;
 orbitControls.enableMiddleZoom = false;
 orbitControls.update();
 
-initLocalRig(container);
+const defaultGltf = new THREE.Object3D();
+container.add(defaultGltf);
+const _loadDefaultGltf = () => {
+  const loader = new GLTFLoader();
+  loader.load('sketch.gltf', object => {
+    console.log('loaded object', object);
+    object = object.scene;
+
+    defaultGltf.add(object);
+    defaultGltf.position.set(-0.5, 0, -1);
+    defaultGltf.scale.setScalar(2);
+  }, xhr => {
+    console.log('progress');
+  }, err => {
+    console.warn(err);
+  });
+};
+_loadDefaultGltf();
+
+initLocalRig();
 
 // tools
 
