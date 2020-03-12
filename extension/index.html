@@ -202,7 +202,16 @@ const _loadDefaultGltf = () => {
 };
 _loadDefaultGltf();
 
-initLocalRig();
+let rig = null;
+initLocalRig()
+  .then(newRig => {
+    rig = newRig;
+
+    if (cameraMode === 'firstperson') {
+      rig.decapitate();
+    }
+    container.add(rig.model);
+  });
 
 // tools
 
@@ -335,6 +344,13 @@ Array.from(tools).forEach((tool, i) => {
     } else {
       document.pointerLockElement && document.exitPointerLock();
       orbitControls.enabled = false;
+    }
+    if (rig) {
+      if (cameraMode === 'firstperson') {
+        rig.decapitate();
+      } else {
+        rig.undecapitate();
+      }
     }
   });
 });

@@ -13,7 +13,7 @@ const _alignRigHandsToHead = rig => {
   rig.inputs.rightGamepad.position.copy(rig.inputs.hmd.position).add(localVector.set(-0.3, -0.15, -0.5).applyQuaternion(rig.inputs.hmd.quaternion));
   rig.inputs.rightGamepad.quaternion.copy(rig.inputs.hmd.quaternion);
 };
-export async function initLocalRig(container) {
+export async function initLocalRig() {
   const {url} = avatarModels[0];
   modelUrl = `https://avatar-models.exokit.org/${url}`;
   const model = await ModelLoader.loadModelUrl(modelUrl);
@@ -32,7 +32,7 @@ export async function initLocalRig(container) {
   rig.inputs.hmd.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
   _alignRigHandsToHead(rig);
   rig.update();
-  container.add(rig.model);
+  return rig;
 }
 export function updatePlayerFromCamera(camera) {
   if (rig) {
