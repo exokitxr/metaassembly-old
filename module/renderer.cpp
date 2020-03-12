@@ -457,6 +457,43 @@ NAN_METHOD(handleMessage) {
     res->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("result").ToLocalChecked(), result);
     info.GetReturnValue().Set(res);
   } else if (
+    methodString === "getMirrorTexture"
+  ) {
+    ID3D11ShaderResourceView *ppSRView;
+    vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Left, &app->m_pD3D11Device, &ppSRView);
+
+    ID3D11Resource *res = nullptr;
+    if (SUCCEEDED(resourceView->GetResource(&res))) {
+      ID3D11Texture2D *tex = nullptr;
+      if (SUCCEEDED(res->QueryInterface(&tex))) {
+        D3D11_TEXTURE2D_DESC desc;
+        tex->GetDesc(&desc); //Correct data gets filled out
+        D3D11_RESOURCE_DIMENSION dim;
+        res->GetType(&dim); //value gets set as Texture2D which it should
+
+        getOut() << "got tex desc " <<
+          desc.Width << " " << desc.Height << " " <<
+          desc.MipLevels << " " << desc.ArraySize << " " <<
+          desc.SampleDesc.Count << " " << desc.SampleDesc.Quality << " " <<
+          desc.Format << " " <<
+          desc.Usage << " " << desc.BindFlags << " " << desc.CPUAccessFlags << " " << desc.MiscFlags <<
+          std::endl;
+
+        tex->Release();
+      } else {
+        getOut() << "failed to get tex" << std::endl;
+      }
+      res->Release();
+    } else {
+      getOut() << "failed to get resource" << std::endl;
+    }
+
+    vr::VRCompositor()->ReleaseMirrorTextureD3D11(ppSRView);
+
+    Local<Object> res = Nan::New<Object>();
+    // res->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("result").ToLocalChecked(), result);
+    info.GetReturnValue().Set(res);
+  } else if (
     methodString == "terminate"
   ) {
     getOut() << "call terminate 1" << std::endl;
