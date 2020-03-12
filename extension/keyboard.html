@@ -5,10 +5,14 @@
 * {
   box-sizing: border-box;
 }
+html, body {
+  width: 800px;
+  height: 400px;
+  margin: 0;
+}
 h1 {
   position: relative;
   display: inline-flex;
-  /* margin: 0 auto; */
   height: 150px;
   text-align: center;
   font-family: monospace;
@@ -18,6 +22,7 @@ h1 {
 }
 .label {
   font-size: 1em;
+  color: #808080;
 }
 .box {
   display: inline-flex;
@@ -45,8 +50,8 @@ h1 {
 }
 
 .keyboard {
-    width: 800px;
-    height: 400px;
+    width: 100%;
+    height: 100%;
     text-align: center;
     font-size: 14px;
     font-family: sans-serif;
@@ -172,7 +177,7 @@ a {
 <body>
 
 <div class="keyboard">
-  <h1><span class=label>Room code: </span><span class=box>AAAA</span><span class=buttons><span class=button>Enter</span><span class=button>New room</span></span></h1>
+  <h1><span class=label>Room code: </span><span class=box>{{text}}</span><span class=buttons><span class=button>Enter</span><span class=button>New room</span></span></h1>
   <div class="keyboard__row keyboard__row--h1">
     <a data-key="27" class="key--word">
       <span>esc</span>
