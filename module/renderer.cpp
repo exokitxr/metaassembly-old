@@ -248,6 +248,46 @@ NAN_METHOD(setEventHandler) {
 std::unique_ptr<CAardvarkCefApp> app;
 size_t ids = 0;
 std::map<std::string, std::unique_ptr<IModelInstance>> models;
+void infoQueueLog() {
+  ID3D11InfoQueue *infoQueue = nullptr;
+  auto hr = app->m_pD3D11Device->QueryInterface(__uuidof(ID3D11InfoQueue), (void **)&infoQueue);
+  if (FAILED(hr)) {
+    getOut() << "failed to get info queue" << std::endl;
+  }
+  UINT64 numStoredMessages = infoQueue->GetNumStoredMessagesAllowedByRetrievalFilter();
+  for (UINT64 i = 0; i < numStoredMessages; i++) {
+    size_t messageSize = 0;
+    hr = infoQueue->GetMessage(
+      i,
+      nullptr,
+      &messageSize
+    );
+    if (SUCCEEDED(hr)) {
+      D3D11_MESSAGE *message = (D3D11_MESSAGE *)malloc(messageSize);
+      
+      hr = infoQueue->GetMessage(
+        i,
+        message,
+        &messageSize
+      );
+      if (SUCCEEDED(hr)) {
+        // if (message->Severity <= D3D11_MESSAGE_SEVERITY_WARNING) {
+          getOut() << "info: " << message->Severity << " " << std::string(message->pDescription, message->DescriptionByteLength) << std::endl;
+        // }
+      } else {
+        getOut() << "failed to get info queue message size: " << (void *)hr << std::endl;
+      }
+      
+      free(message);
+    } else {
+      getOut() << "failed to get info queue message size: " << (void *)hr << std::endl;
+    }
+  }
+  infoQueue->ClearStoredMessages();
+  infoQueue->Release();
+  
+  getOut() << "info queue done" << std::endl;
+}
 NAN_METHOD(handleMessage) {
   Nan::Utf8String methodUtf8(info[0]);
   std::string methodString = *methodUtf8;
@@ -281,7 +321,7 @@ NAN_METHOD(handleMessage) {
     
     getOut() << "respond 1" << std::endl;
 
-    Sleep(2000);
+    // Sleep(2000);
 
     getOut() << "respond 2" << std::endl;
 
@@ -457,19 +497,22 @@ NAN_METHOD(handleMessage) {
     res->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("result").ToLocalChecked(), result);
     info.GetReturnValue().Set(res);
   } else if (
-    methodString === "getMirrorTexture"
+    methodString == "getMirrorTexture"
   ) {
-    ID3D11ShaderResourceView *ppSRView;
-    vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Left, &app->m_pD3D11Device, &ppSRView);
+    getOut() << "get mirror texture " << (void *)app->m_pD3D11Device << std::endl;
 
-    ID3D11Resource *res = nullptr;
-    if (SUCCEEDED(resourceView->GetResource(&res))) {
+    ID3D11ShaderResourceView *resourceView;
+    vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Left, app->m_pD3D11Device, (void **)&resourceView);
+
+    ID3D11Resource *resource = nullptr;
+    resourceView->GetResource(&resource);
+    if (resource) {
       ID3D11Texture2D *tex = nullptr;
-      if (SUCCEEDED(res->QueryInterface(&tex))) {
+      if (SUCCEEDED(resource->QueryInterface(&tex))) {
         D3D11_TEXTURE2D_DESC desc;
         tex->GetDesc(&desc); //Correct data gets filled out
         D3D11_RESOURCE_DIMENSION dim;
-        res->GetType(&dim); //value gets set as Texture2D which it should
+        resource->GetType(&dim); //value gets set as Texture2D which it should
 
         getOut() << "got tex desc " <<
           desc.Width << " " << desc.Height << " " <<
@@ -478,17 +521,57 @@ NAN_METHOD(handleMessage) {
           desc.Format << " " <<
           desc.Usage << " " << desc.BindFlags << " " << desc.CPUAccessFlags << " " << desc.MiscFlags <<
           std::endl;
+        
+        desc.Usage = D3D11_USAGE_STAGING;
+        desc.BindFlags = 0;
+        desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+        desc.MiscFlags = 0;
+        
+        ID3D11Texture2D *tex2;
+        auto hr = app->m_pD3D11Device->CreateTexture2D(
+          &desc,
+          NULL,
+          &tex2
+        );
+        if (FAILED(hr)) {
+          getOut() << "create texture failed " << (void *)hr << std::endl;
+          
+          infoQueueLog();
+        }
+        app->m_pD3D11ImmediateContext->CopyResource(tex2, tex);
+        
+        getOut() << "map tex " << (void *)tex2 << std::endl;
+        D3D11_MAPPED_SUBRESOURCE mappedResource{};
+        hr = app->m_pD3D11ImmediateContext->Map(
+          tex2,
+          0,
+          D3D11_MAP_READ,
+          0,
+          &mappedResource
+        );
+        if (SUCCEEDED(hr)) {
+          getOut() << "map ok" << std::endl;
+          
+          app->m_pD3D11ImmediateContext->Unmap(
+            resource,
+            0
+          );
+        } else {
+          getOut() << "failed to map resource " << (void *)hr << std::endl;
+          
+          infoQueueLog();
+        }
 
         tex->Release();
       } else {
         getOut() << "failed to get tex" << std::endl;
       }
-      res->Release();
+      resource->Release();
     } else {
       getOut() << "failed to get resource" << std::endl;
     }
 
-    vr::VRCompositor()->ReleaseMirrorTextureD3D11(ppSRView);
+    vr::VRCompositor()->ReleaseMirrorTextureD3D11(resourceView);
 
     Local<Object> res = Nan::New<Object>();
     // res->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("result").ToLocalChecked(), result);
