@@ -51,6 +51,7 @@ mv ./node/ ./MetaAssembly/
 mv ./node_modules/ ./MetaAssembly/
 mv ./build/ ./MetaAssembly/
 mv ./Chrome-bin/ ./MetaAssembly/
+mv ./extension/ ./MetaAssembly/
 mv ./MetaAssembly.cmd ./MetaAssembly/
 
 echo zipping artifact... 
