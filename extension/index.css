@@ -384,7 +384,7 @@ header .addressbook {
 header .addressbook .addresses {
   display: none;
 }
-header .addressbook #address-input:focus ~ .addresses {
+header .addressbook .address-input:focus ~ .addresses {
   display: flex;
 }
 header .addressbook .addresses {
@@ -399,6 +399,7 @@ header .addressbook .addresses .address {
   padding: 2px 0;
   justify-content: center;
   align-items: center;
+  font-family: monospace;
 }
 header .addressbook .addresses .address .value {
   padding: 0 10px;

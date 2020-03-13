@@ -47,7 +47,7 @@
       </a>
     </div>
     <div class="addressbook">
-      <input type=text id=address-input placeholder="0x" autocomplete="fake">
+      <input type=text class=address-input id=address-input placeholder="0x0000000000000000000000000000000000000000" autocomplete=fake>
       <a class=button id=add-address-button>+ Add</a>
       <div class=addresses id=addresses></div>
     </div>
@@ -788,14 +788,18 @@ document.getElementById('disconnect-button').addEventListener('click', async e =
 
 // addressbook
 
+const addressInput = document.getElementById('address-input');
+addressInput.id = 'fake' + Math.random();
 document.getElementById('add-address-button').addEventListener('click', e => {
-  const address = document.getElementById('address-input').value;
+  const address = addressInput.value;
+  console.log('add address', address, /^0x[a-f0-9]{40}$/i.test(address), !addresses.includes(address));
   if (/^0x[a-f0-9]{40}$/i.test(address) && !addresses.includes(address)) {
     addresses.push(address);
+    localStorage.setItem('addressbook', JSON.stringify(addresses));
     _updateAddressBook();
   }
 
-  document.getElementById('address-input').focus();
+  addressInput.focus();
 });
 
 // wallet
@@ -1001,6 +1005,7 @@ const _updateAddressBook = () => {
       e.stopPropagation();
 
       addresses = addresses.filter(a => a !== address);
+      localStorage.setItem('addressbook', JSON.stringify(addresses));
       _updateAddressBook();
     });
   }
