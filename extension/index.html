@@ -67,6 +67,7 @@
       <div class=address id=address-text></div>
       <div class=balance id=balance-text></div>
       <div class=button id=lock-wallet-button>Lock wallet</div>
+      <div class=button id=download-key-button>Download key</div>
     </div>
     <div class="xr">
       <div class=button id=enter-xr-button>Enter XR</div>
@@ -695,6 +696,14 @@ document.getElementById('disconnect-button').addEventListener('click', async e =
 // wallet
 
 let keystore = null;
+async function exportSeed(ks, password) {
+  const p = makePromise();
+  ks.keyFromPassword(password, function (err, pwDerivedKey) {
+    const seed = keystore.getSeed(pwDerivedKey);
+    p.accept(seed);
+  });
+  return await p;
+}
 const _createKeystore = async (seedPhrase, password) => {
   // var seedPhrase = lightwallet.keystore.generateRandomSeed();
 
@@ -724,7 +733,9 @@ const _createKeystore = async (seedPhrase, password) => {
       p.reject(err);
     }
   });
-  return await p;
+  const ks = await p;
+  ks.exportSeed = exportSeed.bind(null, ks, password);
+  return ks;
 };
 const _exportKeyStore = ks => ks.serialize();
 const _importKeyStore = async (s, password) => {
@@ -743,6 +754,7 @@ const _importKeyStore = async (s, password) => {
     }
   });
   await p;
+  ks.exportSeed = exportSeed.bind(null, ks, password);
   return ks;
   /* // Some methods will require providing the `pwDerivedKey`,
   // Allowing you to only decrypt private keys on an as-needed basis.
@@ -820,6 +832,18 @@ document.getElementById('unlock-wallet-button').addEventListener('click', async 
 
   _clearWalletClasses();
   header.classList.add('unlocked');
+});
+document.getElementById('download-key-button').addEventListener('click', async e => {
+  const seed = await keystore.exportSeed();
+  const a = document.createElement('a');
+  const b = new Blob([seed], {
+    type: 'text/plain',
+  });
+  const u = URL.createObjectURL(b);
+  a.href = u;
+  a.download = 'seed.txt';
+  a.click();
+  URL.revokeObjectURL(u);
 });
 document.getElementById('forget-wallet-button').addEventListener('click', e => {
   localStorage.removeItem('wallet');
