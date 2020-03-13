@@ -1330,6 +1330,8 @@ const _updateIntersections = raycaster => {
 };
 
 const velocity = new THREE.Vector3();
+const wristUiQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI/2)
+  .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI/2));
 function animate() {
   orbitControls.enabled && orbitControls.update();
 
@@ -1338,10 +1340,8 @@ function animate() {
       const controller = renderer.xr.getController(i);
       if (controller.userData.data) {
         if (controller.userData.data.handedness === 'left') {
-          const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI/2)
-            .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI/2));
           wristUiMesh.quaternion.copy(controller.quaternion)
-            .multiply(q);
+            .multiply(wristUiQuaternion);
           wristUiMesh.position.copy(controller.position)
             .add(new THREE.Vector3(0, 0, 0.05).applyQuaternion(wristUiMesh.quaternion));
         } else if (controller.userData.data.handedness === 'right') {
