@@ -684,7 +684,7 @@ const tradeUiMesh = (() => {
         if (n === 0) {
           srcValue = 0;
         } else {
-          srcValue += n;
+          srcValue = Math.max(srcValue + n, 0);
         }
         mesh.update();
       } else if (id && (match = id.match(/^address-(0x[0-9a-f]+)$/i))) {
