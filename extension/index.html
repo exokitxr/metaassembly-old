@@ -595,10 +595,21 @@ const wristUiMesh = (() => {
     while (t.length < 4) {
       t += '-';
     }
-    return renderer.render({
+    const p = renderer.render({
       text: t,
       connected,
     });
+    p.then(result => {
+      if (wristObject) {
+        socket.request('updateObjectTexture', [
+          wristObject.id,
+          result.width,
+          result.height,
+          result.data,
+        ]);
+      }
+    });
+    return p;
   };
   mesh.onpress = hoveredAnchor => {
     if (hoveredAnchor) {
@@ -667,7 +678,7 @@ const tradeUiMesh = (() => {
     mesh.update();
   };
   mesh.onupdate = () => {
-    return renderer.render({
+    const p = renderer.render({
       srcAddress,
       dstAddress,
       srcValue: srcValue.toFixed(5),
@@ -677,6 +688,17 @@ const tradeUiMesh = (() => {
       allLockedIn: srcLockedIn && dstLockedIn,
       addresses,
     });
+    p.then(result => {
+      if (tradeObject) {
+        socket.request('updateObjectTexture', [
+          tradeObject.id,
+          result.width,
+          result.height,
+          result.data,
+        ]);
+      }
+    });
+    return p;
   };
   mesh.onpress = async hoveredAnchor => {
     if (hoveredAnchor) {
