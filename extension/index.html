@@ -658,6 +658,10 @@ const tradeUiMesh = (() => {
     srcAddress = newSrcAddress;
     mesh.update();
   };
+  mesh.setDstAddress = newDstAddress => {
+    dstAddress = newDstAddress;
+    mesh.update();
+  };
   mesh.onupdate = () => {
     return renderer.render({
       srcAddress,
@@ -825,7 +829,7 @@ const _updateAddressBook = () => {
     addressEl.addEventListener('click', e => {
       e.stopPropagation();
 
-      console.log('click address', address); // XXX
+      tradeUiMesh.setDstAddress(address);
     });
     buttonEl.addEventListener('click', e => {
       e.stopPropagation();
@@ -853,7 +857,6 @@ const addressInput = document.getElementById('address-input');
 addressInput.id = 'fake' + Math.random();
 document.getElementById('add-address-button').addEventListener('click', e => {
   const address = addressInput.value;
-  console.log('add address', address, /^0x[a-f0-9]{40}$/i.test(address), !addresses.includes(address));
   if (/^0x[a-f0-9]{40}$/i.test(address) && !addresses.includes(address)) {
     addresses.push(address);
     localStorage.setItem('addressbook', JSON.stringify(addresses));
@@ -1042,6 +1045,8 @@ document.getElementById('forget-wallet-button').addEventListener('click', e => {
 });
 document.getElementById('lock-wallet-button').addEventListener('click', e => {
   keystore = null;
+
+  tradeUiMesh.setSrcAddress('');
 
   _clearWalletClasses();
   header.classList.add('locked');

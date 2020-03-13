@@ -362,6 +362,7 @@ header.dialog .room.dialog,
 header:not(.dialog):not(.connected) .room.disconnected {
   display: flex;
 }
+header .addressbook,
 header .wallet.none,
 header .wallet.import,
 header .wallet.locked,
@@ -369,6 +370,7 @@ header .wallet.unlocked
 {
   display: none;
 }
+header.unlocked .addressbook,
 header.import .wallet.import,
 header.locked .wallet.locked,
 header.unlocked .wallet.unlocked,

@@ -40,9 +40,11 @@ h1 {
 }
 .buttons.vertical {
   flex-direction: column;
+  align-items: flex-start
 }
 .button {
   margin-right: 10px;
+  margin-bottom: 10px;
   padding: 10px 20px;
   background-color: #42a5f5;
   border-radius: 10px;
@@ -51,6 +53,9 @@ h1 {
 }
 .button.secondary {
   background-color: #ef5350;
+}
+.button.tertiary {
+  background-color: #66bb6a;
 }
 .button.dim {
   background-color: transparent;
@@ -166,7 +171,7 @@ section.middle {
   <h1>Trade in progress</h1>
   <div class="buttons vertical">
     <a class="button secondary" id=cancel-trade>Cancel</a>
-    {{#allLockedIn}}<a class=button id=confirm-trade>Confirm trade</a>{{/allLockedIn}}
+    {{#allLockedIn}}<a class="button tertiary" id=confirm-trade>Confirm</a>{{/allLockedIn}}
   </div>
   {{/dstAddress}}
   {{/srcAddress}}
