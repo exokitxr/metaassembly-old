@@ -1,0 +1,158 @@
+<!doctype html>
+<html>
+<head>
+<style>
+* {
+  box-sizing: border-box;
+}
+html, body {
+  width: 2048px;
+  height: 1024px;
+  margin: 0;
+  font-family: monospace;
+}
+body {
+  display: flex;
+}
+h1 {
+  margin: 0;
+  font-size: 30px;
+}
+.label {
+  font-size: 1em;
+  color: #808080;
+}
+.box {
+  display: inline-flex;
+  height: 100%;
+  margin: 0 20px;
+  padding: 0 20px;
+  background-color: #E8E8E8;
+  border-radius: 10px;
+  font-size: 4em;
+  line-height: 1;
+  align-items: center;
+}
+.buttons {
+  display: flex;
+}
+.button {
+  margin-right: 10px;
+  padding: 10px 20px;
+  background-color: #42a5f5;
+  border-radius: 10px;
+  color: #FFF;
+  font-size: 1.5em;
+}
+
+a {
+  display: block;
+}
+.source {
+  padding: 20px;
+  background-color: #000;
+  color: #FFF;
+  font-size: 23px;
+}
+.source.left {
+  border-top-left-radius: 30px;
+}
+.source.right {
+  border-top-right-radius: 30px;
+}
+.selector {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 80px;
+  font-size: 50px;
+}
+.selector > .value {
+  margin-right: 10px;
+}
+.minibuttons {
+  display: flex;
+  margin-bottom: 10px;
+  justify-content: space-between;
+}
+.minibutton {
+  padding: 8px;
+  background-color: #EEE;
+  border-radius: 5px;
+  font-size: 11px;
+}
+.addresses {
+  margin-bottom: 10px;
+  font-size: 20px;
+}
+.addresses > .address.selected {
+  background-color: #000;
+  color: #FFF;
+}
+section {
+  position: relative;
+  margin: 0 10px;
+  flex: 1;
+}
+section.middle {
+  padding: 20px;
+  flex: none;
+  /* flex: 2; */
+}
+.background {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border: 3px solid;
+  border-radius: 10px;
+}
+</style>
+</head>
+<body>
+
+<section class=left>
+  <div class="source left">0x5D4876215103302dB605F4259330f283AF2Cc1Db (you)</div>
+  <div class=selector>
+    <span class=value>0.3</span>
+    <span class=token>ETH</span>
+  </div>
+  <div class=minibuttons>
+    <div class=minibutton>-0.00001</div>
+    <div class=minibutton>-0.0001</div>
+    <div class=minibutton>-0.001</div>
+    <div class=minibutton>-0.01</div>
+    <div class=minibutton>-0.1</div>
+    <div class=minibutton>-1</div>
+    <div class=minibutton>0</div>
+    <div class=minibutton>+1</div>
+    <div class=minibutton>+0.1</div>
+    <div class=minibutton>+0.01</div>
+    <div class=minibutton>+0.001</div>
+    <div class=minibutton>+0.0001</div>
+    <div class=minibutton>+0.00001</div>
+  </div>
+  <div class=buttons>
+    <a class=button id=confirm>Lock in</a>
+    <a class=button id=confirm>Cancel</a>
+  </div>
+</section>
+<section class=middle>
+  <div class=background></div>
+  <h1>Trade with</h1>
+  <div class=addresses>
+    <a class="address selected" id="a-0x5D4876215103302dB605F4259330f283AF2Cc1Db">0x5D4876215103302dB605F4259330f283AF2Cc1Db</a>
+    <a class=address id="a-0x5D4876215103302dB605F4259330f283AF2Cc1Dc">0x5D4876215103302dB605F4259330f283AF2Cc1Dc</a>
+  </div>
+  <div class=buttons>
+    <a class=button id=confirm>Confirm trade</a>
+  </div>
+</div>
+</section>
+<section class=right>
+  <div class="source right">0x5D4876215103302dB605F4259330f283AF2Cc1Db (them)</div>
+</section>
+
+</body>
+</html>
