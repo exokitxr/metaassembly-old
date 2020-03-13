@@ -47,14 +47,9 @@
       </a>
     </div>
     <div class="addressbook">
-      <input type=text id=address-input placeholder="0x">
-      <a class=button>+ Add</a>
-      <div class=addresses>
-        <div class=address>
-          <a class=value>0x5D4876215103302dB605F4259330f283AF2Cc1Db</a>
-          <a class="button remove">- Remove</a>
-        </div>
-      </div>
+      <input type=text id=address-input placeholder="0x" autocomplete="fake">
+      <a class=button id=add-address-button>+ Add</a>
+      <div class=addresses id=addresses></div>
     </div>
     <div class="wallet none">
       <div class=address>No wallet</div>
@@ -791,6 +786,18 @@ document.getElementById('disconnect-button').addEventListener('click', async e =
   wristUiMesh.setConnected(false);
 });
 
+// addressbook
+
+document.getElementById('add-address-button').addEventListener('click', e => {
+  const address = document.getElementById('address-input').value;
+  if (/^0x[a-f0-9]{40}$/i.test(address) && !addresses.includes(address)) {
+    addresses.push(address);
+    _updateAddressBook();
+  }
+
+  document.getElementById('address-input').focus();
+});
+
 // wallet
 
 let keystore = null;
@@ -968,11 +975,46 @@ document.getElementById('lock-wallet-button').addEventListener('click', e => {
   _clearWalletClasses();
   header.classList.add('locked');
 });
+let addresses = [];
+document.getElementById('addresses').addEventListener('mousedown', e => {
+  e.preventDefault();
+});
+const _updateAddressBook = () => {
+  const addressesEl = document.getElementById('addresses');
+  addressesEl.innerHTML = addresses.map(address => {
+    return `<div class=address address="${address}"">
+      <a class=value>${address}</a>
+      <a class="button secondary">- Remove</a>
+    </div>`;
+  }).join('\n');
+  const addressEls = Array.from(addressesEl.querySelectorAll('.address'));
+  for (let i = 0; i < addressEls.length; i++) {
+    const addressEl = addressEls[i];
+    const address = addressEl.getAttribute('address');
+    const buttonEl = addressEl.querySelector('.button');
+    addressEl.addEventListener('click', e => {
+      e.stopPropagation();
+
+      console.log('click address', address); // XXX
+    });
+    buttonEl.addEventListener('click', e => {
+      e.stopPropagation();
+
+      addresses = addresses.filter(a => a !== address);
+      _updateAddressBook();
+    });
+  }
+};
 {
   const keystoreString = localStorage.getItem('wallet');
   if (keystoreString) {
     header.classList.add('locked');
-    // _importKeyStore();
+  }
+
+  const addressbookString = localStorage.getItem('addressbook');
+  if (addressbookString) {
+    addresses = JSON.parse(addressbookString);
+    _updateAddressBook(addresses);
   }
 }
 

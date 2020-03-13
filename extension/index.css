@@ -345,6 +345,7 @@ header .wallet,
 header .xr
 {
   display: flex;
+  height: 37px;
   margin-right: 10px;
   padding: 5px 10px;
   background-color: #F4F4F4;
@@ -377,8 +378,30 @@ header:not(.import):not(.locked):not(.unlocked) .wallet.none {
 header .tools {
   margin-right: auto;
 }
+header .addressbook {
+  position: relative;
+}
 header .addressbook .addresses {
   display: none;
+}
+header .addressbook #address-input:focus ~ .addresses {
+  display: flex;
+}
+header .addressbook .addresses {
+  flex-direction: column;
+  position: absolute;
+  left: 0;
+  top: 37px;
+  background-color: #F4F4F4;
+}
+header .addressbook .addresses .address {
+  display: flex;
+  padding: 2px 0;
+  justify-content: center;
+  align-items: center;
+}
+header .addressbook .addresses .address .value {
+  padding: 0 10px;
 }
 header .button {
   display: flex;
@@ -388,13 +411,20 @@ header .button {
   background-color: #42a5f5;
   color: #FFF;
   border-radius: 8px;
+  white-space: nowrap;
   cursor: pointer;
 }
 header .button:hover {
   background-color: #1e88e5;
-}
+}h
 header .button:active {
   transform: translateY(1px);
+}
+header .button.secondary {
+  background-color: #ef5350;
+}
+header .button.secondary:hover {
+  background-color: #e53935;
 }
 header .button:not(:first-child),
 header .room .room-code {
