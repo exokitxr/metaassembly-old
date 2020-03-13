@@ -469,36 +469,15 @@ const _makeUiMesh = ({uiWidth, uiHeight, uiWorldWidth, uiWorldHeight}) => {
           highlightMesh.scale.x = width/uiWidth*uiWorldWidth;
           highlightMesh.scale.y = height/uiHeight*uiWorldHeight;
           highlightMesh.visible = true;
-          break;
+          return true;
+          // break;
         }
       }
     }
+    return false;
   };
   mesh.press = () => {
-    if (hoveredAnchor) {
-      const {id} = hoveredAnchor;
-      let match;
-      if (id === 'enter') {
-        document.getElementById('room-code-input').value = text;
-        document.getElementById('connect-button').click();
-      } else if (id === 'new') {
-        document.getElementById('create-room-button').click();
-      } else if (id === 'disconnect') {
-        document.getElementById('disconnect-button').click();
-      } else if (id && (match = id.match(/^key-([0-9]+)$/))) {
-        const n = parseInt(match[1], 10);
-        if (n === 8) {
-          text = text.slice(0, -1);
-          mesh.update();
-        } else {
-          if (text.length < 4) {
-            const c = String.fromCharCode(n);
-            text += c;
-            mesh.update();
-          }
-        }
-      }
-    }
+    return mesh.onpress(hoveredAnchor);
   };
   Promise.resolve().then(() => {
     mesh.update();
@@ -612,6 +591,35 @@ const wristUiMesh = (() => {
       connected,
     });
   };
+  mesh.onpress = hoveredAnchor => {
+    if (hoveredAnchor) {
+      const {id} = hoveredAnchor;
+      let match;
+      if (id === 'enter') {
+        document.getElementById('room-code-input').value = text;
+        document.getElementById('connect-button').click();
+      } else if (id === 'new') {
+        document.getElementById('create-room-button').click();
+      } else if (id === 'disconnect') {
+        document.getElementById('disconnect-button').click();
+      } else if (id && (match = id.match(/^key-([0-9]+)$/))) {
+        const n = parseInt(match[1], 10);
+        if (n === 8) {
+          text = text.slice(0, -1);
+          mesh.update();
+        } else {
+          if (text.length < 4) {
+            const c = String.fromCharCode(n);
+            text += c;
+            mesh.update();
+          }
+        }
+      }
+      return true;
+    } else {
+      return false;
+    }
+  };
   return mesh;
 })();
 wristUiMesh.position.set(0.5, 0.5, 1);
@@ -642,6 +650,14 @@ const tradeUiMesh = (() => {
   };
   mesh.onupdate = () => {
     return renderer.render({});
+  };
+  mesh.onpress = hoveredAnchor => {
+    if (hoveredAnchor) {
+      const {id} = hoveredAnchor;
+      return true;
+    } else {
+      return false;
+    }
   };
   return mesh;
 })();
@@ -1039,7 +1055,7 @@ function onSessionStarted(session) {
     });
     controller.addEventListener('selectstart', e => {
       if (controller.userData.data && controller.userData.data.handedness === 'right') {
-        wristUiMesh.press();
+        wristUiMesh.press() || tradeUiMesh.press();
         // _beginTool(true, false, false);
       }
       triggerDowns[i] = true;
@@ -1123,36 +1139,39 @@ enterXrButton.addEventListener('click', e => {
 });
 
 const localRaycaster = new THREE.Raycaster();
-/* const _updateRaycasterFromMouseEvent = (raycaster, e) => {
+const _updateRaycasterFromMouseEvent = (raycaster, e) => {
   const mouse = new THREE.Vector2(( ( e.clientX ) / window.innerWidth ) * 2 - 1, - ( ( e.clientY ) / window.innerHeight ) * 2 + 1);
   raycaster.setFromCamera(mouse, camera);
-  if (selectedTool === 'brush') {
+  /* if (selectedTool === 'brush') {
     raycaster.ray.origin.add(raycaster.ray.direction);
-  }
-}; */
+  } */
+};
 const _updateRaycasterFromObject = (raycaster, o) => {
   raycaster.ray.origin.copy(o.position);
   raycaster.ray.direction.set(0, 0, -1).applyQuaternion(o.quaternion);
 };
-const _updateControllers = raycaster => {
-  const intersections = raycaster.intersectObject(wristUiMesh);
-  if (intersections.length > 0 && intersections[0].distance < 3) {
-    const [{distance, uv}] = intersections;
-    rayMesh.position.copy(raycaster.ray.origin);
-    rayMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), raycaster.ray.direction);
-    rayMesh.scale.z = distance;
-    rayMesh.visible = true;
+const _updateIntersections = raycaster => {
+  const intersected = [wristUiMesh, tradeUiMesh].some(uiMesh => {
+    const intersections = raycaster.intersectObject(uiMesh);
+    if (intersections.length > 0 && intersections[0].distance < 3) {
+      const [{distance, uv}] = intersections;
+      rayMesh.position.copy(raycaster.ray.origin);
+      rayMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), raycaster.ray.direction);
+      rayMesh.scale.z = distance;
+      rayMesh.visible = true;
 
-    // orbitControls.enabled = false;
+      // orbitControls.enabled = false;
 
-    wristUiMesh.intersect(uv);
-  } else {
-    rayMesh.visible = false;
-    
-    // orbitControls.enabled = selectedTool === 'camera';
+      return uiMesh.intersect(uv);
+    } else {
+      rayMesh.visible = false;
+      
+      // orbitControls.enabled = selectedTool === 'camera';
 
-    wristUiMesh.intersect(null);
-  }
+      return uiMesh.intersect(null);
+    }
+  });
+  orbitControls.enabled = cameraMode === 'orbit' && !intersected;
 };
 
 const velocity = new THREE.Vector3();
@@ -1172,12 +1191,9 @@ function animate() {
             .add(new THREE.Vector3(0, 0, 0.05).applyQuaternion(wristUiMesh.quaternion));
         } else if (controller.userData.data.handedness === 'right') {
           _updateRaycasterFromObject(localRaycaster, controller);
-          // _updateTool(localRaycaster);
         }
       }
     }
-
-    _updateControllers(localRaycaster);
 
     updatePlayerFromXr(renderer.xr, camera);
   } else if (cameraMode !== 'orbit') {
@@ -1211,6 +1227,8 @@ function animate() {
   } else {
     updatePlayerDefault();
   }
+  
+  _updateIntersections(localRaycaster);
 
   for (let i = 0; i < peerConnections.length; i++) {
     const peerConnection = peerConnections[i];
@@ -1238,6 +1256,17 @@ function animate() {
   }
 }
 renderer.setAnimationLoop(animate);
+
+window.addEventListener('mousemove', e => {
+  if (!currentSession) {
+    _updateRaycasterFromMouseEvent(localRaycaster, e);
+  }
+});
+window.addEventListener('mousedown', e => {
+  if (!currentSession) {
+    wristUiMesh.press() || tradeUiMesh.press();
+  }
+});
 
 navigator.xr && navigator.xr.isSessionSupported('immersive-vr').then(supported => {
   if (supported) {
