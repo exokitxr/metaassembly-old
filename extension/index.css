@@ -340,9 +340,11 @@ header .popdown li {
   margin: 10px 0;
 }
 header .room,
-header .wallet
+header .wallet,
+header .xr
 {
   display: flex;
+  margin-right: 10px;
   padding: 5px 10px;
   background-color: #F4F4F4;
   border-radius: 7px;
@@ -357,7 +359,19 @@ header.connected .room.connected,
 header.dialog .room.dialog,
 header:not(.dialog):not(.connected) .room.disconnected {
   display: flex;
-
+}
+header .wallet.none,
+header .wallet.import,
+header .wallet.locked,
+header .wallet.unlocked
+{
+  display: none;
+}
+header.import .wallet.import,
+header.locked .wallet.locked,
+header.unlocked .wallet.unlocked,
+header:not(.import):not(.locked):not(.unlocked) .wallet.none {
+  display: flex;
 }
 header .tools {
   margin-right: auto;

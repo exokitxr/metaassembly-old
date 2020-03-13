@@ -45,7 +45,25 @@
         <div class=label>Third person</div>
       </a>
     </div>
-    <div class="wallet">
+    <div class="wallet none">
+      <div class=address>No wallet</div>
+      <div class=button id=import-key-button>Import key</div>
+      <div class=button id=create-wallet-button>Create wallet</div>
+    </div>
+    <div class="wallet import">
+      <input type=text class=seed-phrase-input>
+      <div class=button id=import-button>Import</div>
+    </div>
+    <div class="wallet locked">
+      <div class=address>Wallet locked</div>
+      <div class=button id=unlock-wallet-button>Unlock wallet</div>
+      <div class=button id=forget-wallet-button>Forget wallet</div>
+    </div>
+    <div class="wallet unlocked">
+      <div class=address>0x5D4876215103302dB605F4259330f283AF2Cc1Db</div>
+      <div class=button id=lock-wallet-button>Lock wallet</div>
+    </div>
+    <div class="xr">
       <div class=button id=enter-xr-button>Enter XR</div>
       <div class=button id=enter-overlay-button>Enter AR</div>
     </div>
