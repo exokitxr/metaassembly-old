@@ -596,6 +596,7 @@ section:nth-child(odd) {
   right: 0;
   overflow: hidden;
 }
-.address {
+.address, .balance {
+  margin-right: 10px;
   user-select: all;
 }

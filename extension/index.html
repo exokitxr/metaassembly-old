@@ -65,6 +65,7 @@
     </div>
     <div class="wallet unlocked">
       <div class=address id=address-text></div>
+      <div class=balance id=balance-text></div>
       <div class=button id=lock-wallet-button>Lock wallet</div>
     </div>
     <div class="xr">
@@ -97,6 +98,12 @@ import {GLTFLoader} from './GLTFLoader.js';
 import {XRControllerModelFactory} from './XRControllerModelFactory.js';
 import {makeId, XRChannelConnection} from './multiplayer.js';
 import {initLocalRig, updatePlayerFromCamera, updatePlayerFromXr, updatePlayerFromArrays, updatePlayerDefault, getRigBoneTexture, bindPeerConnection} from './peerconnection.js';
+
+const network = 'rinkeby';
+const infuraApiKey = '4fb939301ec543a0969f3019d74f80c2';
+const rpcUrl = `https://${network}.infura.io/v3/${infuraApiKey}`;
+const web3 = new Web3(new Web3.providers.HttpProvider(rpcUrl));
+window.web3 = web3;
 
 function makePromise() {
   let accept, reject;
@@ -787,10 +794,12 @@ document.getElementById('import-button').addEventListener('click', async e => {
 
   keystore = await _createKeystore(seedPhrase, password);
   localStorage.setItem('wallet', _exportKeyStore(keystore));
+  const balance = await web3.eth.getBalance(keystore.addresses[0]);
 
   document.getElementById('seed-phrase-input').value = '';
   document.getElementById('password-input').value = '';
   document.getElementById('address-text').innerText = `0x${keystore.addresses[0]}`;
+  document.getElementById('balance-text').innerText = `${balance} ETH`;
 
   _clearWalletClasses();
   header.classList.add('unlocked');
@@ -803,9 +812,11 @@ document.getElementById('unlock-wallet-button').addEventListener('click', async 
   const password = document.getElementById('password-unlock-input').value;
 
   keystore = await _importKeyStore(keystoreString, password);
+  const balance = await web3.eth.getBalance(keystore.addresses[0]);
 
   document.getElementById('password-unlock-input').value = '';
   document.getElementById('address-text').innerText = `0x${keystore.addresses[0]}`;
+  document.getElementById('balance-text').innerText = `${balance} ETH`;
 
   _clearWalletClasses();
   header.classList.add('unlocked');
