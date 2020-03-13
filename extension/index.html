@@ -394,80 +394,8 @@ let cameraMode = 'orbit';
 
 // interface
 
-const uiWidth = 800;
-const uiHeight = 400;
-const uiWorldSize = 0.2;
-const uiRenderer = (() => {
-  const loadPromise = Promise.all([
-    new Promise((accept, reject) => {
-      const iframe = document.createElement('iframe');
-      iframe.src = 'https://render.exokit.xyz/';
-      iframe.onload = () => {
-        accept(iframe);
-      };
-      iframe.onerror = err => {
-        reject(err);
-      };
-      iframe.setAttribute('frameborder', 0);
-      iframe.style.position = 'absolute';
-      iframe.style.width = `${uiWidth}px`;
-      iframe.style.height = `${uiHeight}px`;
-      iframe.style.top = '-4096px';
-      iframe.style.left = '-4096px';
-      document.body.appendChild(iframe);
-    }),
-    fetch('keyboard.html')
-      .then(res => res.text()),
-  ]);
-
-  let renderIds = 0;
-  return {
-    async render(text, connected) {
-      const [iframe, interfaceHtml] = await loadPromise;
-
-      if (renderIds > 0) {
-        iframe.contentWindow.postMessage({
-          method: 'cancel',
-          id: renderIds,
-        });
-      }
-
-      const start = Date.now();
-      const mc = new MessageChannel();
-      const templateData = {
-        text,
-        connected,
-      };
-      iframe.contentWindow.postMessage({
-        method: 'render',
-        id: ++renderIds,
-        htmlString: interfaceHtml,
-        templateData,
-        width: uiWidth,
-        height: uiHeight,
-        transparent: true,
-        port: mc.port2,
-      }, '*', [mc.port2]);
-      const result = await new Promise((accept, reject) => {
-        mc.port1.onmessage = e => {
-          const {data} = e;
-          const {error, result} = data;
-
-          if (result) {
-            console.log('time taken', Date.now() - start);
-
-            accept(result);
-          } else {
-            reject(error);
-          }
-        };
-      });
-      return result;
-    },
-  };
-})();
-const _makeUiMesh = () => {
-  const geometry = new THREE.PlaneBufferGeometry(uiWorldSize, uiWorldSize * uiHeight/uiWidth);
+const _makeUiMesh = ({uiWidth, uiHeight, uiWorldWidth, uiWorldHeight}) => {
+  const geometry = new THREE.PlaneBufferGeometry(uiWorldWidth, uiWorldHeight);
   const canvas = document.createElement('canvas');
   canvas.width = uiWidth;
   canvas.height = uiHeight;
@@ -536,10 +464,10 @@ const _makeUiMesh = () => {
         if (uv.x >= left && uv.x < right && uv.y >= top && uv.y < bottom) {
           hoveredAnchor = anchor;
           
-          highlightMesh.position.x = -uiWorldSize/2 + (left + width/2)/uiWidth*uiWorldSize;
-          highlightMesh.position.y = uiWorldSize/2/2 - (top + height/2)/uiHeight*uiWorldSize/2;
-          highlightMesh.scale.x = width/uiWidth*uiWorldSize;
-          highlightMesh.scale.y = height/uiHeight*uiWorldSize/2;
+          highlightMesh.position.x = -uiWorldWidth/2 + (left + width/2)/uiWidth*uiWorldWidth;
+          highlightMesh.position.y = uiWorldHeight/2 - (top + height/2)/uiHeight*uiWorldHeight;
+          highlightMesh.scale.x = width/uiWidth*uiWorldWidth;
+          highlightMesh.scale.y = height/uiHeight*uiWorldHeight;
           highlightMesh.visible = true;
           break;
         }
@@ -578,8 +506,88 @@ const _makeUiMesh = () => {
 
   return mesh;
 };
+const _makeUiRenderer = ({url, uiWidth, uiHeight}) => {
+  const loadPromise = Promise.all([
+    new Promise((accept, reject) => {
+      const iframe = document.createElement('iframe');
+      iframe.src = 'https://render.exokit.xyz/';
+      iframe.onload = () => {
+        accept(iframe);
+      };
+      iframe.onerror = err => {
+        reject(err);
+      };
+      iframe.setAttribute('frameborder', 0);
+      iframe.style.position = 'absolute';
+      iframe.style.width = `${uiWidth}px`;
+      iframe.style.height = `${uiHeight}px`;
+      iframe.style.top = '-4096px';
+      iframe.style.left = '-4096px';
+      document.body.appendChild(iframe);
+    }),
+    fetch(url)
+      .then(res => res.text()),
+  ]);
+
+  let renderIds = 0;
+  return {
+    async render(templateData) {
+      const [iframe, interfaceHtml] = await loadPromise;
+
+      if (renderIds > 0) {
+        iframe.contentWindow.postMessage({
+          method: 'cancel',
+          id: renderIds,
+        });
+      }
+
+      const start = Date.now();
+      const mc = new MessageChannel();
+      iframe.contentWindow.postMessage({
+        method: 'render',
+        id: ++renderIds,
+        htmlString: interfaceHtml,
+        templateData,
+        width: uiWidth,
+        height: uiHeight,
+        transparent: true,
+        port: mc.port2,
+      }, '*', [mc.port2]);
+      const result = await new Promise((accept, reject) => {
+        mc.port1.onmessage = e => {
+          const {data} = e;
+          const {error, result} = data;
+
+          if (result) {
+            console.log('time taken', Date.now() - start);
+
+            accept(result);
+          } else {
+            reject(error);
+          }
+        };
+      });
+      return result;
+    },
+  };
+};
 const wristUiMesh = (() => {
-  const mesh = _makeUiMesh();
+  const uiWidth = 800;
+  const uiHeight = 400;
+  const uiWorldWidth = 0.2;
+  const uiWorldHeight = uiWorldWidth * uiHeight/uiWidth;
+
+  const mesh = _makeUiMesh({
+    uiWidth,
+    uiHeight,
+    uiWorldWidth,
+    uiWorldHeight,
+  });
+  const renderer = _makeUiRenderer({
+    url: 'keyboard.html',
+    uiWidth,
+    uiHeight,
+  });
 
   let text = '';
   let connected = false;
@@ -599,12 +607,46 @@ const wristUiMesh = (() => {
     while (t.length < 4) {
       t += '-';
     }
-    return uiRenderer.render(t, connected);
+    return renderer.render({
+      text: t,
+      connected,
+    });
   };
   return mesh;
 })();
 wristUiMesh.position.set(0.5, 0.5, 1);
 scene.add(wristUiMesh);
+
+const tradeUiMesh = (() => {
+  const uiWidth = 2048;
+  const uiHeight = 1024;
+  const uiWorldWidth = 2;
+  const uiWorldHeight = uiWorldWidth * uiHeight/uiWidth;
+
+  const mesh = _makeUiMesh({
+    uiWidth,
+    uiHeight,
+    uiWorldWidth,
+    uiWorldHeight,
+  });
+  const renderer = _makeUiRenderer({
+    url: 'trade.html',
+    uiWidth,
+    uiHeight,
+  });
+
+  let connected = false;
+  mesh.setText = t => {
+    text = t;
+    mesh.update();
+  };
+  mesh.onupdate = () => {
+    return renderer.render({});
+  };
+  return mesh;
+})();
+tradeUiMesh.position.set(-0.5, 1, 1);
+scene.add(tradeUiMesh);
 
 const rayMesh = (() => {
   const geometry = new THREE.CylinderBufferGeometry(0.002, 0.002, 1, 3, 1, false, 0, Math.PI*2)
