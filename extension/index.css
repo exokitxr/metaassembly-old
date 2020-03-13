@@ -340,6 +340,7 @@ header .popdown li {
   margin: 10px 0;
 }
 header .room,
+header .addressbook,
 header .wallet,
 header .xr
 {
@@ -375,6 +376,9 @@ header:not(.import):not(.locked):not(.unlocked) .wallet.none {
 }
 header .tools {
   margin-right: auto;
+}
+header .addressbook .addresses {
+  display: none;
 }
 header .button {
   display: flex;

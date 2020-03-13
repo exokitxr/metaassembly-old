@@ -14,8 +14,8 @@
     <!-- <a href="https://browser.exokit.org">
       <img class=icon src="logo.svg"/>
     </a> -->
-    <a href="/" class="nav" id="explore-dropdown">ムらサ</a>
-    <a href="/" class="nav open" id="explore-dropdown">Augment</a>
+    <a href="/" class="nav open" id="explore-dropdown">ムらサ</a>
+    <!-- <a href="/" class="nav open" id="explore-dropdown">Augment</a> -->
     <div class="room disconnected">
       <div class="connect-status disconnected">Multiplayer disconnected</div>
       <div class=button id=create-room-button>Create room</div>
@@ -29,7 +29,7 @@
     </div>
     <div class="room connected">
       <div class=users><i class="fa fa-user"></i> <span id=user-count-text>1</span></div>
-      <div class=room-code>Room code: <span class=room-code-text id=room-code-text>VKGS</span> Link: <a href="#" target="_blank" class=room-link id=room-link><i class="fa fa-external-link"></i></a></div>
+      <div class=room-code>Room code: <span class=room-code-text id=room-code-text></span> Link: <a href="#" target="_blank" class=room-link id=room-link><i class="fa fa-external-link"></i></a></div>
       <div class=button id=disconnect-button>Disconnect</div>
     </div>
     <div class=tools>
@@ -46,6 +46,16 @@
         <div class=label>Third person</div>
       </a>
     </div>
+    <div class="addressbook">
+      <input type=text id=address-input placeholder="0x">
+      <a class=button>+ Add</a>
+      <div class=addresses>
+        <div class=address>
+          <a class=value>0x5D4876215103302dB605F4259330f283AF2Cc1Db</a>
+          <a class="button remove">- Remove</a>
+        </div>
+      </div>
+    </div>
     <div class="wallet none">
       <div class=address>No wallet</div>
       <div class=button id=import-key-button>Import key</div>
@@ -60,14 +70,14 @@
     <div class="wallet locked">
       <div class=address>Wallet locked</div>
       <input type=password id=password-unlock-input placeholder="password">
-      <div class=button id=unlock-wallet-button>Unlock wallet</div>
-      <div class=button id=forget-wallet-button>Forget wallet</div>
+      <div class=button id=unlock-wallet-button>Unlock</div>
+      <div class=button id=forget-wallet-button>Forget</div>
     </div>
     <div class="wallet unlocked">
       <div class=address id=address-text></div>
       <div class=balance id=balance-text></div>
-      <div class=button id=download-key-button>Download key</div>
-      <div class=button id=lock-wallet-button>Lock wallet</div>
+      <div class=button id=download-key-button>D/L key</div>
+      <div class=button id=lock-wallet-button>Lock</div>
     </div>
     <div class="xr">
       <div class=button id=enter-xr-button>Enter XR</div>
