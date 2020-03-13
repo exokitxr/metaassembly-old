@@ -466,7 +466,7 @@ const uiRenderer = (() => {
     },
   };
 })();
-const wristUiMesh = (() => {
+const _makeUiMesh = () => {
   const geometry = new THREE.PlaneBufferGeometry(uiWorldSize, uiWorldSize * uiHeight/uiWidth);
   const canvas = document.createElement('canvas');
   canvas.width = uiWidth;
@@ -507,43 +507,20 @@ const wristUiMesh = (() => {
     mesh.visible = false;
     return mesh;
   })();
-  /* highlightMesh.position.x = -uiWorldSize/2 + (10 + 150/2)/uiSize*uiWorldSize;
-  highlightMesh.position.y = uiWorldSize - (60 + 150/2)/uiSize*uiWorldSize;
-  highlightMesh.scale.x = highlightMesh.scale.y = 150/uiSize*uiWorldSize; */
   mesh.add(highlightMesh);
 
-  let text = '';
-  let connected = false;
   let anchors = [];
-  mesh.update = () => {
-    let t = text;
-    while (t.length < 4) {
-      t += '-';
-    }
-    uiRenderer.render(t, connected)
-      .then(result => {
-        // console.log('got dfata', result.data);
-        imageData.data.set(result.data);
-        ctx.putImageData(imageData, 0, 0);
-        texture.needsUpdate = true;
-        mesh.visible = true;
-        
-        anchors = result.anchors;
-        // console.log(anchors);
-      });
-  };
-  mesh.setConnected = c => {
-    connected = c;
-    if (!c) {
-      text = '';
-    }
-    mesh.update();
-  };
-  mesh.setText = t => {
-    text = t;
-    mesh.update();
-  };
   let hoveredAnchor = null;
+  mesh.update = async () => {
+    const result = await mesh.onupdate();
+    
+    imageData.data.set(result.data);
+    ctx.putImageData(imageData, 0, 0);
+    texture.needsUpdate = true;
+    mesh.visible = true;
+    
+    anchors = result.anchors;
+  };
   mesh.intersect = uv => {
     hoveredAnchor = null;
     highlightMesh.visible = false;
@@ -573,7 +550,6 @@ const wristUiMesh = (() => {
     if (hoveredAnchor) {
       const {id} = hoveredAnchor;
       let match;
-      console.log('got id', id);
       if (id === 'enter') {
         document.getElementById('room-code-input').value = text;
         document.getElementById('connect-button').click();
@@ -596,8 +572,35 @@ const wristUiMesh = (() => {
       }
     }
   };
-  mesh.update();
+  Promise.resolve().then(() => {
+    mesh.update();
+  });
 
+  return mesh;
+};
+const wristUiMesh = (() => {
+  const mesh = _makeUiMesh();
+
+  let text = '';
+  let connected = false;
+  mesh.setConnected = c => {
+    connected = c;
+    if (!c) {
+      text = '';
+    }
+    mesh.update();
+  };
+  mesh.setText = t => {
+    text = t;
+    mesh.update();
+  };
+  mesh.onupdate = () => {
+    let t = text;
+    while (t.length < 4) {
+      t += '-';
+    }
+    return uiRenderer.render(t, connected);
+  };
   return mesh;
 })();
 wristUiMesh.position.set(0.5, 0.5, 1);
