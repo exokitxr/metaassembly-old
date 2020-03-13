@@ -333,6 +333,29 @@ NAN_METHOD(handleMessage) {
     
     // getOut() << "respond 3" << std::endl;
   } else if (
+    methodString == "addPlane"
+  ) {
+    std::string name("object");
+    name += std::to_string(++ids);
+
+    models[name] = app->renderer->m_renderer->createDefaultModelInstance(name);
+    // models[name] = app->renderer->m_renderer->setModelGeometry(std::move(models[name]), positions.first, positions.second, normals.first, normals.second, colors.first, colors.second, uvs.first, uvs.second, indices.first, indices.second);
+    std::vector<unsigned char> image = {
+      255,
+      0,
+      0,
+      255,
+    };
+    models[name] = app->renderer->m_renderer->setModelTexture(std::move(models[name]), 1, 1, image.data(), image.size());
+
+    app->renderer->m_renderer->addToRenderList(models[name].get());
+
+    Local<Object> result = Nan::New<Object>();
+    result->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("id").ToLocalChecked(), Nan::New<String>(name).ToLocalChecked());
+    Local<Object> res = Nan::New<Object>();
+    res->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("result").ToLocalChecked(), result);
+    info.GetReturnValue().Set(res);
+  } else if (
     methodString == "addModel" &&
     args->Length() >= 2 &&
     args->Get(Isolate::GetCurrent()->GetCurrentContext(), 0).ToLocalChecked()->IsString() &&
