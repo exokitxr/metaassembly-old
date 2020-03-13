@@ -2747,7 +2747,11 @@ std::unique_ptr<IModelInstance> VulkanExample::setModelTexture(std::unique_ptr<I
     image.width = width;
     image.height = height;
     image.image = std::vector<unsigned char>(size);
-    memcpy(image.image.data(), data, size);
+    unsigned char *dstData = image.image.data();
+    int stride = width*4;
+    for (int i = 0; i < height; i++) {
+      memcpy(dstData + i*stride, data + (height - 1 - i)*stride, stride);
+    }
   }
   
   auto model3 = std::make_shared<vkglTF::Model>();
