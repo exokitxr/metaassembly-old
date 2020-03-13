@@ -585,25 +585,31 @@ NAN_METHOD(handleMessage) {
           
           width = desc.Width;
           height = desc.Height;
-          arrayBuffer = ArrayBuffer::New(Isolate::GetCurrent(), desc.Width*desc.Height*4);
-          void *data = arrayBuffer->GetContents().Data();
-          
-          UINT lBmpRowPitch = desc.Width * 4;
+          std::vector<uint8_t> rgb(width * height * 3);
+
+          UINT lBmpRowPitch = desc.Width * 3;
           BYTE *sptr = (BYTE *)mappedResource.pData;
-          BYTE *dptr = (BYTE *)data;
-          for (size_t h = 0; h < desc.Height; ++h) {
-            memcpy(dptr, sptr, lBmpRowPitch);
+          BYTE *dptr = (BYTE *)rgb.data();
+          for (size_t h = 0; h < height; ++h) {
+            for (size_t w = 0; w < width; ++w) {
+              memcpy(dptr + w*3, sptr + w*4, 3);
+            }
             sptr += mappedResource.RowPitch;
-            // dptr -= lBmpRowPitch;
             dptr += lBmpRowPitch;
           }
-          // memcpy(, message.hmd, sizeof(message.hmd));
-          // Local<Float32Array> hmd = Float32Array::New(hmdBuffer, 0, ARRAYSIZE(message.hmd));
           
           app->m_pD3D11ImmediateContext->Unmap(
             resource,
             0
           );
+
+          uint8_t *outData;
+          size_t outSize = SjpegCompress(rgb.data(), desc.Width, desc.Height, 50, &outData);
+
+          arrayBuffer = ArrayBuffer::New(Isolate::GetCurrent(), outSize);
+          memcpy(arrayBuffer->GetContents().Data(), outData, outSize);
+
+          SjpegFreeBuffer(outData);
         } else {
           getOut() << "failed to map resource " << (void *)hr << std::endl;
           
