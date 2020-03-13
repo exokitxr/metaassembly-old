@@ -82,6 +82,7 @@ public:
   virtual void setBoneTexture(IModelInstance *modelInstance, float *boneTexture, size_t numBoneTexture) = 0;
 	virtual void resetRenderList() = 0;
 	virtual void addToRenderList( IModelInstance *modelInstance ) = 0;
+	virtual void removeFromRenderList( IModelInstance *modelInstance ) = 0;
 	virtual void update() = 0;
 	virtual void processRenderList() = 0;
 	virtual bool getModelBox( const std::string & uri, AABB_t *pBox, std::string *psError = nullptr ) = 0;

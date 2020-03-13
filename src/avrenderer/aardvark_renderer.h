@@ -127,6 +127,7 @@ public:
   void setBoneTexture(IModelInstance *model, float *boneTexture, size_t numBoneTexture) override;
 	virtual void resetRenderList() override;
 	virtual void addToRenderList( IModelInstance *modelInstance ) override;
+	virtual void removeFromRenderList( IModelInstance *modelInstance ) override;
   virtual void update() override;
 	virtual void processRenderList() override;
 	virtual bool getModelBox( const std::string & uri, AABB_t *pBox, std::string *psError ) override;

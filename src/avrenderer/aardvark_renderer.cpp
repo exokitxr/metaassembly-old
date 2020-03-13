@@ -2798,6 +2798,15 @@ void VulkanExample::addToRenderList( IModelInstance *modelInstance )
 	m_modelsToRender.push_back( model );
 }
 
+void VulkanExample::removeFromRenderList( IModelInstance *modelInstance )
+{
+  CVulkanRendererModelInstance *model = (CVulkanRendererModelInstance *)modelInstance;
+  auto iter = std::find(m_modelsToRender.begin(), m_modelsToRender.end(), model);
+  if (iter != m_modelsToRender.end()) {
+    m_modelsToRender.erase(iter);
+  }
+}
+
 std::shared_ptr<vkglTF::Model> model;
 void VulkanExample::runFrame( bool *shouldQuit, double frameTime )
 {
