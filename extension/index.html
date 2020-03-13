@@ -24,7 +24,7 @@
       <div class="connect-status disconnected">Multiplayer disconnected</div>
       <input type=text id=room-code-input placeholder="Enter room code">
       <div class=button id=connect-button>Connect</div>
-      <div class=button id=cancel-button>Cancel</div>
+      <div class=button id=cancel-connect-button>Cancel</div>
     </div>
     <div class="room connected">
       <div class=users><i class="fa fa-user"></i> <span id=user-count-text>1</span></div>
@@ -51,8 +51,10 @@
       <div class=button id=create-wallet-button>Create wallet</div>
     </div>
     <div class="wallet import">
-      <input type=text class=seed-phrase-input>
+      <input type=text id=seed-phrase-input placeholder="seed phrase">
+      <input type=password id=password-input placeholder="password">
       <div class=button id=import-button>Import</div>
+      <div class=button id=cancel-import-button>Cancel</div>
     </div>
     <div class="wallet locked">
       <div class=address>Wallet locked</div>
@@ -60,7 +62,7 @@
       <div class=button id=forget-wallet-button>Forget wallet</div>
     </div>
     <div class="wallet unlocked">
-      <div class=address>0x5D4876215103302dB605F4259330f283AF2Cc1Db</div>
+      <div class=address id=address-text></div>
       <div class=button id=lock-wallet-button>Lock wallet</div>
     </div>
     <div class="xr">
@@ -671,7 +673,7 @@ document.getElementById('connect-button').addEventListener('click', async e => {
   header.classList.add('connected');
   uiMesh.setConnected(true);
 });
-document.getElementById('cancel-button').addEventListener('click', e => {
+document.getElementById('cancel-connect-button').addEventListener('click', e => {
   _clearMultiplayerClasses();
 });
 document.getElementById('disconnect-button').addEventListener('click', async e => {
@@ -680,6 +682,92 @@ document.getElementById('disconnect-button').addEventListener('click', async e =
   _clearMultiplayerClasses();
   uiMesh.setConnected(false);
 });
+
+// wallet
+
+const _clearWalletClasses = () => {
+  ['import', 'locked', 'unlocked'].forEach(c => {
+    header.classList.remove(c);
+  });
+};
+document.getElementById('import-key-button').addEventListener('click', async e => {
+  document.getElementById('password-input').value = '';
+  document.getElementById('seed-phrase-input').value = '';
+
+  _clearWalletClasses();
+  header.classList.add('import');
+});
+document.getElementById('create-wallet-button').addEventListener('click', e => {
+  document.getElementById('password-input').value = '';
+  document.getElementById('seed-phrase-input').value = lightwallet.keystore.generateRandomSeed();
+
+  _clearWalletClasses();
+  header.classList.add('import');
+});
+document.getElementById('import-button').addEventListener('click', e => {
+  // the seed is stored encrypted by a user-defined password
+  const password = document.getElementById('password-input').value;
+  const seedPhrase = document.getElementById('seed-phrase-input').value;
+  // var seedPhrase = lightwallet.keystore.generateRandomSeed();
+
+  lightwallet.keystore.createVault({
+    password,
+    seedPhrase, // Optionally provide a 12-word seed phrase
+    // salt: fixture.salt,     // Optionally provide a salt.
+                               // A unique salt will be generated otherwise.
+    hdPathString: `m/44'/60'/0'/0`,    // Optional custom HD Path String
+  },
+  (err, ks) => {
+    // console.log('got keystore', err, ks);
+    window.ks = ks;
+
+    if (!err) {
+      // Some methods will require providing the `pwDerivedKey`,
+      // Allowing you to only decrypt private keys on an as-needed basis.
+      // You can generate that value with this convenient method:
+      ks.keyFromPassword(password, function (err, pwDerivedKey) {
+        if (err) throw err;
+
+        // generate five new address/private key pairs
+        // the corresponding private keys are also encrypted
+        ks.generateNewAddress(pwDerivedKey, 1);
+        const addresses = ks.getAddresses();
+
+        ks.passwordProvider = function (callback) {
+          const pw = prompt("Please enter password", "Password");
+          callback(null, pw);
+        };
+
+        // Now set ks as transaction_signer in the hooked web3 provider
+        // and you can start using web3 using the keys/addresses in ks!
+      });
+
+      _clearWalletClasses();
+      header.classList.add('unlocked');
+    } else {
+      console.warn(err);
+    }
+  });
+});
+document.getElementById('cancel-import-button').addEventListener('click', e => {
+  _clearWalletClasses();
+});
+/* document.getElementById('connect-button').addEventListener('click', async e => {
+  await _connectMultiplayer(document.getElementById('room-code-input').value);
+
+  _clearMultiplayerClasses();
+  header.classList.add('connected');
+  uiMesh.setConnected(true);
+});
+document.getElementById('cancel-button').addEventListener('click', e => {
+  _clearMultiplayerClasses();
+});
+document.getElementById('disconnect-button').addEventListener('click', async e => {
+  await _disconnectMultiplayer();
+
+  _clearMultiplayerClasses();
+  uiMesh.setConnected(false);
+}); */
 
 // engine
 
