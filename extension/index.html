@@ -648,12 +648,16 @@ const tradeUiMesh = (() => {
     uiHeight,
   });
 
-  let srcAddress = '0x5D4876215103302dB605F4259330f283AF2Cc1Db';
+  let srcAddress = '';
   let dstAddress = '';
   let srcValue = 0;
   let dstValue = 0;
   let srcLockedIn = false;
   let dstLockedIn = true;
+  mesh.setSrcAddress = newSrcAddress => {
+    srcAddress = newSrcAddress;
+    mesh.update();
+  };
   mesh.onupdate = () => {
     return renderer.render({
       srcAddress,
@@ -972,12 +976,15 @@ document.getElementById('import-button').addEventListener('click', async e => {
 
   keystore = await _createKeystore(seedPhrase, password);
   localStorage.setItem('wallet', _exportKeyStore(keystore));
-  const balance = await web3.eth.getBalance(keystore.addresses[0]);
+  const address = keystore.addresses[0];
+  const balance = await web3.eth.getBalance(address);
 
   document.getElementById('seed-phrase-input').value = '';
   document.getElementById('password-input').value = '';
-  document.getElementById('address-text').innerText = `0x${keystore.addresses[0]}`;
+  document.getElementById('address-text').innerText = `0x${address}`;
   document.getElementById('balance-text').innerText = `${balance} ETH`;
+
+  tradeUiMesh.setSrcAddress(`0x${address}`);
 
   _clearWalletClasses();
   header.classList.add('unlocked');
@@ -1000,11 +1007,14 @@ document.getElementById('unlock-wallet-button').addEventListener('click', async 
   const password = document.getElementById('password-unlock-input').value;
 
   keystore = await _importKeyStore(keystoreString, password);
-  const balance = await web3.eth.getBalance(keystore.addresses[0]);
+  const address = keystore.addresses[0];
+  const balance = await web3.eth.getBalance(address);
 
   document.getElementById('password-unlock-input').value = '';
-  document.getElementById('address-text').innerText = `0x${keystore.addresses[0]}`;
+  document.getElementById('address-text').innerText = `0x${address}`;
   document.getElementById('balance-text').innerText = `${balance} ETH`;
+
+  tradeUiMesh.setSrcAddress(`0x${address}`);
 
   _clearWalletClasses();
   header.classList.add('unlocked');

@@ -38,6 +38,9 @@ h1 {
   display: flex;
   margin: 0 10px
 }
+.buttons.vertical {
+  flex-direction: column;
+}
 .button {
   margin-right: 10px;
   padding: 10px 20px;
@@ -126,6 +129,7 @@ section.middle {
     <span class=value>{{srcValue}}</span>
     <span class=token>ETH</span>
   </div>
+  {{^srcLockedIn}}
   <div class=minibuttons>
     <a class=minibutton id="add--0.00001">-0.00001</a>
     <a class=minibutton id="add--0.0001">-0.0001</a>
@@ -141,25 +145,31 @@ section.middle {
     <a class=minibutton id="add-0.0001">+0.0001</a>
     <a class=minibutton id="add-0.00001">+0.00001</a>
   </div>
+  {{/srcLockedIn}}
   <div class=buttons>
     {{^srcLockedIn}}<a class=button id=lock>Lock in</a>{{/srcLockedIn}}
-    {{#srcLockedIn}}<a class="button secondary" id=unlock>Cancel</a>{{/srcLockedIn}}
+    {{#srcLockedIn}}<a class="button dim" id=unlock>Locked in; click to unlock</a>{{/srcLockedIn}}
   </div>
 </section>
 <section class=middle>
+  {{^srcAddress}}
+  <h1>Unlock wallet to trade.</h1>
+  {{/srcAddress}}
+  {{#srcAddress}}
   {{^dstAddress}}
-  <h1>Trade with</h1>
+  <h1>Trade with...</h1>
   <div class=addresses>
     {{#addresses}}<a class=address id="address-{{.}}">{{.}}</a>{{/addresses}}
   </div>
   {{/dstAddress}}
   {{#dstAddress}}
   <h1>Trade in progress</h1>
-  <div class=buttons>
+  <div class="buttons vertical">
+    <a class="button secondary" id=cancel-trade>Cancel</a>
     {{#allLockedIn}}<a class=button id=confirm-trade>Confirm trade</a>{{/allLockedIn}}
-    <a class="button secondary" id=cancel-trade>Cancel trade</a>
   </div>
   {{/dstAddress}}
+  {{/srcAddress}}
 </div>
 </section>
 <section class=right {{^dstAddress}}style="visibility: hidden;"{{/dstAddress}}>
