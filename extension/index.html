@@ -698,11 +698,8 @@ const tradeUiMesh = (() => {
         mesh.update();
       } else if (id === 'confirm-trade') {
         const address = `0x${keystore.addresses[0]}`;
-        const gasPrice = await web3.eth.getGasPrice();
-        console.log('apply 1', address);
-
-        // const encoded = object.contract.methods.applyState(object.state).encodeABI();
         const nonce = await web3.eth.getTransactionCount(address);
+        const gasPrice = await web3.eth.getGasPrice();
         const rawTx = {
           to: dstAddress,
           value: srcValue * 1e18,
@@ -710,22 +707,12 @@ const tradeUiMesh = (() => {
           gas: 0,
           nonce,
         };
-        
-        const gas = await web3.eth.estimateGas(rawTx);
-        console.log('got gas', gas);
-        
-        rawTx.gas = gas;
-
+        rawTx.gas = await web3.eth.estimateGas(rawTx);
         const serializedTx = new ethereumjs.Tx(rawTx).serialize();
         const signed = await keystore.signTx(serializedTx);
-        /* const signed = await web3.eth.accounts.signTransaction(tx, privateKey);/* .then(signed => {
-          web3.eth.sendSignedTransaction(signed.rawTransaction).on('receipt', console.log)
-        }); */
-        console.log('apply 4', signed);
         web3.eth.sendSignedTransaction('0x' + signed).on('receipt', e => {
-          console.log('apply 6', e);
+          console.log('got tx receipt', e); // XXX
         });
-
         // mesh.update();
       } else if (id === 'cancel-trade') {
         dstAddress = '';
