@@ -401,7 +401,7 @@ let cameraMode = 'orbit';
 // interface
 
 const _makeUiMesh = ({uiWidth, uiHeight, uiWorldWidth, uiWorldHeight}) => {
-  const geometry = new THREE.PlaneBufferGeometry(uiWorldWidth, uiWorldHeight);
+  const geometry = new THREE.PlaneBufferGeometry(1, 1);
   const canvas = document.createElement('canvas');
   canvas.width = uiWidth;
   canvas.height = uiHeight;
@@ -426,6 +426,8 @@ const _makeUiMesh = ({uiWidth, uiHeight, uiWorldWidth, uiWorldHeight}) => {
     alphaTest: 0.5,
   });
   const mesh = new THREE.Mesh(geometry, material);
+  mesh.scale.x = uiWorldWidth;
+  mesh.scale.y = uiWorldHeight;
   mesh.visible = false;
   mesh.frustumCulled = false;
   
@@ -470,10 +472,10 @@ const _makeUiMesh = ({uiWidth, uiHeight, uiWorldWidth, uiWorldHeight}) => {
         if (uv.x >= left && uv.x < right && uv.y >= top && uv.y < bottom) {
           hoveredAnchor = anchor;
           
-          highlightMesh.position.x = -uiWorldWidth/2 + (left + width/2)/uiWidth*uiWorldWidth;
-          highlightMesh.position.y = uiWorldHeight/2 - (top + height/2)/uiHeight*uiWorldHeight;
-          highlightMesh.scale.x = width/uiWidth*uiWorldWidth;
-          highlightMesh.scale.y = height/uiHeight*uiWorldHeight;
+          highlightMesh.position.x = -0.5 + (left + width/2)/uiWidth;
+          highlightMesh.position.y = 0.5 - (top + height/2)/uiHeight;
+          highlightMesh.scale.x = width/uiWidth;
+          highlightMesh.scale.y = height/uiHeight;
           highlightMesh.visible = true;
           return true;
           // break;
