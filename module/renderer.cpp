@@ -512,7 +512,11 @@ NAN_METHOD(handleMessage) {
     int height = heightValue->Int32Value(Isolate::GetCurrent()->GetCurrentContext()).ToChecked();
     auto data = getArrayData<unsigned char *>(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 3).ToLocalChecked());
 
+    app->renderer->m_renderer->removeFromRenderList(models[name].get());
+
     models[name] = app->renderer->m_renderer->setModelTexture(std::move(models[name]), width, height, data.first, data.second);
+    
+    app->renderer->m_renderer->addToRenderList(models[name].get());
     
     Local<Object> result = Nan::New<Object>();
     result->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("id").ToLocalChecked(), Nan::New<String>(name).ToLocalChecked());
