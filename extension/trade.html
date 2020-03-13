@@ -35,6 +35,7 @@ h1 {
 }
 .buttons {
   display: flex;
+  margin: 0 10px
 }
 .button {
   margin-right: 10px;
@@ -43,6 +44,11 @@ h1 {
   border-radius: 10px;
   color: #FFF;
   font-size: 1.5em;
+}
+.button.dim {
+  background-color: transparent;
+  color: #000;
+  border: 2px solid;
 }
 
 a {
@@ -53,12 +59,6 @@ a {
   background-color: #000;
   color: #FFF;
   font-size: 23px;
-}
-.source.left {
-  border-top-left-radius: 30px;
-}
-.source.right {
-  border-top-right-radius: 30px;
 }
 .selector {
   display: flex;
@@ -72,7 +72,7 @@ a {
 }
 .minibuttons {
   display: flex;
-  margin-bottom: 10px;
+  margin: 10px;
   justify-content: space-between;
 }
 .minibutton {
@@ -93,18 +93,18 @@ section {
   position: relative;
   margin: 0 10px;
   flex: 1;
+  background-color: rgba(255, 255, 255, 0.5);
+  overflow: hidden;
+}
+section.left {
+  border-top-left-radius: 30px;
+}
+section.right {
+  border-top-right-radius: 30px;
 }
 section.middle {
   padding: 20px;
   flex: none;
-  /* flex: 2; */
-}
-.background {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
   border: 3px solid;
   border-radius: 10px;
 }
@@ -139,7 +139,6 @@ section.middle {
   </div>
 </section>
 <section class=middle>
-  <div class=background></div>
   <h1>Trade with</h1>
   <div class=addresses>
     <a class="address selected" id="a-0x5D4876215103302dB605F4259330f283AF2Cc1Db">0x5D4876215103302dB605F4259330f283AF2Cc1Db</a>
@@ -152,6 +151,13 @@ section.middle {
 </section>
 <section class=right>
   <div class="source right">0x5D4876215103302dB605F4259330f283AF2Cc1Db (them)</div>
+  <div class=selector>
+    <span class=value>0.3</span>
+    <span class=token>ETH</span>
+  </div>
+  <div class=buttons>
+    <a class="button dim" id=confirm>Not locked in</a>
+  </div>
 </section>
 
 </body>
