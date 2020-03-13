@@ -319,11 +319,11 @@ NAN_METHOD(handleMessage) {
       ExitProcess(0);
     }).detach();
     
-    getOut() << "respond 1" << std::endl;
+    // getOut() << "respond 1" << std::endl;
 
     // Sleep(2000);
 
-    getOut() << "respond 2" << std::endl;
+    // getOut() << "respond 2" << std::endl;
 
     Local<Object> result = Nan::New<Object>();
     result->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("ok").ToLocalChecked(), Nan::New<Boolean>(true));
@@ -331,7 +331,7 @@ NAN_METHOD(handleMessage) {
     res->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("result").ToLocalChecked(), result);
     info.GetReturnValue().Set(res);
     
-    getOut() << "respond 3" << std::endl;
+    // getOut() << "respond 3" << std::endl;
   } else if (
     methodString == "addModel" &&
     args->Length() >= 2 &&
