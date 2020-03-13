@@ -145,8 +145,7 @@ section.middle {
 <section class=middle>
   <h1>Trade with</h1>
   <div class=addresses>
-    <a class="address selected" id="a-0x5D4876215103302dB605F4259330f283AF2Cc1Db">0x5D4876215103302dB605F4259330f283AF2Cc1Db</a>
-    <a class=address id="a-0x5D4876215103302dB605F4259330f283AF2Cc1Dc">0x5D4876215103302dB605F4259330f283AF2Cc1Dc</a>
+    {{#addresses}}<a class=address id="a-{{.}}">{{.}}</a>{{/addresses}}
   </div>
   <div class=buttons>
     {{#allLockedIn}}<a class=button id=confirm>Confirm trade</a>{{/allLockedIn}}

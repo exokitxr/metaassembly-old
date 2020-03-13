@@ -663,6 +663,7 @@ const tradeUiMesh = (() => {
       srcLockedIn,
       dstLockedIn,
       allLockedIn: srcLockedIn && dstLockedIn,
+      addresses,
     });
   };
   mesh.onpress = hoveredAnchor => {
@@ -788,6 +789,50 @@ document.getElementById('disconnect-button').addEventListener('click', async e =
 
 // addressbook
 
+let addresses = [];
+document.getElementById('addresses').addEventListener('mousedown', e => {
+  e.preventDefault();
+});
+const _updateAddressBook = () => {
+  const addressesEl = document.getElementById('addresses');
+  addressesEl.innerHTML = addresses.map(address => {
+    return `<div class=address address="${address}"">
+      <a class=value>${address}</a>
+      <a class="button secondary">- Remove</a>
+    </div>`;
+  }).join('\n');
+  const addressEls = Array.from(addressesEl.querySelectorAll('.address'));
+  for (let i = 0; i < addressEls.length; i++) {
+    const addressEl = addressEls[i];
+    const address = addressEl.getAttribute('address');
+    const buttonEl = addressEl.querySelector('.button');
+    addressEl.addEventListener('click', e => {
+      e.stopPropagation();
+
+      console.log('click address', address); // XXX
+    });
+    buttonEl.addEventListener('click', e => {
+      e.stopPropagation();
+
+      addresses = addresses.filter(a => a !== address);
+      localStorage.setItem('addressbook', JSON.stringify(addresses));
+      _updateAddressBook();
+    });
+  }
+  tradeUiMesh.update();
+};
+{
+  const keystoreString = localStorage.getItem('wallet');
+  if (keystoreString) {
+    header.classList.add('locked');
+  }
+
+  const addressbookString = localStorage.getItem('addressbook');
+  if (addressbookString) {
+    addresses = JSON.parse(addressbookString);
+    _updateAddressBook(addresses);
+  }
+}
 const addressInput = document.getElementById('address-input');
 addressInput.id = 'fake' + Math.random();
 document.getElementById('add-address-button').addEventListener('click', e => {
@@ -979,49 +1024,6 @@ document.getElementById('lock-wallet-button').addEventListener('click', e => {
   _clearWalletClasses();
   header.classList.add('locked');
 });
-let addresses = [];
-document.getElementById('addresses').addEventListener('mousedown', e => {
-  e.preventDefault();
-});
-const _updateAddressBook = () => {
-  const addressesEl = document.getElementById('addresses');
-  addressesEl.innerHTML = addresses.map(address => {
-    return `<div class=address address="${address}"">
-      <a class=value>${address}</a>
-      <a class="button secondary">- Remove</a>
-    </div>`;
-  }).join('\n');
-  const addressEls = Array.from(addressesEl.querySelectorAll('.address'));
-  for (let i = 0; i < addressEls.length; i++) {
-    const addressEl = addressEls[i];
-    const address = addressEl.getAttribute('address');
-    const buttonEl = addressEl.querySelector('.button');
-    addressEl.addEventListener('click', e => {
-      e.stopPropagation();
-
-      console.log('click address', address); // XXX
-    });
-    buttonEl.addEventListener('click', e => {
-      e.stopPropagation();
-
-      addresses = addresses.filter(a => a !== address);
-      localStorage.setItem('addressbook', JSON.stringify(addresses));
-      _updateAddressBook();
-    });
-  }
-};
-{
-  const keystoreString = localStorage.getItem('wallet');
-  if (keystoreString) {
-    header.classList.add('locked');
-  }
-
-  const addressbookString = localStorage.getItem('addressbook');
-  if (addressbookString) {
-    addresses = JSON.parse(addressbookString);
-    _updateAddressBook(addresses);
-  }
-}
 
 // engine
 
