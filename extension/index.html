@@ -407,6 +407,7 @@ const _makeUiMesh = ({uiWidth, uiHeight, uiWorldWidth, uiWorldHeight}) => {
   canvas.height = uiHeight;
   const ctx = canvas.getContext('2d');
   const imageData = ctx.createImageData(uiWidth, uiHeight);
+  canvas.imageData = imageData;
   const texture = new THREE.Texture(
     canvas,
     THREE.UVMapping,
@@ -1444,6 +1445,12 @@ document.getElementById('enter-overlay-button').addEventListener('click', async 
     geometry.index.array,
   ]);
   wristObject = await socket.request('addPlane', []);
+  await socket.request('updateObjectTexture', [
+    wristObject.id,
+    wristUiMesh.material.map.image.width,
+    wristUiMesh.material.map.image.height,
+    wristUiMesh.material.map.image.imageData.data,
+  ]);
   console.log('got objects', hmdObject, controllerObjects[0], controllerObjects[1], wristObject);
   
   const res = await fetch('../data/avatar.glb');
@@ -1485,10 +1492,9 @@ handlePose = (hmd, left, right) => {
     ]);
   }
   if (wristObject) {
-    console.log('update matrix', left);
     socket.request('updateObjectMatrix', [
       wristObject.id,
-      left,
+      wristUiMesh.matrixWorld.toArray(new Float32Array(16)),
     ]);
   }
 };
