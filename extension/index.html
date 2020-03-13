@@ -874,8 +874,26 @@ const hdPathString = `m/44'/60'/0'/0`;
 async function exportSeed(ks, password) {
   const p = makePromise();
   ks.keyFromPassword(password, function (err, pwDerivedKey) {
-    const seed = keystore.getSeed(pwDerivedKey);
-    p.accept(seed);
+    if (!err) {
+      const seed = keystore.getSeed(pwDerivedKey);
+      p.accept(seed);
+    } else {
+      p.reject(err);
+    }
+  });
+  return await p;
+}
+async function signTx(ks, password, rawTx) {
+  const p = makePromise();
+  ks.keyFromPassword(password, function (err, pwDerivedKey) {
+    if (!err) {
+      const address = ks.addresses[0];
+      console.log('sign tx', ks, pwDerivedKey, rawTx, address, hdPathString);
+      const signed = lightwallet.signing.signTx(ks, pwDerivedKey, rawTx, `0x${address}`, hdPathString);
+      p.accept(signed);
+    } else {
+      p.reject(err);
+    }
   });
   return await p;
 }
@@ -910,6 +928,7 @@ const _createKeystore = async (seedPhrase, password) => {
   });
   const ks = await p;
   ks.exportSeed = exportSeed.bind(null, ks, password);
+  ks.signTx = signTx.bind(null, ks, password);
   return ks;
 };
 const _exportKeyStore = ks => ks.serialize();
@@ -930,6 +949,7 @@ const _importKeyStore = async (s, password) => {
   });
   await p;
   ks.exportSeed = exportSeed.bind(null, ks, password);
+  ks.signTx = signTx.bind(null, ks, password);
   return ks;
 };
 const _clearWalletClasses = () => {
