@@ -244,7 +244,7 @@ initLocalRig()
   .then(newRig => {
     rig = newRig;
 
-    if (cameraMode === 'firstperson' || currentSession) {
+    if (cameraMode === 'firstperson' || currentSession || avatarObject) {
       rig.decapitate();
     }
     container.add(rig.model);
@@ -383,7 +383,7 @@ Array.from(tools).forEach((tool, i) => {
       orbitControls.enabled = false;
     }
     if (rig) {
-      if (cameraMode === 'firstperson' || currentSession) {
+      if (cameraMode === 'firstperson' || currentSession || avatarObject) {
         rig.decapitate();
       } else {
         rig.undecapitate();
@@ -1469,6 +1469,8 @@ document.getElementById('enter-overlay-button').addEventListener('click', async 
     arrayBuffer,
   ]);
   console.log('model added');
+  
+  rig && rig.decapitate();
 });
 handlePose = (hmd, left, right) => {
   if (avatarObject) {
