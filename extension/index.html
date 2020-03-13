@@ -931,28 +931,6 @@ const _importKeyStore = async (s, password) => {
   await p;
   ks.exportSeed = exportSeed.bind(null, ks, password);
   return ks;
-  /* // Some methods will require providing the `pwDerivedKey`,
-  // Allowing you to only decrypt private keys on an as-needed basis.
-  // You can generate that value with this convenient method:
-  ks.keyFromPassword(password, function (err, pwDerivedKey) {
-    if (err) throw err;
-
-    // generate five new address/private key pairs
-    // the corresponding private keys are also encrypted
-    ks.generateNewAddress(pwDerivedKey, 1);
-    const addresses = ks.getAddresses();
-
-    ks.passwordProvider = function (callback) {
-      const pw = prompt("Please enter password", "Password");
-      callback(null, pw);
-    };
-
-    // Now set ks as transaction_signer in the hooked web3 provider
-    // and you can start using web3 using the keys/addresses in ks!
-  });
-
-  _clearWalletClasses();
-  header.classList.add('unlocked'); */
 };
 const _clearWalletClasses = () => {
   ['import', 'locked', 'unlocked'].forEach(c => {
