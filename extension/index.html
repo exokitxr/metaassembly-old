@@ -1458,7 +1458,6 @@ handlePose = (hmd, left, right) => {
     updatePlayerFromArrays(renderer.xr, new Float32Array(hmd), new Float32Array(left), new Float32Array(right));
     const boneTexture = getRigBoneTexture();
     if (boneTexture) {
-      // console.log('submit bones', boneTexture);
       socket.request('updateObjectBoneTexture', [
         avatarObject.id,
         boneTexture.buffer,
