@@ -980,7 +980,8 @@ document.getElementById('import-button').addEventListener('click', async e => {
   keystore = await _createKeystore(seedPhrase, password);
   localStorage.setItem('wallet', _exportKeyStore(keystore));
   const address = keystore.addresses[0];
-  const balance = await web3.eth.getBalance(address);
+  let balance = await web3.eth.getBalance(address);
+  balance /= 1e18;
 
   document.getElementById('seed-phrase-input').value = '';
   document.getElementById('password-input').value = '';
@@ -1011,7 +1012,8 @@ document.getElementById('unlock-wallet-button').addEventListener('click', async 
 
   keystore = await _importKeyStore(keystoreString, password);
   const address = keystore.addresses[0];
-  const balance = await web3.eth.getBalance(address);
+  let balance = await web3.eth.getBalance(address);
+  balance /= 1e18;
 
   document.getElementById('password-unlock-input').value = '';
   document.getElementById('address-text').innerText = `0x${address}`;
