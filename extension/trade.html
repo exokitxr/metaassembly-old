@@ -16,6 +16,7 @@ body {
 }
 h1 {
   margin: 0;
+  margin-bottom: 20px;
   font-size: 30px;
 }
 .label {
@@ -44,6 +45,9 @@ h1 {
   border-radius: 10px;
   color: #FFF;
   font-size: 1.5em;
+}
+.button.secondary {
+  background-color: #ef5350;
 }
 .button.dim {
   background-color: transparent;
@@ -116,7 +120,7 @@ section.middle {
 </head>
 <body>
 
-<section class=left>
+<section class=left {{^dstAddress}}style="visibility: hidden;"{{/dstAddress}}>
   <div class="source left">{{srcAddress}} (you)</div>
   <div class=selector>
     <span class=value>{{srcValue}}</span>
@@ -138,23 +142,29 @@ section.middle {
     <a class=minibutton id="add-0.00001">+0.00001</a>
   </div>
   <div class=buttons>
-    {{^srcLockedIn}}<a class=button id=confirm>Lock in</a>{{/srcLockedIn}}
-    {{#srcLockedIn}}<a class=button id=cancel>Cancel</a>{{/srcLockedIn}}
+    {{^srcLockedIn}}<a class=button id=lock>Lock in</a>{{/srcLockedIn}}
+    {{#srcLockedIn}}<a class="button secondary" id=unlock>Cancel</a>{{/srcLockedIn}}
   </div>
 </section>
 <section class=middle>
+  {{^dstAddress}}
   <h1>Trade with</h1>
   <div class=addresses>
-    {{#addresses}}<a class=address id="a-{{.}}">{{.}}</a>{{/addresses}}
+    {{#addresses}}<a class=address id="address-{{.}}">{{.}}</a>{{/addresses}}
   </div>
+  {{/dstAddress}}
+  {{#dstAddress}}
+  <h1>Trade in progress</h1>
   <div class=buttons>
-    {{#allLockedIn}}<a class=button id=confirm>Confirm trade</a>{{/allLockedIn}}
+    {{#allLockedIn}}<a class=button id=confirm-trade>Confirm trade</a>{{/allLockedIn}}
+    <a class="button secondary" id=cancel-trade>Cancel trade</a>
   </div>
+  {{/dstAddress}}
 </div>
 </section>
-<section class=right>
+<section class=right {{^dstAddress}}style="visibility: hidden;"{{/dstAddress}}>
   <div class="source right">{{dstAddress}} (them)</div>
-  <div class=placeholder>They are not active. However, you can still send.</div>
+  <div class=placeholder>They are not trading. However, you can still send.</div>
   <!-- <div class=selector>
     <span class=value>{{dstValue}}</span>
     <span class=token>ETH</span>

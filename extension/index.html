@@ -649,7 +649,7 @@ const tradeUiMesh = (() => {
   });
 
   let srcAddress = '0x5D4876215103302dB605F4259330f283AF2Cc1Db';
-  let dstAddress = '0x5D4876215103302dB605F4259330f283AF2Cc1Db';
+  let dstAddress = '';
   let srcValue = 0;
   let dstValue = 0;
   let srcLockedIn = false;
@@ -678,10 +678,22 @@ const tradeUiMesh = (() => {
           srcValue += n;
         }
         mesh.update();
-      } else if (id === 'confirm') {
+      } else if (id && (match = id.match(/^address-(0x[0-9a-f]+)$/i))) {
+        dstAddress = match[1];
+        mesh.update();
+      } else if (id === 'lock') {
         srcLockedIn = true;
         mesh.update();
-      } else if (id === 'cancel') {
+      } else if (id === 'unlock') {
+        srcLockedIn = false;
+        mesh.update();
+      } else if (id === 'confirm-trade') {
+        console.log('confirm trade');
+        // mesh.update();
+      } else if (id === 'cancel-trade') {
+        dstAddress = '';
+        srcValue = 0;
+        dstValue = 0;
         srcLockedIn = false;
         mesh.update();
       } else {
