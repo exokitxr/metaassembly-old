@@ -1410,6 +1410,7 @@ navigator.xr && navigator.xr.isSessionSupported('immersive-vr').then(supported =
 let avatarObject = null;
 let hmdObject = null;
 const controllerObjects = [null, null];
+let wristObject = null;
 document.getElementById('enter-overlay-button').addEventListener('click', async e => {
   await socket.request('startRenderer', []);
   console.log('render started');
@@ -1440,7 +1441,8 @@ document.getElementById('enter-overlay-button').addEventListener('click', async 
     geometry.attributes.uv.array,
     geometry.index.array,
   ]);
-  console.log('got objects', hmdObject, controllerObjects[0], controllerObjects[1]);
+  wristObject = await socket.request('addPlane', []);
+  console.log('got objects', hmdObject, controllerObjects[0], controllerObjects[1], wristObject);
   
   const res = await fetch('../data/avatar.glb');
   const arrayBuffer = await res.arrayBuffer();
@@ -1479,6 +1481,13 @@ handlePose = (hmd, left, right) => {
     socket.request('updateObjectMatrix', [
       controllerObjects[1].id,
       right,
+    ]);
+  }
+  if (wristObject) {
+    console.log('update matrix', left);
+    socket.request('updateObjectMatrix', [
+      wristObject.id,
+      left,
     ]);
   }
 };
