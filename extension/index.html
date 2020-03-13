@@ -870,6 +870,7 @@ document.getElementById('add-address-button').addEventListener('click', e => {
 // wallet
 
 let keystore = null;
+const hdPathString = `m/44'/60'/0'/0`;
 async function exportSeed(ks, password) {
   const p = makePromise();
   ks.keyFromPassword(password, function (err, pwDerivedKey) {
@@ -887,7 +888,7 @@ const _createKeystore = async (seedPhrase, password) => {
     seedPhrase, // Optionally provide a 12-word seed phrase
     // salt: fixture.salt,     // Optionally provide a salt.
                                // A unique salt will be generated otherwise.
-    hdPathString: `m/44'/60'/0'/0`,    // Optional custom HD Path String
+    hdPathString,    // Optional custom HD Path String
   },
   (err, ks) => {
     // console.log('got keystore', err, ks);
