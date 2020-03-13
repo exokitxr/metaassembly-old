@@ -113,9 +113,9 @@ section.middle {
 <body>
 
 <section class=left>
-  <div class="source left">0x5D4876215103302dB605F4259330f283AF2Cc1Db (you)</div>
+  <div class="source left">{{srcAddress}} (you)</div>
   <div class=selector>
-    <span class=value>0.3</span>
+    <span class=value>{{srcValue}}</span>
     <span class=token>ETH</span>
   </div>
   <div class=minibuttons>
@@ -134,8 +134,8 @@ section.middle {
     <a class=minibutton id="add-0.00001">+0.00001</a>
   </div>
   <div class=buttons>
-    <a class=button id=confirm>Lock in</a>
-    <a class=button id=cancel>Cancel</a>
+    {{^srcLockedIn}}<a class=button id=confirm>Lock in</a>{{/srcLockedIn}}
+    {{#srcLockedIn}}<a class=button id=cancel>Cancel</a>{{/srcLockedIn}}
   </div>
 </section>
 <section class=middle>
@@ -145,18 +145,19 @@ section.middle {
     <a class=address id="a-0x5D4876215103302dB605F4259330f283AF2Cc1Dc">0x5D4876215103302dB605F4259330f283AF2Cc1Dc</a>
   </div>
   <div class=buttons>
-    <a class=button id=confirm>Confirm trade</a>
+    {{#allLockedIn}}<a class=button id=confirm>Confirm trade</a>{{/allLockedIn}}
   </div>
 </div>
 </section>
 <section class=right>
-  <div class="source right">0x5D4876215103302dB605F4259330f283AF2Cc1Db (them)</div>
+  <div class="source right">{{dstAddress}} (them)</div>
   <div class=selector>
-    <span class=value>0.3</span>
+    <span class=value>{{dstValue}}</span>
     <span class=token>ETH</span>
   </div>
   <div class=buttons>
-    <a class="button dim" id=confirm>Not locked in</a>
+    {{^dstLockedIn}}<a class="button dim" id=confirm>Waiting...</a>{{/dstLockedIn}}
+    {{#dstLockedIn}}<a class="button dim" id=confirm>Locked in</a>{{/dstLockedIn}}
   </div>
 </section>
 

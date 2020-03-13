@@ -643,17 +643,44 @@ const tradeUiMesh = (() => {
     uiHeight,
   });
 
-  let connected = false;
-  mesh.setText = t => {
-    text = t;
-    mesh.update();
-  };
+  let srcAddress = '0x5D4876215103302dB605F4259330f283AF2Cc1Db';
+  let dstAddress = '0x5D4876215103302dB605F4259330f283AF2Cc1Db';
+  let srcValue = 0;
+  let dstValue = 0;
+  let srcLockedIn = false;
+  let dstLockedIn = true;
   mesh.onupdate = () => {
-    return renderer.render({});
+    return renderer.render({
+      srcAddress,
+      dstAddress,
+      srcValue: srcValue.toFixed(5),
+      dstValue: dstValue.toFixed(5),
+      srcLockedIn,
+      dstLockedIn,
+      allLockedIn: srcLockedIn && dstLockedIn,
+    });
   };
   mesh.onpress = hoveredAnchor => {
     if (hoveredAnchor) {
       const {id} = hoveredAnchor;
+      let match;
+      if (id && (match = id.match(/^add-(-?[0-9\.]+)$/))) {
+        const n = parseFloat(match[1]);
+        if (n === 0) {
+          srcValue = 0;
+        } else {
+          srcValue += n;
+        }
+        mesh.update();
+      } else if (id === 'confirm') {
+        srcLockedIn = true;
+        mesh.update();
+      } else if (id === 'cancel') {
+        srcLockedIn = false;
+        mesh.update();
+      } else {
+        // nothing
+      }
       return true;
     } else {
       return false;
