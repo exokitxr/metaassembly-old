@@ -1411,9 +1411,10 @@ navigator.xr && navigator.xr.isSessionSupported('immersive-vr').then(supported =
 });
 
 let avatarObject = null;
-let hmdObject = null;
-const controllerObjects = [null, null];
+// let hmdObject = null;
+// const controllerObjects = [null, null];
 let wristObject = null;
+let tradeObject = null;
 document.getElementById('enter-overlay-button').addEventListener('click', async e => {
   await socket.request('startRenderer', []);
   console.log('render started');
@@ -1429,7 +1430,7 @@ document.getElementById('enter-overlay-button').addEventListener('click', async 
     colors,
     geometry.attributes.uv.array,
     geometry.index.array,
-  ]); */
+  ]);
   controllerObjects[0] = await socket.request('addObject', [
     geometry.attributes.position.array,
     geometry.attributes.normal.array,
@@ -1443,7 +1444,7 @@ document.getElementById('enter-overlay-button').addEventListener('click', async 
     colors,
     geometry.attributes.uv.array,
     geometry.index.array,
-  ]);
+  ]); */
   wristObject = await socket.request('addPlane', []);
   await socket.request('updateObjectTexture', [
     wristObject.id,
@@ -1451,7 +1452,14 @@ document.getElementById('enter-overlay-button').addEventListener('click', async 
     wristUiMesh.material.map.image.height,
     wristUiMesh.material.map.image.imageData.data,
   ]);
-  console.log('got objects', hmdObject, controllerObjects[0], controllerObjects[1], wristObject);
+  tradeObject = await socket.request('addPlane', []);
+  await socket.request('updateObjectTexture', [
+    tradeObject.id,
+    tradeUiMesh.material.map.image.width,
+    tradeUiMesh.material.map.image.height,
+    tradeUiMesh.material.map.image.imageData.data,
+  ]);
+  console.log('got objects', /* hmdObject, controllerObjects[0], controllerObjects[1],*/ wristObject, tradeObject);
   
   const res = await fetch('../data/avatar.glb');
   const arrayBuffer = await res.arrayBuffer();
@@ -1473,7 +1481,7 @@ handlePose = (hmd, left, right) => {
       ]);
     }
   }
-  if (hmdObject) {
+  /* if (hmdObject) {
     socket.request('updateObjectMatrix', [
       hmdObject.id,
       hmd,
@@ -1490,11 +1498,17 @@ handlePose = (hmd, left, right) => {
       controllerObjects[1].id,
       right,
     ]);
-  }
+  } */
   if (wristObject) {
     socket.request('updateObjectMatrix', [
       wristObject.id,
       wristUiMesh.matrixWorld.toArray(new Float32Array(16)),
+    ]);
+  }
+  if (tradeObject) {
+    socket.request('updateObjectMatrix', [
+      tradeObject.id,
+      tradeUiMesh.matrixWorld.toArray(new Float32Array(16)),
     ]);
   }
 };
