@@ -2318,6 +2318,7 @@ void CVulkanRendererModelInstance::animate( float animationTimeElapsed )
 
 	// TODO(Joe): Figure out how to only do this when a parent is changing
 	for ( auto &node : m_model->nodes ) {
+		node->matParentFromNode = m_model->matParentFromNode;
 		node->update();
 	}
 }
