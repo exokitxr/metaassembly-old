@@ -816,6 +816,15 @@ document.getElementById('import-button').addEventListener('click', async e => {
   _clearWalletClasses();
   header.classList.add('unlocked');
 });
+  'seed-phrase-input',
+  'password-input',
+].forEach(k => {
+  document.getElementById(k).addEventListener('keydown', e => {
+    if (e.which === 13) {
+      document.getElementById('import-button').click();
+    }
+  });
+});
 document.getElementById('cancel-import-button').addEventListener('click', e => {
   _clearWalletClasses();
 });
@@ -832,6 +841,11 @@ document.getElementById('unlock-wallet-button').addEventListener('click', async 
 
   _clearWalletClasses();
   header.classList.add('unlocked');
+});
+document.getElementById('password-unlock-input').addEventListener('keydown', e => {
+  if (e.which === 13) {
+    document.getElementById('unlock-wallet-button').click();
+  }
 });
 document.getElementById('download-key-button').addEventListener('click', async e => {
   const seed = await keystore.exportSeed();
