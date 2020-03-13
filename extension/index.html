@@ -1351,6 +1351,16 @@ function animate() {
     }
 
     updatePlayerFromXr(renderer.xr, camera);
+  } else if (avatarObject) {
+    new THREE.Matrix4()
+      .fromArray(poseData.left)
+      .decompose(wristUiMesh.position, wristUiMesh.quaternion, new THREE.Vector3());
+    wristUiMesh.quaternion
+      .multiply(wristUiQuaternion);
+    wristUiMesh.position
+      .add(new THREE.Vector3(0, 0, 0.05).applyQuaternion(wristUiMesh.quaternion));
+
+    updatePlayerDefault(); // XXX
   } else if (cameraMode !== 'orbit') {
     const speed = 0.015 * (keys.shift ? 3 : 1);
     const cameraEuler = camera.rotation.clone();
@@ -1432,6 +1442,11 @@ navigator.xr && navigator.xr.isSessionSupported('immersive-vr').then(supported =
   }
 });
 
+const poseData = {
+  hmd: null,
+  left: null,
+  right: null,
+};
 let avatarObject = null;
 // let hmdObject = null;
 // const controllerObjects = [null, null];
@@ -1495,8 +1510,12 @@ document.getElementById('enter-overlay-button').addEventListener('click', async 
   rig && rig.decapitate();
 });
 handlePose = (hmd, left, right) => {
+  poseData.hmd = new Float32Array(hmd);
+  poseData.left = new Float32Array(left);
+  poseData.right = new Float32Array(right);
+
   if (avatarObject) {
-    updatePlayerFromArrays(renderer.xr, new Float32Array(hmd), new Float32Array(left), new Float32Array(right));
+    updatePlayerFromArrays(renderer.xr, poseData.hmd, poseData.left, poseData.right);
     const boneTexture = getRigBoneTexture();
     if (boneTexture) {
       socket.request('updateObjectBoneTexture', [
