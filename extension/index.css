@@ -596,3 +596,6 @@ section:nth-child(odd) {
   right: 0;
   overflow: hidden;
 }
+.address {
+  user-select: all;
+}

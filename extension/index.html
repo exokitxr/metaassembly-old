@@ -53,7 +53,7 @@
     <div class="wallet import">
       <input type=text id=seed-phrase-input placeholder="seed phrase">
       <input type=password id=password-input placeholder="password">
-      <div class=button id=import-button>Import</div>
+      <div class=button id=import-button>Log in</div>
       <div class=button id=cancel-import-button>Cancel</div>
     </div>
     <div class="wallet locked">
@@ -787,7 +787,9 @@ document.getElementById('import-button').addEventListener('click', async e => {
   keystore = await _createKeystore(seedPhrase, password);
   localStorage.setItem('wallet', _exportKeyStore(keystore));
 
-  document.getElementById('address-text').innerText = keystore.addresses[0];
+  document.getElementById('seed-phrase-input').value = '';
+  document.getElementById('password-input').value = '';
+  document.getElementById('address-text').innerText = `0x${keystore.addresses[0]}`;
 
   _clearWalletClasses();
   header.classList.add('unlocked');
@@ -798,10 +800,24 @@ document.getElementById('cancel-import-button').addEventListener('click', e => {
 document.getElementById('unlock-wallet-button').addEventListener('click', async e => {
   const keystoreString = localStorage.getItem('wallet');
   const password = document.getElementById('password-unlock-input').value;
+
   keystore = await _importKeyStore(keystoreString, password);
+
+  document.getElementById('password-unlock-input').value = '';
+  document.getElementById('address-text').innerText = `0x${keystore.addresses[0]}`;
 
   _clearWalletClasses();
   header.classList.add('unlocked');
+});
+document.getElementById('forget-wallet-button').addEventListener('click', e => {
+  localStorage.removeItem('wallet');
+  _clearWalletClasses();
+});
+document.getElementById('lock-wallet-button').addEventListener('click', e => {
+  keystore = null;
+
+  _clearWalletClasses();
+  header.classList.add('locked');
 });
 /* document.getElementById('connect-button').addEventListener('click', async e => {
   await _connectMultiplayer(document.getElementById('room-code-input').value);
