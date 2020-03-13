@@ -2438,11 +2438,13 @@ void VulkanExample::setModelTransform(IModelInstance *modelInstance, float *posi
 	  model->m_model->scale.y = scales[1];
 	  model->m_model->scale.z = scales[2];
 	}
+  composeMatrix(glm::value_ptr(model->m_model->matParentFromNode), glm::value_ptr(model->m_model->translation), glm::value_ptr(model->m_model->rotation), glm::value_ptr(model->m_model->scale));
 }
 
 void VulkanExample::setModelMatrix(IModelInstance *modelInstance, float *matrix, size_t numMatrix) {
   if (numMatrix >= 16) {
   	CVulkanRendererModelInstance *model = (CVulkanRendererModelInstance *)modelInstance;
+    memcpy(glm::value_ptr(model->m_model->matParentFromNode), matrix, 16*sizeof(float));
     decomposeMatrix(matrix, glm::value_ptr(model->m_model->translation), glm::value_ptr(model->m_model->rotation), glm::value_ptr(model->m_model->scale));
   }
 }
