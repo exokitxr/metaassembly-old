@@ -378,8 +378,8 @@ NAN_METHOD(handleMessage) {
 
       for (;;) {
         ID3D11ShaderResourceView *resourceViews[2];
-        vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Left, appPtr->m_pD3D11Device, (void **)&resourceView[0]);
-        vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Right, appPtr->m_pD3D11Device, (void **)&resourceView[1]);
+        vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Left, appPtr->m_pD3D11Device, (void **)&resourceViews[0]);
+        vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Right, appPtr->m_pD3D11Device, (void **)&resourceViews[1]);
 
         ID3D11Resource *resources[2] = {};
         resourceViews[0]->GetResource(&resources[0]);
@@ -388,7 +388,7 @@ NAN_METHOD(handleMessage) {
           ID3D11Texture2D *texs[2] = {};
           if (SUCCEEDED(resources[0]->QueryInterface(&texs[0])) && SUCCEEDED(resources[1]->QueryInterface(&texs[1]))) {
             D3D11_TEXTURE2D_DESC desc;
-            tex->GetDesc(&desc);
+            texs[0]->GetDesc(&desc);
 
             /* getOut() << "got tex desc " <<
               desc.Width << " " << desc.Height << " " <<
@@ -455,7 +455,7 @@ NAN_METHOD(handleMessage) {
                   for (size_t w = 0; w < desc.Width; ++w) {
                     memcpy(dptr + w*3, sptr + w*4, 3);
                   }
-                  sptr += mappedResource.RowPitch;
+                  sptr += mappedResources[i].RowPitch;
                   dptr += lBmpRowPitch;
                 }
               }
@@ -481,22 +481,26 @@ NAN_METHOD(handleMessage) {
               }
               uv_async_send(&eventAsync);
             } else {
-              getOut() << "failed to map resource " << (void *)hr << std::endl;
+              getOut() << "failed to map resource " << (void *)hrs[0] << " " << (void *)hrs[1] << std::endl;
               
               infoQueueLog();
             }
 
-            tex->Release();
-            tex2->Release();
+            texs[0]->Release();
+            texs[1]->Release();
+            texs2[0]->Release();
+            texs2[1]->Release();
           } else {
             getOut() << "failed to get tex" << std::endl;
           }
-          resource->Release();
+          resources[0]->Release();
+          resources[1]->Release();
         } else {
           getOut() << "failed to get resource" << std::endl;
         }
 
-        vr::VRCompositor()->ReleaseMirrorTextureD3D11(resourceView);
+        vr::VRCompositor()->ReleaseMirrorTextureD3D11(resourceViews[0]);
+        vr::VRCompositor()->ReleaseMirrorTextureD3D11(resourceViews[1]);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
       }
