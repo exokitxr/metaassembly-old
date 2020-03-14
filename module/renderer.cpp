@@ -62,8 +62,10 @@ public:
 
 class MirrorTextureMessageStruct {
 public:
-  uint8_t *data;
-  size_t size;
+  uint8_t *leftData;
+  size_t leftSize;
+  uint8_t *rightData;
+  size_t rightSize;
 };
 uv_async_t eventAsync;
 std::mutex mutex;
@@ -110,19 +112,24 @@ void RunAsync(uv_async_t *handle) {
       for (size_t i = 0; i < mirrorTextureMessages.size(); i++) {
         const auto &message = mirrorTextureMessages[i];
 
-        Local<ArrayBuffer> arrayBuffer = ArrayBuffer::New(Isolate::GetCurrent(), message.size);
-        memcpy(arrayBuffer->GetContents().Data(), message.data, message.size);
-
-        SjpegFreeBuffer(message.data);
+        Local<ArrayBuffer> leftArrayBuffer = ArrayBuffer::New(Isolate::GetCurrent(), message.leftData, message.leftSize);
+        Local<ArrayBuffer> rightArrayBuffer = ArrayBuffer::New(Isolate::GetCurrent(), message.rightData, message.rightSize);
         
         Local<Object> event = Nan::New<Object>();
         event->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("type").ToLocalChecked(), Nan::New<String>("mirrorTexture").ToLocalChecked());
-        event->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("data").ToLocalChecked(), arrayBuffer);
+        event->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("left").ToLocalChecked(), leftArrayBuffer);
+        event->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("right").ToLocalChecked(), rightArrayBuffer);
 
         Local<Value> argv[] = {
           event,
         };
         localEventCbFn->Call(Isolate::GetCurrent()->GetCurrentContext(), Nan::Null(), sizeof(argv)/sizeof(argv[0]), argv);
+
+        leftArrayBuffer->Neuter();
+        rightArrayBuffer->Neuter();
+
+        SjpegFreeBuffer(message.leftData);
+        SjpegFreeBuffer(message.rightData);
       }
       mirrorTextureMessages.clear();
     }
