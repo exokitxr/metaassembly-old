@@ -1130,14 +1130,12 @@ socket.onmessage = m => {
         binaryMode = null;
       }
     } else if (binaryMode === 'mirrorTexture') {
-      handleMirrorTexture(m.data);
-      binaryMode = null;
-      /* socketData.push(m.data);
-      if (socketData.length >= 1) {
+      socketData.push(m.data);
+      if (socketData.length >= 2) {
         handlePose && handleMirrorTexture.apply(null, socketData);
         socketData.length = 0;
         binaryMode = null;
-      } */
+      }
     } else {
       console.warn('got unexpected binary message');
     }
@@ -1178,10 +1176,10 @@ socket.request = async (method, args) => {
 handleMirrorTexture = (() => {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
-  return async d => {
+  return async (left, right) => {
     const p = makePromise();
     {
-      const b = new Blob([d], {
+      const b = new Blob([left], {
         type: 'image/jpeg',
       });
       const u = URL.createObjectURL(b);

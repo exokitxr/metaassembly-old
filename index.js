@@ -116,7 +116,8 @@ if (!noLaunch) {
         s.send(e.right);
       } else if (e.type === 'mirrorTexture') {
         s.send(e.type);
-        s.send(e.data);
+        s.send(e.left);
+        s.send(e.right);
       }
     });
   });
