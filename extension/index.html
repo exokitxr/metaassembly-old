@@ -1173,27 +1173,71 @@ const mirrorTextureMesh = (() => {
     _makeTexture(),
     _makeTexture(),
   ];
-  const material = new THREE.MeshBasicMaterial({
-    map: null,
-    side: THREE.DoubleSide,
-  });
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.onBeforeRender = (renderer, scene, camera) => {
-    material.map = textures[camera.name === 'right' ? 1 : 0];
+  const targetVsh = `
+    void main() {
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+    }
+  `;
+  const targetFsh = `
+    uniform float uWidth;
+    uniform float uHeight;
+    uniform float uX;
+    uniform sampler2D uTex1;
+    // uniform sampler2D uTex2;
+    void main() {
+      vec2 uv = gl_FragCoord.xy;
+      uv = uv / vec2(uWidth, uHeight);
+      uv.x += uX;
+      // uv.x *= 2.0;
+      gl_FragColor += texture2D(uTex1, uv);
+    }
+  `;
+  const uWidth = {
+    type: 'f',
+    value: 2000,
   };
-  mesh.frustumCulled = false;
+  const uHeight = {
+    type: 'f',
+    value: 2000,
+  };
+  const _makeMesh = (texture, uX, layers) => {
+    const material = new THREE.ShaderMaterial({
+      uniforms: {
+        uWidth,
+        uHeight,
+        uX: {
+          type: 'f',
+          value: uX,
+        },
+        uTex1: {
+          type: 't',
+          value: texture,
+        },
+      },
+      vertexShader: targetVsh,
+      fragmentShader: targetFsh,
+      side: THREE.DoubleSide,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.layers.disableAll();
+    layers.forEach(l => {
+      mesh.layers.enable(l);
+    });
+    mesh.frustumCulled = false;
+    return mesh;
+  };
+  const mesh = new THREE.Object3D();
+  mesh.add(_makeMesh(textures[0], 0, [0, 1]));
+  mesh.add(_makeMesh(textures[1], -1, [2]));
+  mesh.uWidth = uWidth;
+  mesh.uHeight = uHeight;
   mesh.textures = textures;
   return mesh;
 })();
 mirrorTextureMesh.position.set(0, 1, 0.1);
 container.add(mirrorTextureMesh);
 handleMirrorTexture = (() => {
-  let running = 0;
-  for (let i = 0; i < 2; i++) {
-    mirrorTextureMesh.textures[i].onUpdate = () => {
-      running--;
-    };
-  }
+  let running = false;
   const _getImg = d => {
     const p = makePromise();
     const b = new Blob([d], {
@@ -1213,19 +1257,25 @@ handleMirrorTexture = (() => {
     return p;
   };
   return async (left, right) => {
-    if (running === 0) {
-      running += 2;
+    if (!running) {
+      running = true;
       await Promise.all(
         [left, right].map((d, i) =>
           _getImg(d)
             .then(img => {
               mirrorTextureMesh.textures[i].image = img;
+              mirrorTextureMesh.uWidth.value = img.width;
+              mirrorTextureMesh.uHeight.value = img.height;
+              // console.log('update', mirrorTextureMesh.material.uniforms.uWidth.value);
             })
         )
       );
       for (let i = 0; i < 2; i++) {
         mirrorTextureMesh.textures[i].needsUpdate = true;
       }
+      requestAnimationFrame(() => {
+        running = false;
+      });
     }
   };
 })();
