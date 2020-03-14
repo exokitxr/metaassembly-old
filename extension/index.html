@@ -1162,29 +1162,38 @@ socket.request = async (method, args) => {
 
 const mirrorTextureMesh = (() => {
   const geometry = new THREE.PlaneBufferGeometry(1, 1);
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  canvas.ctx = ctx;
-  const texture = new THREE.Texture(canvas);
-  texture.generateMipmaps = false;
-  texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
-  texture.minFilter = THREE.LinearFilter;
+  const _makeTexture = () => {
+    const texture = new THREE.Texture();
+    texture.generateMipmaps = false;
+    texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
+    texture.minFilter = THREE.LinearFilter;
+    return texture;
+  };
+  const textures = [
+    _makeTexture(),
+    _makeTexture(),
+  ];
   const material = new THREE.MeshBasicMaterial({
-    map: texture,
+    map: null,
+    side: THREE.DoubleSide,
   });
   const mesh = new THREE.Mesh(geometry, material);
+  mesh.onBeforeRender = (renderer, scene, camera) => {
+    material.map = textures[camera.name === 'right' ? 1 : 0];
+  };
   mesh.frustumCulled = false;
+  mesh.textures = textures;
   return mesh;
 })();
-mirrorTextureMesh.position.set(-0.5, 1, 1);
+mirrorTextureMesh.position.set(0, 1, 0.1);
 container.add(mirrorTextureMesh);
 handleMirrorTexture = (() => {
-  let running = false;
-  const canvas = mirrorTextureMesh.material.map.image;
-  const {ctx} = canvas;
-  mirrorTextureMesh.material.map.onUpdate = () => {
-    running = false;
-  };
+  let running = 0;
+  for (let i = 0; i < 2; i++) {
+    mirrorTextureMesh.textures[i].onUpdate = () => {
+      running--;
+    };
+  }
   const _getImg = d => {
     const p = makePromise();
     const b = new Blob([d], {
@@ -1204,30 +1213,19 @@ handleMirrorTexture = (() => {
     return p;
   };
   return async (left, right) => {
-    if (!running) {
-      running = true;
+    if (running === 0) {
+      running += 2;
       await Promise.all(
         [left, right].map((d, i) =>
           _getImg(d)
             .then(img => {
-              const w = img.width * 2;
-              if (canvas.width !== w) {
-                canvas.width = w;
-              }
-              const h = img.height;
-              if (canvas.height !== h) {
-                canvas.height = h;
-              }
-              ctx.drawImage(img, i === 0 ? 0 : img.width, 0);
+              mirrorTextureMesh.textures[i].image = img;
             })
         )
       );
-      /* if (!canvas.parentNode) {
-        canvas.style.width = '800px';
-        canvas.style.height = '400px';
-        document.body.appendChild(canvas);
-      } */
-      mirrorTextureMesh.material.map.needsUpdate = true;
+      for (let i = 0; i < 2; i++) {
+        mirrorTextureMesh.textures[i].needsUpdate = true;
+      }
     }
   };
 })();
@@ -1251,6 +1249,11 @@ function onSessionStarted(session) {
   renderer.xr.setSession(session);
 
   currentSession = session;
+  
+  const xrCamera = renderer.xr.getCamera(camera);
+  const {cameras} = xrCamera;
+  cameras[0].name = 'left';
+  cameras[1].name = 'right';
 
   const controllerModelFactory = new XRControllerModelFactory();
   for (let i = 0; i < 2; i++) {
