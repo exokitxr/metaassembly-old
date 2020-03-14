@@ -377,83 +377,101 @@ NAN_METHOD(handleMessage) {
       // getOut() << "get mirror texture " << (void *)appPtr->m_pD3D11Device << std::endl;
 
       for (;;) {
-        uint32_t width = 0;
-        uint32_t height = 0;
-        Local<ArrayBuffer> arrayBuffer;
+        ID3D11ShaderResourceView *resourceViews[2];
+        vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Left, appPtr->m_pD3D11Device, (void **)&resourceView[0]);
+        vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Right, appPtr->m_pD3D11Device, (void **)&resourceView[1]);
 
-        ID3D11ShaderResourceView *resourceView;
-        vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Left, appPtr->m_pD3D11Device, (void **)&resourceView);
-
-        ID3D11Resource *resource = nullptr;
-        resourceView->GetResource(&resource);
-        if (resource) {
-          ID3D11Texture2D *tex = nullptr;
-          if (SUCCEEDED(resource->QueryInterface(&tex))) {
+        ID3D11Resource *resources[2] = {};
+        resourceViews[0]->GetResource(&resources[0]);
+        resourceViews[1]->GetResource(&resources[1]);
+        if (resources[0] && resources[1]) {
+          ID3D11Texture2D *texs[2] = {};
+          if (SUCCEEDED(resources[0]->QueryInterface(&texs[0])) && SUCCEEDED(resources[1]->QueryInterface(&texs[1]))) {
             D3D11_TEXTURE2D_DESC desc;
-            tex->GetDesc(&desc); //Correct data gets filled out
-            // D3D11_RESOURCE_DIMENSION dim;
-            // resource->GetType(&dim); //value gets set as Texture2D which it should
+            tex->GetDesc(&desc);
 
-            getOut() << "got tex desc " <<
+            /* getOut() << "got tex desc " <<
               desc.Width << " " << desc.Height << " " <<
               desc.MipLevels << " " << desc.ArraySize << " " <<
               desc.SampleDesc.Count << " " << desc.SampleDesc.Quality << " " <<
               desc.Format << " " <<
               desc.Usage << " " << desc.BindFlags << " " << desc.CPUAccessFlags << " " << desc.MiscFlags <<
-              std::endl;
+              std::endl; */
             
             desc.Usage = D3D11_USAGE_STAGING;
             desc.BindFlags = 0;
             desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
             desc.MiscFlags = 0;
             
-            ID3D11Texture2D *tex2;
-            auto hr = appPtr->m_pD3D11Device->CreateTexture2D(
+            ID3D11Texture2D *texs2[2] = {};
+            HRESULT hrs[2];
+            hrs[0] = appPtr->m_pD3D11Device->CreateTexture2D(
               &desc,
               NULL,
-              &tex2
+              &texs2[0]
             );
-            if (FAILED(hr)) {
-              getOut() << "create texture failed " << (void *)hr << std::endl;
+            hrs[1] = appPtr->m_pD3D11Device->CreateTexture2D(
+              &desc,
+              NULL,
+              &texs2[1]
+            );
+            if (FAILED(hrs[0]) || FAILED(hrs[1])) {
+              getOut() << "create texture failed " << (void *)hrs[0] << " " << (void *)hrs[1] << std::endl;
               
               infoQueueLog();
             }
-            appPtr->m_pD3D11ImmediateContext->CopyResource(tex2, tex);
+            appPtr->m_pD3D11ImmediateContext->CopyResource(texs2[0], texs[0]);
+            appPtr->m_pD3D11ImmediateContext->CopyResource(texs2[1], texs[1]);
             
-            getOut() << "map tex " << (void *)tex2 << std::endl;
-            D3D11_MAPPED_SUBRESOURCE mappedResource{};
-            hr = appPtr->m_pD3D11ImmediateContext->Map(
-              tex2,
+            // getOut() << "map tex " << (void *)texs2[0] << " " << (void *)texs2[1] << std::endl;
+            D3D11_MAPPED_SUBRESOURCE mappedResources[2] = {};
+            hrs[0] = appPtr->m_pD3D11ImmediateContext->Map(
+              texs2[0],
               0,
               D3D11_MAP_READ,
               0,
-              &mappedResource
+              &mappedResources[0]
             );
-            if (SUCCEEDED(hr)) {
-              getOut() << "map ok" << std::endl;
+            hrs[1] = appPtr->m_pD3D11ImmediateContext->Map(
+              texs2[1],
+              0,
+              D3D11_MAP_READ,
+              0,
+              &mappedResources[1]
+            );
+            if (SUCCEEDED(hrs[0]) && SUCCEEDED(hrs[1])) {
+              // getOut() << "map ok" << std::endl;
               
-              width = desc.Width;
-              height = desc.Height;
-              std::vector<uint8_t> rgb(width * height * 3);
+              std::vector<uint8_t> rgbs[2];
+              for (size_t i = 0; i < 2; i++) {
+                rgbs[i] = std::vector<uint8_t>(desc.Width * desc.Height * 3);
+              }
 
-              UINT lBmpRowPitch = desc.Width * 3;
-              BYTE *sptr = (BYTE *)mappedResource.pData;
-              BYTE *dptr = (BYTE *)rgb.data();
-              for (size_t h = 0; h < height; ++h) {
-                for (size_t w = 0; w < width; ++w) {
-                  memcpy(dptr + w*3, sptr + w*4, 3);
+              const UINT lBmpRowPitch = desc.Width * 3;
+              for (size_t i = 0; i < 2; i++) {
+                BYTE *sptr = (BYTE *)mappedResources[i].pData;
+                BYTE *dptr = (BYTE *)rgbs[i].data();
+                for (size_t h = 0; h < desc.Height; ++h) {
+                  for (size_t w = 0; w < desc.Width; ++w) {
+                    memcpy(dptr + w*3, sptr + w*4, 3);
+                  }
+                  sptr += mappedResource.RowPitch;
+                  dptr += lBmpRowPitch;
                 }
-                sptr += mappedResource.RowPitch;
-                dptr += lBmpRowPitch;
               }
               
               appPtr->m_pD3D11ImmediateContext->Unmap(
-                resource,
+                resources[0],
+                0
+              );
+              appPtr->m_pD3D11ImmediateContext->Unmap(
+                resources[1],
                 0
               );
 
               MirrorTextureMessageStruct message;
-              message.size = SjpegCompress(rgb.data(), desc.Width, desc.Height, 50, &message.data);
+              message.leftSize = SjpegCompress(rgbs[0].data(), desc.Width, desc.Height, 50, &message.leftData);
+              message.rightSize = SjpegCompress(rgbs[1].data(), desc.Width, desc.Height, 50, &message.rightData);
 
               // getOut() << "emit event" << hmd[0] << " " << hmd[1] << " " << hmd[2] << " " << hmd[3] << std::endl;
 
