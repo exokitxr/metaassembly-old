@@ -44,6 +44,7 @@
 
 #include "javascript_renderer.h"
 #include <glm/gtc/type_ptr.hpp>
+#include <sjpeg/sjpeg.h>
 
 #include "out.h"
 #include "file_io.h"
