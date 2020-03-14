@@ -53,17 +53,23 @@ using json = nlohmann::json;
 using Base64 = macaron::Base64;
 using namespace v8;
 
-class MessageStruct {
+class PoseMessageStruct {
 public:
   float hmd[16];
   float left[16];
   float right[16];
 };
 
+class MirrorTextureMessageStruct {
+public:
+  uint8_t *data;
+  size_t size;
+};
 uv_async_t eventAsync;
 std::mutex mutex;
 Nan::Persistent<Function> eventCbFn;
-std::vector<MessageStruct> messages;
+std::vector<PoseMessageStruct> poseMessages;
+std::vector<MirrorTextureMessageStruct> mirrorTextureMessages;
 void RunAsync(uv_async_t *handle) {
   Nan::HandleScope scope;
 
@@ -73,10 +79,9 @@ void RunAsync(uv_async_t *handle) {
     if (!eventCbFn.IsEmpty()) {
       Local<Function> localEventCbFn = Nan::New(eventCbFn);
 
-      for (size_t i = 0; i < messages.size(); i++) {
-        const MessageStruct &message = messages[i];
+      for (size_t i = 0; i < poseMessages.size(); i++) {
+        const auto &message = poseMessages[i];
 
-        Local<Object> event = Nan::New<Object>();
         Local<ArrayBuffer> hmdBuffer = ArrayBuffer::New(Isolate::GetCurrent(), sizeof(message.hmd));
         memcpy(hmdBuffer->GetContents().Data(), message.hmd, sizeof(message.hmd));
         Local<Float32Array> hmd = Float32Array::New(hmdBuffer, 0, ARRAYSIZE(message.hmd));
@@ -89,27 +94,37 @@ void RunAsync(uv_async_t *handle) {
         memcpy(rightBuffer->GetContents().Data(), message.right, sizeof(message.right));
         Local<Float32Array> right = Float32Array::New(rightBuffer, 0, ARRAYSIZE(message.right));
 
+        Local<Object> event = Nan::New<Object>();
+        event->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("type").ToLocalChecked(), Nan::New<String>("pose").ToLocalChecked());
         event->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("hmd").ToLocalChecked(), hmd);
         event->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("left").ToLocalChecked(), left);
         event->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("right").ToLocalChecked(), right);
-
-        /* json event = {
-          {"event", "pose"},
-          {"data", {
-            {"hmd", hmdArray},
-            {"left", leftArray},
-            {"right", rightArray},
-          }},
-        };
-        respond(event); */
 
         Local<Value> argv[] = {
           event,
         };
         localEventCbFn->Call(Isolate::GetCurrent()->GetCurrentContext(), Nan::Null(), sizeof(argv)/sizeof(argv[0]), argv);
       }
+      poseMessages.clear();
 
-      messages.clear();
+      for (size_t i = 0; i < mirrorTextureMessages.size(); i++) {
+        const auto &message = mirrorTextureMessages[i];
+
+        Local<ArrayBuffer> arrayBuffer = ArrayBuffer::New(Isolate::GetCurrent(), message.size);
+        memcpy(arrayBuffer->GetContents().Data(), message.data, message.size);
+
+        SjpegFreeBuffer(message.data);
+        
+        Local<Object> event = Nan::New<Object>();
+        event->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("type").ToLocalChecked(), Nan::New<String>("mirrorTexture").ToLocalChecked());
+        event->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("data").ToLocalChecked(), arrayBuffer);
+
+        Local<Value> argv[] = {
+          event,
+        };
+        localEventCbFn->Call(Isolate::GetCurrent()->GetCurrentContext(), Nan::Null(), sizeof(argv)/sizeof(argv[0]), argv);
+      }
+      mirrorTextureMessages.clear();
     }
   }
 }
@@ -289,6 +304,7 @@ void infoQueueLog() {
   
   getOut() << "info queue done" << std::endl;
 }
+bool posesEnabled = false;
 NAN_METHOD(handleMessage) {
   Nan::Utf8String methodUtf8(info[0]);
   std::string methodString = *methodUtf8;
@@ -300,19 +316,22 @@ NAN_METHOD(handleMessage) {
   ) {
     app.reset(new CAardvarkCefApp());
     app->startRenderer();
+
     auto appPtr = app.get();
     std::thread([appPtr]() {
       while (appPtr->tickRenderer()) {
-        MessageStruct message;
-        appPtr->getPoses(message.hmd, message.left, message.right);
+        if (posesEnabled) {
+          PoseMessageStruct message;
+          appPtr->getPoses(message.hmd, message.left, message.right);
 
-        // getOut() << "emit event" << hmd[0] << " " << hmd[1] << " " << hmd[2] << " " << hmd[3] << std::endl;
-        
-        {
-          std::lock_guard<std::mutex> lock(mutex);
-          messages.push_back(message);
+          // getOut() << "emit event" << hmd[0] << " " << hmd[1] << " " << hmd[2] << " " << hmd[3] << std::endl;
+          
+          {
+            std::lock_guard<std::mutex> lock(mutex);
+            poseMessages.push_back(message);
+          }
+          uv_async_send(&eventAsync);
         }
-        uv_async_send(&eventAsync);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
       }
@@ -333,6 +352,136 @@ NAN_METHOD(handleMessage) {
     info.GetReturnValue().Set(res);
     
     // getOut() << "respond 3" << std::endl;
+  } else if (
+    methodString == "startPoses"
+  ) {
+    posesEnabled = true;
+
+    Local<Object> result = Nan::New<Object>();
+    result->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("ok").ToLocalChecked(), Nan::New<Boolean>(true));
+    Local<Object> res = Nan::New<Object>();
+    res->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("result").ToLocalChecked(), result);
+    info.GetReturnValue().Set(res);
+  } else if (
+    methodString == "startMirrorTextures"
+  ) {
+    auto appPtr = app.get();
+    std::thread([appPtr]() {
+      // getOut() << "get mirror texture " << (void *)appPtr->m_pD3D11Device << std::endl;
+
+      for (;;) {
+        uint32_t width = 0;
+        uint32_t height = 0;
+        Local<ArrayBuffer> arrayBuffer;
+
+        ID3D11ShaderResourceView *resourceView;
+        vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Left, appPtr->m_pD3D11Device, (void **)&resourceView);
+
+        ID3D11Resource *resource = nullptr;
+        resourceView->GetResource(&resource);
+        if (resource) {
+          ID3D11Texture2D *tex = nullptr;
+          if (SUCCEEDED(resource->QueryInterface(&tex))) {
+            D3D11_TEXTURE2D_DESC desc;
+            tex->GetDesc(&desc); //Correct data gets filled out
+            // D3D11_RESOURCE_DIMENSION dim;
+            // resource->GetType(&dim); //value gets set as Texture2D which it should
+
+            getOut() << "got tex desc " <<
+              desc.Width << " " << desc.Height << " " <<
+              desc.MipLevels << " " << desc.ArraySize << " " <<
+              desc.SampleDesc.Count << " " << desc.SampleDesc.Quality << " " <<
+              desc.Format << " " <<
+              desc.Usage << " " << desc.BindFlags << " " << desc.CPUAccessFlags << " " << desc.MiscFlags <<
+              std::endl;
+            
+            desc.Usage = D3D11_USAGE_STAGING;
+            desc.BindFlags = 0;
+            desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+            desc.MiscFlags = 0;
+            
+            ID3D11Texture2D *tex2;
+            auto hr = appPtr->m_pD3D11Device->CreateTexture2D(
+              &desc,
+              NULL,
+              &tex2
+            );
+            if (FAILED(hr)) {
+              getOut() << "create texture failed " << (void *)hr << std::endl;
+              
+              infoQueueLog();
+            }
+            appPtr->m_pD3D11ImmediateContext->CopyResource(tex2, tex);
+            
+            getOut() << "map tex " << (void *)tex2 << std::endl;
+            D3D11_MAPPED_SUBRESOURCE mappedResource{};
+            hr = appPtr->m_pD3D11ImmediateContext->Map(
+              tex2,
+              0,
+              D3D11_MAP_READ,
+              0,
+              &mappedResource
+            );
+            if (SUCCEEDED(hr)) {
+              getOut() << "map ok" << std::endl;
+              
+              width = desc.Width;
+              height = desc.Height;
+              std::vector<uint8_t> rgb(width * height * 3);
+
+              UINT lBmpRowPitch = desc.Width * 3;
+              BYTE *sptr = (BYTE *)mappedResource.pData;
+              BYTE *dptr = (BYTE *)rgb.data();
+              for (size_t h = 0; h < height; ++h) {
+                for (size_t w = 0; w < width; ++w) {
+                  memcpy(dptr + w*3, sptr + w*4, 3);
+                }
+                sptr += mappedResource.RowPitch;
+                dptr += lBmpRowPitch;
+              }
+              
+              appPtr->m_pD3D11ImmediateContext->Unmap(
+                resource,
+                0
+              );
+
+              MirrorTextureMessageStruct message;
+              message.size = SjpegCompress(rgb.data(), desc.Width, desc.Height, 50, &message.data);
+
+              // getOut() << "emit event" << hmd[0] << " " << hmd[1] << " " << hmd[2] << " " << hmd[3] << std::endl;
+
+              {
+                std::lock_guard<std::mutex> lock(mutex);
+                mirrorTextureMessages.push_back(message);
+              }
+              uv_async_send(&eventAsync);
+            } else {
+              getOut() << "failed to map resource " << (void *)hr << std::endl;
+              
+              infoQueueLog();
+            }
+
+            tex->Release();
+            tex2->Release();
+          } else {
+            getOut() << "failed to get tex" << std::endl;
+          }
+          resource->Release();
+        } else {
+          getOut() << "failed to get resource" << std::endl;
+        }
+
+        vr::VRCompositor()->ReleaseMirrorTextureD3D11(resourceView);
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+      }
+    }).detach();
+
+    Local<Object> result = Nan::New<Object>();
+    result->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("ok").ToLocalChecked(), Nan::New<Boolean>(true));
+    Local<Object> res = Nan::New<Object>();
+    res->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("result").ToLocalChecked(), result);
+    info.GetReturnValue().Set(res);
   } else if (
     methodString == "addPlane"
   ) {
@@ -523,124 +672,6 @@ NAN_METHOD(handleMessage) {
     result->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("id").ToLocalChecked(), Nan::New<String>(name).ToLocalChecked());
     Local<Object> res = Nan::New<Object>();
     res->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("result").ToLocalChecked(), result);
-    info.GetReturnValue().Set(res);
-  } else if (
-    methodString == "getMirrorTexture"
-  ) {
-    getOut() << "get mirror texture " << (void *)app->m_pD3D11Device << std::endl;
-
-    uint32_t width = 0;
-    uint32_t height = 0;
-    Local<ArrayBuffer> arrayBuffer;
-
-    ID3D11ShaderResourceView *resourceView;
-    vr::VRCompositor()->GetMirrorTextureD3D11(vr::Eye_Left, app->m_pD3D11Device, (void **)&resourceView);
-
-    ID3D11Resource *resource = nullptr;
-    resourceView->GetResource(&resource);
-    if (resource) {
-      ID3D11Texture2D *tex = nullptr;
-      if (SUCCEEDED(resource->QueryInterface(&tex))) {
-        D3D11_TEXTURE2D_DESC desc;
-        tex->GetDesc(&desc); //Correct data gets filled out
-        // D3D11_RESOURCE_DIMENSION dim;
-        // resource->GetType(&dim); //value gets set as Texture2D which it should
-
-        getOut() << "got tex desc " <<
-          desc.Width << " " << desc.Height << " " <<
-          desc.MipLevels << " " << desc.ArraySize << " " <<
-          desc.SampleDesc.Count << " " << desc.SampleDesc.Quality << " " <<
-          desc.Format << " " <<
-          desc.Usage << " " << desc.BindFlags << " " << desc.CPUAccessFlags << " " << desc.MiscFlags <<
-          std::endl;
-        
-        desc.Usage = D3D11_USAGE_STAGING;
-        desc.BindFlags = 0;
-        desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
-        desc.MiscFlags = 0;
-        
-        ID3D11Texture2D *tex2;
-        auto hr = app->m_pD3D11Device->CreateTexture2D(
-          &desc,
-          NULL,
-          &tex2
-        );
-        if (FAILED(hr)) {
-          getOut() << "create texture failed " << (void *)hr << std::endl;
-          
-          infoQueueLog();
-        }
-        app->m_pD3D11ImmediateContext->CopyResource(tex2, tex);
-        
-        getOut() << "map tex " << (void *)tex2 << std::endl;
-        D3D11_MAPPED_SUBRESOURCE mappedResource{};
-        hr = app->m_pD3D11ImmediateContext->Map(
-          tex2,
-          0,
-          D3D11_MAP_READ,
-          0,
-          &mappedResource
-        );
-        if (SUCCEEDED(hr)) {
-          getOut() << "map ok" << std::endl;
-          
-          width = desc.Width;
-          height = desc.Height;
-          std::vector<uint8_t> rgb(width * height * 3);
-
-          UINT lBmpRowPitch = desc.Width * 3;
-          BYTE *sptr = (BYTE *)mappedResource.pData;
-          BYTE *dptr = (BYTE *)rgb.data();
-          for (size_t h = 0; h < height; ++h) {
-            for (size_t w = 0; w < width; ++w) {
-              memcpy(dptr + w*3, sptr + w*4, 3);
-            }
-            sptr += mappedResource.RowPitch;
-            dptr += lBmpRowPitch;
-          }
-          
-          app->m_pD3D11ImmediateContext->Unmap(
-            resource,
-            0
-          );
-
-          uint8_t *outData;
-          size_t outSize = SjpegCompress(rgb.data(), desc.Width, desc.Height, 50, &outData);
-
-          arrayBuffer = ArrayBuffer::New(Isolate::GetCurrent(), outSize);
-          memcpy(arrayBuffer->GetContents().Data(), outData, outSize);
-
-          SjpegFreeBuffer(outData);
-        } else {
-          getOut() << "failed to map resource " << (void *)hr << std::endl;
-          
-          infoQueueLog();
-        }
-
-        tex->Release();
-        tex2->Release();
-      } else {
-        getOut() << "failed to get tex" << std::endl;
-      }
-      resource->Release();
-    } else {
-      getOut() << "failed to get resource" << std::endl;
-    }
-
-    vr::VRCompositor()->ReleaseMirrorTextureD3D11(resourceView);
-
-    Local<Object> res = Nan::New<Object>();
-    if (!arrayBuffer.IsEmpty()) {
-      getOut() << "result ok" << std::endl;
-      Local<Object> result = Nan::New<Object>();
-      result->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("width").ToLocalChecked(), Nan::New<Number>(width));
-      result->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("height").ToLocalChecked(), Nan::New<Number>(height));
-      result->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("data").ToLocalChecked(), arrayBuffer);
-      res->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("result").ToLocalChecked(), result);
-    } else {
-      getOut() << "result empty" << std::endl;
-      res->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("result").ToLocalChecked(), Nan::Null());
-    }
     info.GetReturnValue().Set(res);
   } else if (
     methodString == "terminate"
