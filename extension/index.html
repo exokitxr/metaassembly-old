@@ -1160,10 +1160,31 @@ socket.request = async (method, args) => {
   return await p;
 };
 
-handleMirrorTexture = (() => {
-  let running = false;
+const mirrorTextureMesh = (() => {
+  const geometry = new THREE.PlaneBufferGeometry(1, 1);
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
+  canvas.ctx = ctx;
+  const texture = new THREE.Texture(canvas);
+  texture.generateMipmaps = false;
+  texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
+  texture.minFilter = THREE.LinearFilter;
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.frustumCulled = false;
+  return mesh;
+})();
+mirrorTextureMesh.position.set(-0.5, 1, 1);
+container.add(mirrorTextureMesh);
+handleMirrorTexture = (() => {
+  let running = false;
+  const canvas = mirrorTextureMesh.material.map.image;
+  const {ctx} = canvas;
+  mirrorTextureMesh.material.map.onUpdate = () => {
+    running = false;
+  };
   const _getImg = d => {
     const p = makePromise();
     const b = new Blob([d], {
@@ -1201,13 +1222,12 @@ handleMirrorTexture = (() => {
             })
         )
       );
-
-      if (!canvas.parentNode) {
+      /* if (!canvas.parentNode) {
         canvas.style.width = '800px';
         canvas.style.height = '400px';
         document.body.appendChild(canvas);
-      }
-      running = false;
+      } */
+      mirrorTextureMesh.material.map.needsUpdate = true;
     }
   };
 })();
