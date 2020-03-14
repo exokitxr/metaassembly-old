@@ -1174,42 +1174,53 @@ socket.request = async (method, args) => {
 };
 
 handleMirrorTexture = (() => {
+  let running = false;
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
-  return async (left, right) => {
+  const _getImg = d => {
     const p = makePromise();
-    {
-      const b = new Blob([left], {
-        type: 'image/jpeg',
-      });
-      const u = URL.createObjectURL(b);
-      // console.log('got u', d, b, u);
-      const img = new Image();
-      img.onload = () => {
-        URL.revokeObjectURL(u);
-        p.accept(img);
-      };
-      img.onerror = err => {
-        URL.revokeObjectURL(u);
-        p.reject(err);
-      };
-      img.src = u;
-    }
-    const img = await p;
-    
-    // w = new Uint32Array(w)[0];
-    // h = new Uint32Array(h)[0];
-    // console.log('got mirror texture', w, h, d);
-    canvas.width = img.width;
-    canvas.height = img.height;
-    // const imageData = ctx.createImageData(w, h);
-    // imageData.data.set(new Uint8ClampedArray(d));
-    // ctx.putImageData(imageData, 0, 0);
-    ctx.drawImage(img, 0, 0);
-    if (!canvas.parentNode) {
-      canvas.style.width = '800px';
-      canvas.style.height = '800px';
-      document.body.appendChild(canvas);
+    const b = new Blob([d], {
+      type: 'image/jpeg',
+    });
+    const u = URL.createObjectURL(b);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(u);
+      p.accept(img);
+    };
+    img.onerror = err => {
+      URL.revokeObjectURL(u);
+      p.reject(err);
+    };
+    img.src = u;
+    return p;
+  };
+  return async (left, right) => {
+    if (!running) {
+      running = true;
+      await Promise.all(
+        [left, right].map((d, i) =>
+          _getImg(d)
+            .then(img => {
+              const w = img.width * 2;
+              if (canvas.width !== w) {
+                canvas.width = w;
+              }
+              const h = img.height;
+              if (canvas.height !== h) {
+                canvas.height = h;
+              }
+              ctx.drawImage(img, i === 0 ? 0 : img.width, 0);
+            })
+        )
+      );
+
+      if (!canvas.parentNode) {
+        canvas.style.width = '800px';
+        canvas.style.height = '400px';
+        document.body.appendChild(canvas);
+      }
+      running = false;
     }
   };
 })();
