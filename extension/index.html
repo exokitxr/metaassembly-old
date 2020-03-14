@@ -1130,12 +1130,14 @@ socket.onmessage = m => {
         binaryMode = null;
       }
     } else if (binaryMode === 'mirrorTexture') {
-      socketData.push(m.data);
-      if (socketData.length >= 3) {
+      handleMirrorTexture(m.data);
+      binaryMode = null;
+      /* socketData.push(m.data);
+      if (socketData.length >= 1) {
         handlePose && handleMirrorTexture.apply(null, socketData);
         socketData.length = 0;
         binaryMode = null;
-      }
+      } */
     } else {
       console.warn('got unexpected binary message');
     }
@@ -1176,13 +1178,14 @@ socket.request = async (method, args) => {
 handleMirrorTexture = (() => {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
-  return async (w, h, d) => {
+  return async d => {
     const p = makePromise();
     {
       const b = new Blob([d], {
         type: 'image/jpeg',
       });
       const u = URL.createObjectURL(b);
+      // console.log('got u', d, b, u);
       const img = new Image();
       img.onload = () => {
         URL.revokeObjectURL(u);
@@ -1479,6 +1482,12 @@ let tradeObject = null;
 document.getElementById('enter-overlay-button').addEventListener('click', async e => {
   await socket.request('startRenderer', []);
   console.log('render started');
+
+  await socket.request('startPoses', []);
+  console.log('poses started');
+
+  await socket.request('startMirrorTextures', []);
+  console.log('mirror textures started');
 
   const geometry = new THREE.CylinderBufferGeometry(0, 0.1, 0.1, 3, 1);
   const colors = new Float32Array(geometry.attributes.position.array.length);

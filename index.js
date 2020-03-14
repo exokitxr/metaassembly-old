@@ -93,8 +93,8 @@ if (!noLaunch) {
             if (result && result.data && result.data instanceof ArrayBuffer) {
               console.log('send mirror texture', result.data);
               s.send('mirrorTexture');
-              s.send(Uint32Array.from([result.width]).buffer);
-              s.send(Uint32Array.from([result.height]).buffer);
+              // s.send(Uint32Array.from([result.width]).buffer);
+              // s.send(Uint32Array.from([result.height]).buffer);
               s.send(result.data);
             }
             s.send(JSON.stringify({
@@ -109,10 +109,15 @@ if (!noLaunch) {
     });
     
     setEventHandler(e => {
-      s.send('pose');
-      s.send(e.hmd);
-      s.send(e.left);
-      s.send(e.right);
+      if (e.type === 'pose') {
+        s.send(e.type);
+        s.send(e.hmd);
+        s.send(e.left);
+        s.send(e.right);
+      } else if (e.type === 'mirrorTexture') {
+        s.send(e.type);
+        s.send(e.data);
+      }
     });
   });
   wss.on('error', err => {
