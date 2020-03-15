@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+<head>
+<style>
+* {
+  box-sizing: border-box;
+}
+html, body {
+  width: 4096px;
+  height: 256px;
+  margin: 0;
+}
+.users {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+.users .user {
+  display: flex;
+  width: 256px;
+  height: 256px;
+  flex-direction: column;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+.users .user .name {
+  padding: 5px;
+  background-color: #000;
+  color: #FFF;
+}
+</style>
+</head>
+<body>
+
+<div class=users>
+  {{#users}}<div class=user>
+    <span class=name>{{.}}</span>
+    <div class=img></div>
+  </div>{{/users}}
+
+</body>
+</html>

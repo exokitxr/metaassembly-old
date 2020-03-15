@@ -402,9 +402,11 @@ Array.from(tools).forEach((tool, i) => {
       camera.position.y = 1.2;
       orbitControls.enabled = false;
     } else if (newTool === 'hud') {
-      console.log('open hud');
+      tool.classList.toggle('selected');
+      hudUiMesh.visible = !hudUiMesh.visible;
     } else if (newTool === 'trade') {
-      console.log('open trade');
+      tool.classList.toggle('selected');
+      tradeUiMesh.visible = !tradeUiMesh.visible;
     } else if (newTool === 'microphone') {
       tool.classList.toggle('selected');
       console.log('start mic');
@@ -462,7 +464,6 @@ const _makeUiMesh = ({uiWidth, uiHeight, uiWorldWidth, uiWorldHeight}) => {
   const mesh = new THREE.Mesh(geometry, material);
   mesh.scale.x = uiWorldWidth;
   mesh.scale.y = uiWorldHeight;
-  mesh.visible = false;
   mesh.frustumCulled = false;
   
   const highlightMesh = (() => {
@@ -487,7 +488,6 @@ const _makeUiMesh = ({uiWidth, uiHeight, uiWorldWidth, uiWorldHeight}) => {
     imageData.data.set(result.data);
     ctx.putImageData(imageData, 0, 0);
     texture.needsUpdate = true;
-    mesh.visible = true;
     
     anchors = result.anchors;
   };
@@ -797,7 +797,53 @@ const tradeUiMesh = (() => {
   return mesh;
 })();
 tradeUiMesh.position.set(0, 1, 0);
+tradeUiMesh.visible = false;
 scene.add(tradeUiMesh);
+
+const hudUiMesh = (() => {
+  const uiWidth = 4096;
+  const uiHeight = 4096/16;
+  const uiWorldWidth = 2;
+  const uiWorldHeight = uiWorldWidth * uiHeight/uiWidth;
+
+  const mesh = _makeUiMesh({
+    uiWidth,
+    uiHeight,
+    uiWorldWidth,
+    uiWorldHeight,
+  });
+  const renderer = _makeUiRenderer({
+    url: 'hud.html',
+    uiWidth,
+    uiHeight,
+  });
+
+  const users = [];
+  mesh.setUsers = newUsers => {
+    users = newUsers;
+    mesh.update();
+  };
+  mesh.onupdate = () => {
+    const p = renderer.render({
+      users: ['You'].concat(users),
+    });
+    p.then(result => {
+      /* if (tradeObject) {
+        socket.request('updateObjectTexture', [
+          tradeObject.id,
+          result.width,
+          result.height,
+          result.data,
+        ]);
+      } */
+    });
+    return p;
+  };
+  return mesh;
+})();
+hudUiMesh.position.set(0, 1, 1);
+hudUiMesh.visible = false;
+scene.add(hudUiMesh);
 
 const rayMesh = (() => {
   const geometry = new THREE.CylinderBufferGeometry(0.002, 0.002, 1, 3, 1, false, 0, Math.PI*2)
