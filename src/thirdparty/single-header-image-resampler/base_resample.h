@@ -476,7 +476,7 @@ bool SampleKernelAverageH(uint8* src, uint32 src_width, uint32 src_height,
     uint8* src_pixel = BLOCK_OFFSET_RGB24(src, src_width, i_x, i_y);
 
     if (h_ratio >= 1.0) {
-      distance = min(max_distance, distance);
+      distance = std::min(max_distance, distance);
       weight = 1.0f - distance / max_distance;
     } else {
       if (distance >= 0.5f - h_ratio) {
@@ -537,7 +537,7 @@ bool SampleKernelAverageV(uint8* src, uint32 src_width, uint32 src_height,
     uint8* src_pixel = BLOCK_OFFSET_RGB24(src, src_width, i_x, i_y);
 
     if (v_ratio >= 1.0) {
-      distance = min(max_distance, distance);
+      distance = std::min(max_distance, distance);
       weight = 1.0f - distance / max_distance;
     } else {
       if (distance >= 0.5f - v_ratio) {
