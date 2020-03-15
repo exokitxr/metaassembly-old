@@ -118,6 +118,7 @@ class XRChannelConnection extends EventTarget {
       const _sendJoin = () => this.rtcWs.sendAll({
         method: 'join',
         src: this.connectionId,
+        timestamp: Date.now(),
       });
 
       let polling = false;
@@ -367,6 +368,7 @@ class XRChannelConnection extends EventTarget {
     this.rtcWs.sendAll({
       src: this.connectionId,
       method: 'leave',
+      timestamp: Date.now(),
     });
     this.rtcWs.close();
     this.rtcWs = null;
