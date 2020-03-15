@@ -444,7 +444,6 @@ NAN_METHOD(handleMessage) {
               MirrorTextureMessageStruct message;
 
               const UINT lBmpRowPitch = desc.Width * 3;
-              const size_t size = 256;
               for (size_t i = 0; i < 2; i++) {
                 std::vector<uint8_t> rgb(desc.Width * desc.Height * 3);
                 BYTE *sptr = (BYTE *)mappedResources[i].pData;
@@ -462,9 +461,13 @@ NAN_METHOD(handleMessage) {
                   0
                 );
 
+                const size_t size = 256;
                 std::vector<uint8_t> scaledRgb(size * size * 3);
                 std::string errors;
-                ResampleImage24(rgb.data(), desc.Width, desc.Height, scaledRgb.data(), size, size, KernelTypeBilinear, &errors);
+                base::ResampleImage24(rgb.data(), desc.Width, desc.Height, scaledRgb.data(), size, size, base::KernelType::KernelTypeBilinear, &errors);
+                if (errors.size() > 0) {
+                  std::cout << "scale errors: " << errors << std::endl;
+                }
 
                 message.sizes[i] = SjpegCompress(scaledRgb.data(), size, size, 50, &message.datas[i]);
               }
