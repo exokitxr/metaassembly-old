@@ -677,30 +677,3 @@ section:nth-child(odd) {
   margin-right: 10px;
   user-select: all;
 }
-footer {
-  position: fixed;
-  bottom: 0;
-}
-.screenshares {
-  display: flex;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-}
-.screenshares:not(.open) {
-  display: none;
-}
-.screenshares .screenshare {
-  display: flex;
-  flex-direction: column;
-}
-.screenshares .screenshare .name {
-  padding: 5px 10px;
-  background: #000;
-  color: #FFF;
-}
-.screenshares .screenshare canvas {
-  width: 100px;
-  height: 100px;
-}
