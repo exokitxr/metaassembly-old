@@ -56,9 +56,9 @@ class DbSocket extends EventTarget {
   }
   connect() {
     const _childAdded = (e, remove) => {
-      const v = e.val();
-      if (v) {
-        const {src, dst} = v;
+      const data = e.val();
+      if (data) {
+        const {src, dst} = data;
         if (src !== this.connectionId && (!dst || dst === this.connectionId)) {
           this.dispatchEvent(new MessageEvent('message', {
             data,
