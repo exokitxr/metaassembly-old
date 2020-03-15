@@ -372,6 +372,8 @@ const keys = {
 })();
 
 const tools = document.querySelectorAll('.tool');
+const cameraToolNames = ['orbit', 'firstperson', 'thirdperson'];
+const hudToolNames = ['hud', 'trade'];
 Array.from(tools).forEach((tool, i) => {
   /* tool.addEventListener('mousedown', e => {
     e.stopPropagation();
@@ -381,7 +383,6 @@ Array.from(tools).forEach((tool, i) => {
     e.stopPropagation();
 
     const newTool = tool.getAttribute('tool');
-    const cameraToolNames = ['orbit', 'firstperson', 'thirdperson'];
     if (cameraToolNames.includes(newTool)) {
       if (newTool !== cameraMode) {
         Array.from(tools).forEach(tool => {
@@ -402,11 +403,33 @@ Array.from(tools).forEach((tool, i) => {
       camera.position.y = 1.2;
       orbitControls.enabled = false;
     } else if (newTool === 'hud') {
-      tool.classList.toggle('selected');
+      Array.from(tools).forEach(tool => {
+        if (hudToolNames.includes(tool.getAttribute('tool'))) {
+          tool.classList.remove('selected');
+        }
+      });
       hudUiMesh.visible = !hudUiMesh.visible;
+      tradeUiMesh.visible = false;
+
+      if (hudUiMesh.visible) {
+        tool.classList.add('selected');
+      } else {
+        tool.classList.remove('selected');
+      }
     } else if (newTool === 'trade') {
-      tool.classList.toggle('selected');
+      Array.from(tools).forEach(tool => {
+        if (hudToolNames.includes(tool.getAttribute('tool'))) {
+          tool.classList.remove('selected');
+        }
+      });
+      hudUiMesh.visible = false;
       tradeUiMesh.visible = !tradeUiMesh.visible;
+
+      if (tradeUiMesh.visible) {
+        tool.classList.add('selected');
+      } else {
+        tool.classList.remove('selected');
+      }
     } else if (newTool === 'microphone') {
       tool.classList.toggle('selected');
       console.log('start mic');
@@ -459,7 +482,7 @@ const _makeUiMesh = ({uiWidth, uiHeight, uiWorldWidth, uiWorldHeight}) => {
     map: texture,
     side: THREE.DoubleSide,
     transparent: true,
-    alphaTest: 0.5,
+    alphaTest: 0.1,
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.scale.x = uiWorldWidth;
@@ -519,7 +542,7 @@ const _makeUiMesh = ({uiWidth, uiHeight, uiWorldWidth, uiWorldHeight}) => {
     return false;
   };
   mesh.press = () => {
-    return mesh.onpress(hoveredAnchor);
+    return mesh.visible ? mesh.onpress(hoveredAnchor) : false;
   };
   Promise.resolve().then(() => {
     mesh.update();
@@ -801,8 +824,8 @@ tradeUiMesh.visible = false;
 scene.add(tradeUiMesh);
 
 const hudUiMesh = (() => {
-  const uiWidth = 4096;
-  const uiHeight = 4096/16;
+  const uiWidth = 2048;
+  const uiHeight = 512;
   const uiWorldWidth = 2;
   const uiWorldHeight = uiWorldWidth * uiHeight/uiWidth;
 
@@ -838,6 +861,18 @@ const hudUiMesh = (() => {
       } */
     });
     return p;
+  };
+  mesh.onpress = async hoveredAnchor => {
+    if (hoveredAnchor) {
+      const {id} = hoveredAnchor;
+      if (id === 'microphone') {
+        document.querySelector('.tool[tool=microphone]').click();
+      } else if (id === 'screenshare') {
+        document.querySelector('.tool[tool=screenshare]').click();
+      } else {
+        console.warn('unknown anchor', id);
+      }
+    }
   };
   return mesh;
 })();
@@ -1459,7 +1494,7 @@ function onSessionStarted(session) {
     });
     controller.addEventListener('selectstart', e => {
       if (controller.userData.data && controller.userData.data.handedness === 'right') {
-        wristUiMesh.press() || tradeUiMesh.press();
+        wristUiMesh.press() || tradeUiMesh.press() || hudUiMesh.press();
         // _beginTool(true, false, false);
       }
       triggerDowns[i] = true;
@@ -1555,7 +1590,7 @@ const _updateRaycasterFromObject = (raycaster, o) => {
   raycaster.ray.direction.set(0, 0, -1).applyQuaternion(o.quaternion);
 };
 const _updateIntersections = raycaster => {
-  const intersected = [wristUiMesh, tradeUiMesh].some(uiMesh => {
+  const intersected = [wristUiMesh, tradeUiMesh, hudUiMesh].some(uiMesh => {
     const intersections = raycaster.intersectObject(uiMesh);
     if (intersections.length > 0 && intersections[0].distance < 3) {
       const [{distance, uv}] = intersections;
@@ -1693,7 +1728,7 @@ window.addEventListener('mousemove', e => {
 });
 window.addEventListener('mousedown', e => {
   if (!currentSession) {
-    wristUiMesh.press() || tradeUiMesh.press();
+    wristUiMesh.press() || tradeUiMesh.press() || hudUiMesh.press();
   }
 });
 
