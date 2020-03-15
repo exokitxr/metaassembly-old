@@ -45,6 +45,7 @@
 #include "javascript_renderer.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <sjpeg/sjpeg.h>
+#include <single-header-image-resampler/base_resample.h>
 
 #include "out.h"
 #include "file_io.h"
@@ -62,10 +63,8 @@ public:
 
 class MirrorTextureMessageStruct {
 public:
-  uint8_t *leftData;
-  size_t leftSize;
-  uint8_t *rightData;
-  size_t rightSize;
+  uint8_t *datas[2];
+  size_t sizes[2];
 };
 uv_async_t eventAsync;
 std::mutex mutex;
@@ -112,8 +111,8 @@ void RunAsync(uv_async_t *handle) {
       for (size_t i = 0; i < mirrorTextureMessages.size(); i++) {
         const auto &message = mirrorTextureMessages[i];
 
-        Local<ArrayBuffer> leftArrayBuffer = ArrayBuffer::New(Isolate::GetCurrent(), message.leftData, message.leftSize);
-        Local<ArrayBuffer> rightArrayBuffer = ArrayBuffer::New(Isolate::GetCurrent(), message.rightData, message.rightSize);
+        Local<ArrayBuffer> leftArrayBuffer = ArrayBuffer::New(Isolate::GetCurrent(), message.datas[0], message.sizes[0]);
+        Local<ArrayBuffer> rightArrayBuffer = ArrayBuffer::New(Isolate::GetCurrent(), message.datas[1], message.sizes[2]);
         
         Local<Object> event = Nan::New<Object>();
         event->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("type").ToLocalChecked(), Nan::New<String>("mirrorTexture").ToLocalChecked());
@@ -128,8 +127,8 @@ void RunAsync(uv_async_t *handle) {
         leftArrayBuffer->Neuter();
         rightArrayBuffer->Neuter();
 
-        SjpegFreeBuffer(message.leftData);
-        SjpegFreeBuffer(message.rightData);
+        SjpegFreeBuffer(message.datas[0]);
+        SjpegFreeBuffer(message.datas[1]);
       }
       mirrorTextureMessages.clear();
     }
@@ -441,16 +440,15 @@ NAN_METHOD(handleMessage) {
             );
             if (SUCCEEDED(hrs[0]) && SUCCEEDED(hrs[1])) {
               // getOut() << "map ok" << std::endl;
-              
-              std::vector<uint8_t> rgbs[2];
-              for (size_t i = 0; i < 2; i++) {
-                rgbs[i] = std::vector<uint8_t>(desc.Width * desc.Height * 3);
-              }
+
+              MirrorTextureMessageStruct message;
 
               const UINT lBmpRowPitch = desc.Width * 3;
+              const size_t size = 256;
               for (size_t i = 0; i < 2; i++) {
+                std::vector<uint8_t> rgb(desc.Width * desc.Height * 3);
                 BYTE *sptr = (BYTE *)mappedResources[i].pData;
-                BYTE *dptr = (BYTE *)rgbs[i].data();
+                BYTE *dptr = (BYTE *)rgb.data();
                 for (size_t h = 0; h < desc.Height; ++h) {
                   for (size_t w = 0; w < desc.Width; ++w) {
                     memcpy(dptr + w*3, sptr + w*4, 3);
@@ -458,20 +456,18 @@ NAN_METHOD(handleMessage) {
                   sptr += mappedResources[i].RowPitch;
                   dptr += lBmpRowPitch;
                 }
-              }
-              
-              appPtr->m_pD3D11ImmediateContext->Unmap(
-                resources[0],
-                0
-              );
-              appPtr->m_pD3D11ImmediateContext->Unmap(
-                resources[1],
-                0
-              );
 
-              MirrorTextureMessageStruct message;
-              message.leftSize = SjpegCompress(rgbs[0].data(), desc.Width, desc.Height, 50, &message.leftData);
-              message.rightSize = SjpegCompress(rgbs[1].data(), desc.Width, desc.Height, 50, &message.rightData);
+                appPtr->m_pD3D11ImmediateContext->Unmap(
+                  resources[i],
+                  0
+                );
+
+                std::vector<uint8_t> scaledRgb(size * size * 3);
+                std::string errors;
+                ResampleImage24(rgb.data(), desc.Width, desc.Height, scaledRgb.data(), size, size, KernelTypeBilinear, &errors);
+
+                message.sizes[i] = SjpegCompress(scaledRgb.data(), size, size, 50, &message.datas[i]);
+              }
 
               // getOut() << "emit event" << hmd[0] << " " << hmd[1] << " " << hmd[2] << " " << hmd[3] << std::endl;
 
