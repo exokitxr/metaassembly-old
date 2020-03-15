@@ -1525,6 +1525,22 @@ function animate() {
     oldCameraPosition = camera.position.clone();
     camera.position.add(new THREE.Vector3(0, 0, 2).applyQuaternion(camera.quaternion));
   }
+  if (!currentSession && !avatarObject) {
+    const texture = mirrorTextureMesh.textures[0];
+    if (!texture.image || texture.image.tagName !== 'CANVAS') {
+      const captureSize = 256;
+      const canvas = document.createElement('canvas');
+      canvas.width = captureSize;
+      canvas.height = captureSize;
+      const ctx = canvas.getContext('2d');
+      canvas.ctx = ctx;
+      texture.image = canvas;
+      mirrorTextureMesh.uWidth.value = captureSize;
+      mirrorTextureMesh.uHeight.value = captureSize;
+    }
+    texture.image.ctx.drawImage(renderer.domElement, 0, 0, texture.image.width, texture.image.height);
+    texture.needsUpdate = true;
+  }
   renderer.render(scene, camera);
   if (thirdperson) {
     camera.position.copy(oldCameraPosition);
