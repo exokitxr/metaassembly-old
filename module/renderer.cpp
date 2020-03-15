@@ -35,7 +35,7 @@
 #include <psapi.h>
 
 // #include "device/vr/detours/detours.h"
-#include "json.hpp"
+// #include "json.hpp"
 
 // #include "device/vr/openvr/test/out.h"
 // #include "third_party/openvr/src/src/vrcommon/sharedlibtools_public.h"
@@ -50,7 +50,7 @@
 #include "out.h"
 #include "file_io.h"
 
-using json = nlohmann::json;
+// using json = nlohmann::json;
 using Base64 = macaron::Base64;
 using namespace v8;
 
@@ -144,7 +144,7 @@ std::string logSuffix = "_native_host";
 // CHAR s_szDllPath[MAX_PATH] = "vrclient_x64.dll";
 std::string dllDir;
 
-inline uint32_t divCeil(uint32_t x, uint32_t y) {
+/* inline uint32_t divCeil(uint32_t x, uint32_t y) {
   return (x + y - 1) / y;
 }
 constexpr uint32_t chunkSize = 1000*1000;
@@ -171,7 +171,7 @@ void respond(const json &j) {
     }
     // std::cout << "done sending" << std::endl;
   }
-}
+} */
 
 void terminateProcesses(const std::vector<const char *> &candidateFilenames) {
   char cwdBuf[MAX_PATH];
