@@ -55,38 +55,29 @@ class DbSocket extends EventTarget {
     this.connect();
   }
   connect() {
-    const _childAdded = e => {
+    const _childAdded = (e, remove) => {
       const v = e.val();
       if (v) {
-        const _handleData = data => {
-          const {src, dst} = data;
-          if (src !== this.connectionId && (!dst || dst === this.connectionId)) {
-            this.dispatchEvent(new MessageEvent('message', {
-              data,
-            }));
-            e.ref.remove();
-          }
-        };
-        if (typeof v === 'string') {
-          const data = JSON.parse(v);
-          _handleData(data);
-        } else {
-          for (const k in v) {
-            const data = JSON.parse(v[k]);
-            _handleData(data);
-          }
+        const {src, dst} = v;
+        if (src !== this.connectionId && (!dst || dst === this.connectionId)) {
+          this.dispatchEvent(new MessageEvent('message', {
+            data,
+          }));
+          e.ref.remove();
         }
       }
     };
+    const _childAddedNoRemove = e => _childAdded(e, false);
+    const _childAddedRemove = e => _childAdded(e, true);
     const roomRef = database.ref('connections/' + this.roomId);
-    roomRef.once('value', _childAdded);
-    roomRef.on('child_added', _childAdded);
+    roomRef.once('value', _childAddedNoRemove);
+    roomRef.on('child_added', _childAddedNoRemove);
     const messagesRef = database.ref('messages/' + this.roomId + '/' + this.connectionId);
-    messagesRef.once('value', _childAdded);
-    messagesRef.on('child_added', _childAdded);
+    messagesRef.once('value', _childAddedRemove);
+    messagesRef.on('child_added', _childAddedRemove);
     this.cleanup = () => {
-      roomRef.off('child_added', _childAdded);
-      messagesRef.off('child_added', _childAdded);
+      roomRef.off('child_added', _childAddedNoRemove);
+      messagesRef.off('child_added', _childAddedRemove);
     };
 
     Promise.resolve().then(() => {
@@ -102,11 +93,11 @@ class DbSocket extends EventTarget {
   async sendAll(data) {
     const roomRef = database.ref('connections/' + this.roomId);
     roomRef.remove();
-    await roomRef.push().set(JSON.stringify(data));
+    await roomRef.push().set(data);
   }
   async send(dst, data) {
     const messagesRef = database.ref('messages/' + this.roomId + '/' + dst);
-    await messagesRef.push().set(JSON.stringify(data));
+    await messagesRef.push().set(data);
   }
 }
 
