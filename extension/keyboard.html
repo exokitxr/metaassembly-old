@@ -41,6 +41,9 @@ h1 {
   flex-direction: column;
   justify-content: space-between;
 }
+.buttons + .buttons {
+  margin-left: 10px;
+}
 .button {
   padding: 10px 20px;
   background-color: #42a5f5;
@@ -178,7 +181,6 @@ a {
 
 <div class="keyboard">
   <h1>
-    <span class=label>Room code: </span>
     <span class=box>{{text}}</span>
     {{^connected}}
     <span class=buttons>
@@ -191,6 +193,10 @@ a {
       <a class=button id=disconnect>Disconnect</a>
     </span>
     {{/connected}}
+    <span class=buttons>
+      <a class="button {{#hudEnabled}}enabled{{/hudEnabled}}" id=stream>Hud</a>
+      <a class="button {{#tradeEnabled}}enabled{{/tradeEnabled}}" id=trade>Trade</a>
+    </span>
   </h1>
   <div class="keyboard__row keyboard__row--h1">
     <a data-key="27" class="key--word">
