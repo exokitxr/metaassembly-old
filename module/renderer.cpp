@@ -112,7 +112,7 @@ void RunAsync(uv_async_t *handle) {
         const auto &message = mirrorTextureMessages[i];
 
         Local<ArrayBuffer> leftArrayBuffer = ArrayBuffer::New(Isolate::GetCurrent(), message.datas[0], message.sizes[0]);
-        Local<ArrayBuffer> rightArrayBuffer = ArrayBuffer::New(Isolate::GetCurrent(), message.datas[1], message.sizes[2]);
+        Local<ArrayBuffer> rightArrayBuffer = ArrayBuffer::New(Isolate::GetCurrent(), message.datas[1], message.sizes[1]);
         
         Local<Object> event = Nan::New<Object>();
         event->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("type").ToLocalChecked(), Nan::New<String>("mirrorTexture").ToLocalChecked());
