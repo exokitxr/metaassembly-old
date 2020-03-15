@@ -1678,6 +1678,39 @@ window.addEventListener('resize', e => {
   camera.updateProjectionMatrix();
 });
 
+/* window.downloadPlaneMesh = async () => {
+  const p = makePromise();
+  const planeMesh = (() => {
+    const geometry = new THREE.PlaneBufferGeometry(1, 1);
+    const canvas = document.createElement('canvas');
+    canvas.width = 1;
+    canvas.height = 1;
+    const texture = new THREE.Texture(canvas, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping, THREE.LinearFilter, THREE.LinearMipMapFilter, THREE.RGBAFormat, THREE.UnsignedByteType, 16, THREE.LinearEncoding);
+    const material = new THREE.MeshStandardMaterial({
+      map: texture,
+      transparent: true,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.frustumCulled = false;
+    return mesh;
+  })();
+  const exportScene = new THREE.Scene();
+  exportScene.add(planeMesh);
+  new THREE.GLTFExporter().parse(exportScene, p.accept, {
+    binary: true,
+  });
+  const d = await p;
+  const b = new Blob([d], {
+    type: 'text/plain',
+  });
+  const u = URL.createObjectURL(b);
+  const a = document.createElement('a');
+  a.href = u;
+  a.download = 'plane.glb';
+  a.click();
+  URL.revokeObjectURL(u);
+}; */
+
 </script>
 </body>
 </html>
