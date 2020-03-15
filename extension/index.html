@@ -93,6 +93,9 @@
       <div class=button id=enter-xr-button>Enter XR</div>
       <div class=button id=enter-ar-button>Enter AR</div>
     </div>
+    <footer>
+      <div class=screenshares id=screenshares></div>
+    </footer>
   </header>
   <canvas id=canvas></canvas>
 <script type=module>
@@ -836,6 +839,14 @@ const _setConnected = () => {
   _clearMultiplayerClasses();
   header.classList.add('connected');
   wristUiMesh.setConnected(true);
+
+  const screensharesEl = document.getElementById('screenshares');
+  screensharesEl.innerHTML = '';
+  const screenshare = document.createElement('div');
+  screenshare.classList.add('screenshare');
+  screenshare.innerHTML = `<div class=name>You</div>`;
+  screenshare.appendChild(mirrorTextureMesh.getTexture(0));
+  screensharesEl.appendChild(screenshare);
 };
 const _setDisconnected = () => {
   _clearMultiplayerClasses();
