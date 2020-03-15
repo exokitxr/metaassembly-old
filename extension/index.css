@@ -47,6 +47,7 @@ header .nav {
   font-size: 14px;
   text-decoration: none;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 header .nav:hover, header .nav.open {
   border-bottom-color: #ef5350;
@@ -339,7 +340,7 @@ header .popdown ul {
 header .popdown li {
   margin: 10px 0;
 }
-header .room,
+header .roomer,
 header .addressbook,
 header .wallet,
 header .xr
@@ -352,14 +353,16 @@ header .xr
   border-radius: 7px;
   align-items: center;
 }
-header .room.disconnected,
-header .room.dialog,
-header .room.connected {
+header .roomer.disconnected,
+header .roomer.list,
+header .roomer.dialog,
+header .roomer.connected {
   display: none;
 }
-header.connected .room.connected,
-header.dialog .room.dialog,
-header:not(.dialog):not(.connected) .room.disconnected {
+header.connected .roomer.connected,
+header.list .roomer.list,
+header.dialog .roomer.dialog,
+header:not(.list):not(.dialog):not(.connected) .roomer.disconnected {
   display: flex;
 }
 header .addressbook,
@@ -430,21 +433,21 @@ header .button.secondary:hover {
   background-color: #e53935;
 }
 header .button:not(:first-child),
-header .room .room-code {
+header .roomer .room-code {
   margin-left: 10px;
 }
-header .room .connect-status {
+header .roomer .connect-status {
   padding: 5px;
   border-radius: 5px;
 }
-header .room .connect-status.disconnected {
+header .roomer .connect-status.disconnected {
   /* background-color: #ffb74d;
   background-color: #EEE; */
 }
-header .room .connect-status.connected {
+header .roomer .connect-status.connected {
   color: #81c784;
 }
-header .room .room-code .room-code-text {
+header .roomer .room-code .room-code-text {
   display: inline-flex;
   padding: 5px;
   margin: 0 5px;
@@ -452,11 +455,48 @@ header .room .room-code .room-code-text {
   background-color: #FFF;
   user-select: all;
 }
-header .room .room-code .room-link {
+header .roomer .room-code .room-link {
   display: inline-flex;
   padding: 5px;
   color: #1e88e5;
   font-size: 15px;
+}
+header .roomer {
+  position: relative;
+}
+header .roomer .rooms {
+  display: flex;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: #FFF;
+  flex-direction: column;
+}
+header .roomer .rooms .room,
+header .roomer .rooms .placeholder {
+  padding: 10px;
+}
+header .roomer .rooms .room {
+  display: flex;
+  align-items: center;
+}
+header .roomer .rooms .room {
+  /* background-color: #1e88e5; */
+}
+header .roomer .rooms .room:hover {
+  background-color: #42a5f5;
+  color: #FFF;
+}
+header .roomer .rooms .room:active {
+  background-color: #1e88e5;
+  color: #FFF;
+}
+header .roomer .rooms .room .users {
+  margin-right: 5px;
+  padding: 5px;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
 }
 #interface-iframe {
   position: absolute;

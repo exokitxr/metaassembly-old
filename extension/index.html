@@ -17,18 +17,23 @@
     </a> -->
     <a href="/" class="nav open" id="explore-dropdown">ムらサ</a>
     <!-- <a href="/" class="nav open" id="explore-dropdown">Augment</a> -->
-    <div class="room disconnected">
-      <div class="connect-status disconnected">Multiplayer disconnected</div>
+    <div class="roomer disconnected">
+      <div class="connect-status disconnected">Offline</div>
+      <div class=button id=rooms-button>Rooms&nbsp;<i class="fa fa-chevron-down"></i></div>
       <div class=button id=create-room-button>Create room</div>
       <div class=button id=use-code-button>Use code</div>
     </div>
-    <div class="room dialog">
-      <div class="connect-status disconnected">Multiplayer disconnected</div>
+    <div class="roomer list">
+      <div class="connect-status disconnected">Choose room...</div>
+      <div class=button id=unrooms-button>Rooms&nbsp;<i class="fa fa-chevron-up"></i></div>
+      <div class=rooms id=rooms></div>
+    </div>
+    <div class="roomer dialog">
       <input type=text id=room-code-input placeholder="Enter room code">
       <div class=button id=connect-button>Connect</div>
       <div class=button id=cancel-connect-button>Cancel</div>
     </div>
-    <div class="room connected">
+    <div class="roomer connected">
       <div class=users><i class="fa fa-user"></i> <span id=user-count-text>1</span></div>
       <div class=room-code>Room code: <span class=room-code-text id=room-code-text></span> Link: <a href="#" target="_blank" class=room-link id=room-link><i class="fa fa-external-link"></i></a></div>
       <div class=button id=disconnect-button>Disconnect</div>
@@ -45,6 +50,14 @@
       <a id=tool-3 class="tool" tool="thirdperson">
         <i class="fal fa-walking"></i>
         <div class=label>Third person</div>
+      </a>
+      <a id=tool-4 class="tool" tool="microphone">
+        <i class="fal fa-microphone"></i>
+        <div class=label>Microphone</div>
+      </a>
+      <a id=tool-5 class="tool" tool="screenshare">
+        <i class="fal fa-video"></i>
+        <div class=label>Screenshare</div>
       </a>
     </div>
     <div class="addressbook">
@@ -91,7 +104,7 @@ import {OrbitControls} from './OrbitControls.js';
 import {GLTFLoader} from './GLTFLoader.js';
 // import {GLTFExporter} from './GLTFExporter.js';
 import {XRControllerModelFactory} from './XRControllerModelFactory.js';
-import {makeId, XRChannelConnection} from './multiplayer.js';
+import {makeId, listRooms, XRChannelConnection} from './multiplayer.js';
 import {initLocalRig, updatePlayerFromCamera, updatePlayerFromXr, updatePlayerFromArrays, updatePlayerDefault, getRigBoneTexture, bindPeerConnection} from './peerconnection.js';
 
 const network = 'rinkeby';
@@ -352,27 +365,38 @@ Array.from(tools).forEach((tool, i) => {
     e.stopPropagation();
 
     const newTool = tool.getAttribute('tool');
-    if (newTool !== cameraMode) {
-      Array.from(tools).forEach(tool => {
-        tool.classList.remove('selected');
-      });
-      cameraMode = newTool;
-      tool.classList.add('selected');
+    const cameraToolNames = ['orbit', 'firstperson', 'thirdperson'];
+    if (cameraToolNames.includes(newTool)) {
+      if (newTool !== cameraMode) {
+        Array.from(tools).forEach(tool => {
+          if (cameraToolNames.includes(tool.getAttribute('tool'))) {
+            tool.classList.remove('selected');
+          }
+        });
+        cameraMode = newTool;
+        tool.classList.add('selected');
+      }
     }
 
-    if (cameraMode === 'orbit') {
+    if (newTool === 'orbit') {
       document.pointerLockElement && document.exitPointerLock();
       orbitControls.enabled = true;
-    } else if (cameraMode === 'firstperson' || cameraMode === 'thirdperson') {
+    } else if (newTool === 'firstperson' || newTool === 'thirdperson') {
       renderer.domElement.requestPointerLock();
       camera.position.y = 1.2;
       orbitControls.enabled = false;
+    } else if (newTool === 'microphone') {
+      tool.classList.toggle('selected');
+      console.log('start mic');
+    } else if (newTool === 'screenshare') {
+      tool.classList.toggle('selected');
+      console.log('start screenshare');
     } else {
       document.pointerLockElement && document.exitPointerLock();
       orbitControls.enabled = false;
     }
     if (rig) {
-      if (cameraMode === 'firstperson' || currentSession || avatarObject) {
+      if (newTool === 'firstperson' || currentSession || avatarObject) {
         rig.decapitate();
       } else {
         rig.undecapitate();
@@ -804,10 +828,34 @@ window.addEventListener('beforeunload', _disconnectMultiplayer);
 
 const header = document.getElementById('header');
 const _clearMultiplayerClasses = () => {
-  ['connected', 'dialog'].forEach(c => {
+  ['connected', 'list', 'dialog'].forEach(c => {
     header.classList.remove(c);
   });
 };
+document.getElementById('rooms-button').addEventListener('click', async e => {
+  const rooms = await listRooms();
+  const roomsEl = document.getElementById('rooms');
+  if (rooms.length > 0) {
+    roomsEl.innerHTML = rooms.map(room => {
+      return `<a class=room room=${room}>
+        <div class=users>1 <i class="fa fa-user"></i></div>
+        <b class=name>${room}</b>
+      </a>`;
+    }).join('\n');
+    Array.from(roomsEl.querySelectorAll('.room')).forEach(room => {
+      room.addEventListener('click', e => {
+        document.getElementById('room-code-input').value = room.getAttribute('room');
+        document.getElementById('connect-button').click();
+      });
+    });
+  } else {
+    roomsEl.innerHTML = '<div class=placeholder>No rooms :(</div>';
+  }
+  header.classList.add('list');
+});
+document.getElementById('unrooms-button').addEventListener('click', e => {
+  header.classList.remove('list');
+});
 document.getElementById('create-room-button').addEventListener('click', async e => {
   await _connectMultiplayer();
 
