@@ -144,15 +144,15 @@ server.once('listening', () => {
       `--app=http://localhost:${port}/extension/`,
     ]);
     cp.once('exit', () => {
-      process.exit();
+      process.kill(process.pid, 'SIGKILL');
     });
   }
   console.log(`http://127.0.0.1:${port}`);
 });
 
 process.stdin.on('end', () => {
-  process.exit();
+  process.kill(process.pid, 'SIGKILL');
 });
 process.on('SIGINT', () => {
-  process.exit();
+  process.kill(process.pid, 'SIGKILL');
 });
