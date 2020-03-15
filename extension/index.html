@@ -832,6 +832,15 @@ const _clearMultiplayerClasses = () => {
     header.classList.remove(c);
   });
 };
+const _setConnected = () => {
+  _clearMultiplayerClasses();
+  header.classList.add('connected');
+  wristUiMesh.setConnected(true);
+};
+const _setDisconnected = () => {
+  _clearMultiplayerClasses();
+  wristUiMesh.setConnected(false);
+};
 document.getElementById('rooms-button').addEventListener('click', async e => {
   const rooms = await listRooms();
   const roomsEl = document.getElementById('rooms');
@@ -858,10 +867,7 @@ document.getElementById('unrooms-button').addEventListener('click', e => {
 });
 document.getElementById('create-room-button').addEventListener('click', async e => {
   await _connectMultiplayer();
-
-  _clearMultiplayerClasses();
-  header.classList.add('connected');
-  wristUiMesh.setConnected(true);
+  _setConnected();
 });
 document.getElementById('use-code-button').addEventListener('click', e => {
   _clearMultiplayerClasses();
@@ -870,19 +876,14 @@ document.getElementById('use-code-button').addEventListener('click', e => {
 });
 document.getElementById('connect-button').addEventListener('click', async e => {
   await _connectMultiplayer(document.getElementById('room-code-input').value);
-
-  _clearMultiplayerClasses();
-  header.classList.add('connected');
-  wristUiMesh.setConnected(true);
+  _setConnected();
 });
 document.getElementById('cancel-connect-button').addEventListener('click', e => {
   _clearMultiplayerClasses();
 });
 document.getElementById('disconnect-button').addEventListener('click', async e => {
   await _disconnectMultiplayer();
-
-  _clearMultiplayerClasses();
-  wristUiMesh.setConnected(false);
+  _setDisconnected();
 });
 
 // addressbook
@@ -1285,9 +1286,18 @@ const mirrorTextureMesh = (() => {
   const mesh = new THREE.Object3D();
   mesh.add(_makeMesh(textures[0], 0.1, [0, 1]));
   mesh.add(_makeMesh(textures[1], -0.1, [2]));
-  mesh.uWidth = uWidth;
+  /* mesh.uWidth = uWidth;
   mesh.uHeight = uHeight;
-  mesh.textures = textures;
+  mesh.textures = textures; */
+  mesh.getTexture = i => textures[i].image;
+  mesh.setTexture = (i, image) => {
+    textures[i].image = image;
+    uWidth.value = image.width;
+    uHeight.value = image.hight;
+  };
+  mesh.updateTexture = i => {
+    textures[i].needsUpdate = true;
+  };
   return mesh;
 })();
 mirrorTextureMesh.position.set(0, 1, 0.1);
@@ -1320,14 +1330,12 @@ handleMirrorTexture = (() => {
         [left, right].map((d, i) =>
           _getImg(d)
             .then(img => {
-              mirrorTextureMesh.textures[i].image = img;
-              mirrorTextureMesh.uWidth.value = img.width;
-              mirrorTextureMesh.uHeight.value = img.height;
+              mirrorTextureMesh.setTexture(i, img);
             })
         )
       );
       for (let i = 0; i < 2; i++) {
-        mirrorTextureMesh.textures[i].needsUpdate = true;
+        mirrorTextureMesh.updateTexture(i);
       }
       requestAnimationFrame(() => {
         running = false;
@@ -1575,20 +1583,19 @@ function animate() {
     camera.position.add(new THREE.Vector3(0, 0, 2).applyQuaternion(camera.quaternion));
   }
   if (!currentSession && !avatarObject) {
-    const texture = mirrorTextureMesh.textures[0];
-    if (!texture.image || texture.image.tagName !== 'CANVAS') {
+    let image = mirrorTextureMesh.getTexture(0);
+    if (!image || image.tagName !== 'CANVAS') {
       const captureSize = 256;
       const canvas = document.createElement('canvas');
       canvas.width = captureSize;
       canvas.height = captureSize;
       const ctx = canvas.getContext('2d');
       canvas.ctx = ctx;
-      texture.image = canvas;
-      mirrorTextureMesh.uWidth.value = captureSize;
-      mirrorTextureMesh.uHeight.value = captureSize;
+      image = canvas;
+      mirrorTextureMesh.setTexture(0, image);
     }
-    texture.image.ctx.drawImage(renderer.domElement, 0, 0, texture.image.width, texture.image.height);
-    texture.needsUpdate = true;
+    image.ctx.drawImage(renderer.domElement, 0, 0, image.width, image.height);
+    mirrorTextureMesh.updateTexture(0);
   }
   renderer.render(scene, camera);
   if (thirdperson) {
