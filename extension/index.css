@@ -503,7 +503,7 @@ header .roomer .rooms .room .users {
   width: 100vw;
   height: 100vh;
 }
-canvas {
+#canvas {
   position: absolute;
   top: 0;
   left: 0;
