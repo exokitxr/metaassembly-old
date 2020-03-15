@@ -688,6 +688,9 @@ footer {
   left: 0;
   right: 0;
 }
+.screenshares:not(.open) {
+  display: none;
+}
 .screenshares .screenshare {
   display: flex;
   flex-direction: column;

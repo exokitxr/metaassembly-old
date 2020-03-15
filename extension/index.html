@@ -94,7 +94,12 @@
       <div class=button id=enter-ar-button>Enter AR</div>
     </div>
     <footer>
-      <div class=screenshares id=screenshares></div>
+      <div class=screenshares id=screenshares>
+        <div class=screenshare>
+          <div class=name>You</div>
+          <div id=my-screenshare></div>
+        </div>
+      </div>
     </footer>
   </header>
   <canvas id=canvas></canvas>
@@ -840,17 +845,17 @@ const _setConnected = () => {
   header.classList.add('connected');
   wristUiMesh.setConnected(true);
 
-  const screensharesEl = document.getElementById('screenshares');
-  screensharesEl.innerHTML = '';
-  const screenshare = document.createElement('div');
-  screenshare.classList.add('screenshare');
-  screenshare.innerHTML = `<div class=name>You</div>`;
-  screenshare.appendChild(mirrorTextureMesh.getTexture(0));
-  screensharesEl.appendChild(screenshare);
+  document.getElementById('screenshares').classList.add('open');
+  const imageEl = mirrorTextureMesh.getTexture(0);
+  const myScreenshareEl = document.getElementById('my-screenshare');
+  myScreenshareEl.parentNode.replaceChild(imageEl, myScreenshareEl);
+  imageEl.id = 'my-screenshare';
 };
 const _setDisconnected = () => {
   _clearMultiplayerClasses();
   wristUiMesh.setConnected(false);
+
+  document.getElementById('screenshares').classList.remove('open');
 };
 document.getElementById('rooms-button').addEventListener('click', async e => {
   const rooms = await listRooms();
