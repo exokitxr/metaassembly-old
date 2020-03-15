@@ -549,8 +549,29 @@ class XRPeerConnection extends EventTarget {
   }
 }
 
+function listRooms() {
+  const cutoffDate = Date.now() - 30*1000;
+  return database.ref('connections')
+    .once('value')
+    .then(v => {
+      v = v.val();
+      const roomTimestamps = {};
+      for (const roomId in v) {
+        const room = v[roomId];
+        for (const dstId in room) {
+          const msg = room[dstId];
+          if (msg.timestamp >= cutoffDate && (roomTimestamps[roomId] === undefined || msg.timestamp > roomTimestamps[roomId])) {
+            roomTimestamps[roomId] = msg.timestamp;
+          }
+        }
+      }
+      return Object.keys(roomTimestamps);
+    })
+}
+
 export {
   makeId,
+  listRooms,
   // DbSocket,
   XRChannelConnection,
   XRPeerConnection,
