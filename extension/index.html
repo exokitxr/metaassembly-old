@@ -1561,8 +1561,8 @@ const poseData = {
 let avatarObject = null;
 // let hmdObject = null;
 // const controllerObjects = [null, null];
-let wristObject = null;
 let tradeObject = null;
+let wristObject = null;
 document.getElementById('enter-ar-button').addEventListener('click', async e => {
   await socket.request('startRenderer', []);
   console.log('render started');
@@ -1599,13 +1599,6 @@ document.getElementById('enter-ar-button').addEventListener('click', async e => 
     geometry.attributes.uv.array,
     geometry.index.array,
   ]); */
-  wristObject = await socket.request('addPlane', []);
-  await socket.request('updateObjectTexture', [
-    wristObject.id,
-    wristUiMesh.material.map.image.width,
-    wristUiMesh.material.map.image.height,
-    wristUiMesh.material.map.image.imageData.data,
-  ]);
   tradeObject = await socket.request('addPlane', []);
   await socket.request('updateObjectTexture', [
     tradeObject.id,
@@ -1613,7 +1606,14 @@ document.getElementById('enter-ar-button').addEventListener('click', async e => 
     tradeUiMesh.material.map.image.height,
     tradeUiMesh.material.map.image.imageData.data,
   ]);
-  console.log('got objects', /* hmdObject, controllerObjects[0], controllerObjects[1],*/ wristObject, tradeObject);
+  wristObject = await socket.request('addPlane', []);
+  await socket.request('updateObjectTexture', [
+    wristObject.id,
+    wristUiMesh.material.map.image.width,
+    wristUiMesh.material.map.image.height,
+    wristUiMesh.material.map.image.imageData.data,
+  ]);
+  console.log('got objects', /* hmdObject, controllerObjects[0], controllerObjects[1],*/ tradeObject, wristObject);
   
   const res = await fetch('../data/avatar.glb');
   const arrayBuffer = await res.arrayBuffer();
@@ -1659,16 +1659,16 @@ handlePose = (hmd, left, right) => {
       right,
     ]);
   } */
-  if (wristObject) {
-    socket.request('updateObjectMatrix', [
-      wristObject.id,
-      wristUiMesh.matrixWorld.toArray(new Float32Array(16)),
-    ]);
-  }
   if (tradeObject) {
     socket.request('updateObjectMatrix', [
       tradeObject.id,
       tradeUiMesh.matrixWorld.toArray(new Float32Array(16)),
+    ]);
+  }
+  if (wristObject) {
+    socket.request('updateObjectMatrix', [
+      wristObject.id,
+      wristUiMesh.matrixWorld.toArray(new Float32Array(16)),
     ]);
   }
 };
