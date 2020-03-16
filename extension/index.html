@@ -927,6 +927,7 @@ const _connectMultiplayer = async rid => {
 
       const video = document.createElement('video');
       video.srcObject = mediaStream;
+      video.play();
 
       const screenshareMesh = _makeScreenshareMesh();
       screenshareMesh.setTexture2W(video);
