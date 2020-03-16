@@ -457,12 +457,12 @@ NAN_METHOD(handleMessage) {
                   resources[i],
                   0
                 );
-              }
-
-              std::string errors;
-              base::ResampleImage24(rgb.data(), desc.Width, desc.Height, scaledRgb.data() + (size * size * 3), size, size, base::KernelType::KernelTypeBilinear, &errors);
-              if (errors.size() > 0) {
-                std::cout << "resample image errors: " << errors << std::endl;
+                
+                std::string errors;
+                base::ResampleImage24(rgb.data(), desc.Width, desc.Height, scaledRgb.data() + i*(size * size * 3), size, size, base::KernelType::KernelTypeBilinear, &errors);
+                if (errors.size() > 0) {
+                  std::cout << "resample image errors: " << errors << std::endl;
+                }
               }
 
               MirrorTextureMessageStruct message;
