@@ -194,7 +194,6 @@ export function bindPeerConnection(peerConnection, container) {
     if (videoTracks.length > 0) {
       peerConnection.screenshareMediaStream = e.detail;
     }
-    console.log('got tracks', audioTracks, videoTracks, peerConnection);
     if (peerConnection.rig) {
       if (audioTracks.length > 0) {
         peerConnection.rig.setMicrophoneMediaStream(peerConnection.microphoneMediaStream, {
@@ -202,7 +201,6 @@ export function bindPeerConnection(peerConnection, container) {
         });
       }
       if (videoTracks.length > 0) {
-        console.log('dispatch screen share', peerConnection.screenshareMediaStream);
         peerConnection.dispatchEvent(new CustomEvent('screenshare', {
           detail: peerConnection.screenshareMediaStream,
         }));
