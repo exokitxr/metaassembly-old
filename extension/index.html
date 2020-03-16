@@ -197,6 +197,10 @@ renderer.physicallyCorrectLights = true;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFShadowMap;
 renderer.setClearColor(new THREE.Color(0xEEEEEE), 1);
+renderer.viewportEnabled = true;
+renderer.setViewport = (oldSetViewport => function setViewport() {
+  renderer.viewportEnabled && oldSetViewport.apply(this, arguments);
+})(renderer.setViewport);
 
 const scene = new THREE.Scene();
 // scene.background = new THREE.Color(0xEEEEEE);
@@ -1318,15 +1322,16 @@ const mirrorTextureMesh = (() => {
     }
   `;
   const targetFsh = `
-    uniform float uWidth;
-    uniform float uHeight;
-    uniform float uX;
+    uniform float uXOffset;
+    uniform vec2 uX;
     uniform vec2 uY;
     uniform sampler2D uTex1;
     varying vec2 vUv;
     void main() {
       vec2 uv = vUv;
-      uv.x += uX;
+      uv.x += uXOffset;
+      uv.x *= uX.y;
+      uv.x += uX.x;
       uv.y *= uY.y;
       uv.y += uY.x;
       if (uv.x < 0.0 || uv.x > 1.0) {
@@ -1336,14 +1341,16 @@ const mirrorTextureMesh = (() => {
       }
     }
   `;
-  const uWidth = {
-    type: 'f',
-    value: 2000,
-  };
-  const uHeight = {
-    type: 'f',
-    value: 2000,
-  };
+  const uXs = [
+    {
+      type: 'v2',
+      value: new THREE.Vector2(0, 1),
+    },
+    {
+      type: 'v2',
+      value: new THREE.Vector2(0, 1),
+    },
+  ];
   const uYs = [
     {
       type: 'v2',
@@ -1354,15 +1361,14 @@ const mirrorTextureMesh = (() => {
       value: new THREE.Vector2(0, 1),
     },
   ];
-  const _makeMesh = (uXValue, uY, layers) => {
+  const _makeMesh = (uXOffsetValue, uX, uY, layers) => {
     const material = new THREE.ShaderMaterial({
       uniforms: {
-        uWidth,
-        uHeight,
-        uX: {
+        uXOffset: {
           type: 'f',
-          value: uXValue,
+          value: uXOffsetValue,
         },
+        uX,
         uY,
         uTex1: {
           type: 't',
@@ -1382,23 +1388,29 @@ const mirrorTextureMesh = (() => {
     return mesh;
   };
   const mesh = new THREE.Object3D();
-  mesh.add(_makeMesh(0.1, uYs[0], [0, 1]));
-  mesh.add(_makeMesh(-0.1, uYs[1], [2]));
-  /* mesh.uWidth = uWidth;
-  mesh.uHeight = uHeight;
-  mesh.textures = textures; */
-  mesh.getTexture = texture;
-  mesh.setTexture2 = image => {
+  mesh.add(_makeMesh(0.1, uXs[0], uYs[0], [0, 1]));
+  mesh.add(_makeMesh(-0.1, uXs[1], uYs[1], [2]));
+  mesh.getTexture = () => texture;
+  mesh.setTexture2H = image => {
+    // console.log('set texture 2H', image, new Error().stack);
     texture.image = image;
-    uWidth.value = image.width;
-    uHeight.value = image.height/2;
+    uXs[0].value.set(0, 1);
+    uXs[1].value.set(0, 1);
     uYs[0].value.set(0, 0.5);
     uYs[1].value.set(0.5, 0.5);
   };
+  mesh.setTexture2W = image => {
+    // console.log('set texture 2W', image, new Error().stack);
+    texture.image = image;
+    uXs[0].value.set(0, 0.5);
+    uXs[1].value.set(0.5, 0.5);
+    uYs[0].value.set(0, 1);
+    uYs[1].value.set(0, 1);
+  };
   mesh.setTexture1 = image => {
     texture.image = image;
-    uWidth.value = image.width;
-    uHeight.value = image.height;
+    uXs[0].value.set(0, 1);
+    uXs[1].value.set(0, 1);
     uYs[0].value.set(0, 1);
     uYs[1].value.set(0, 1);
   };
@@ -1434,7 +1446,7 @@ handleMirrorTexture = (() => {
     if (!running) {
       running = true;
       const img = await _getImg(d);
-      mirrorTextureMesh.setTexture2(img);
+      mirrorTextureMesh.setTexture2H(img);
       mirrorTextureMesh.updateTexture();
       requestAnimationFrame(() => {
         running = false;
@@ -1460,6 +1472,10 @@ let scaleState = null;
 const lastSqueezes = [false, false];
 function onSessionStarted(session) {
   session.addEventListener('end', onSessionEnded);
+
+  renderer.setPixelRatio(1);
+  canvas.width = captureSize;
+  canvas.height = captureSize;
 
   renderer.xr.setSession(session);
 
@@ -1696,6 +1712,37 @@ function animate() {
     }
     image.ctx.drawImage(renderer.domElement, 0, 0, image.width, image.height);
     mirrorTextureMesh.updateTexture();
+  } else if (currentSession) {
+    let image = mirrorTextureMesh.getTexture();
+    if (!image || image.tagName !== 'CANVAS') {
+      const canvas = document.createElement('canvas');
+      canvas.width = captureSize;
+      canvas.height = captureSize;
+      const ctx = canvas.getContext('2d');
+      canvas.ctx = ctx;
+      image = canvas;
+      mirrorTextureMesh.setTexture2W(image);
+    }
+    image.ctx.drawImage(renderer.domElement, 0, 0, image.width, image.height);
+    mirrorTextureMesh.updateTexture();
+  }
+  if (currentSession) {
+    renderer.xr.enabled = false;
+    const framebuffer = renderer.getFramebuffer();
+    renderer.setFramebuffer(null);
+    // renderer.render(scene, camera);
+    const {cameras} = renderer.xr.getCamera(camera);
+    // window.cameras = cameras;
+    // renderer.render(scene, cameras[0]);
+    renderer.clear(true, true, true);
+    for (let i = 0; i < cameras.length && i < 2; i++) {
+      renderer.setViewport(renderer.domElement.width * (i === 0 ? 0 : 0.5), 0, renderer.domElement.width*0.5, renderer.domElement.height);
+      renderer.viewportEnabled = false;
+      renderer.render(scene, cameras[i]);
+      renderer.viewportEnabled = true;
+    }
+    renderer.setFramebuffer(framebuffer);
+    renderer.xr.enabled = true;
   }
   renderer.clear(true, true, true);
   renderer.render(scene, camera);
