@@ -1600,6 +1600,7 @@ const _updateIntersections = raycaster => {
 const velocity = new THREE.Vector3();
 const wristUiQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI/2)
   .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI/2));
+const captureSize = 256;
 function animate() {
   orbitControls.enabled && orbitControls.update();
 
@@ -1686,7 +1687,6 @@ function animate() {
   if (!currentSession && !capturing) {
     let image = mirrorTextureMesh.getTexture();
     if (!image || image.tagName !== 'CANVAS') {
-      const captureSize = 256;
       const canvas = document.createElement('canvas');
       canvas.width = captureSize;
       canvas.height = captureSize;
