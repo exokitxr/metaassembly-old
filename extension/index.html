@@ -1464,7 +1464,7 @@ function onSessionStarted(session) {
   renderer.xr.setSession(session);
 
   currentSession = session;
-  
+
   const xrCamera = renderer.xr.getCamera(camera);
   const {cameras} = xrCamera;
   cameras[0].name = 'left';
@@ -1670,7 +1670,6 @@ function animate() {
   }
 
   /* tickObjectScript(objectState);
-
   if (ammo) {
     ammo.simulate();
     for (let i = 0; i < objectMeshes.length; i++) {
