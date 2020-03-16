@@ -185,7 +185,9 @@ export function bindPeerConnection(peerConnection, container) {
     }
   });
   peerConnection.addEventListener('mediastream', e => {
-    console.log('got media stream', e.detail, e.detail.getAudioTracks());
+    const audioTracks = e.detail.getAudioTracks();
+    const videoTracks = e.detail.getVideoTracks();
+    console.log('got media stream', e.detail, audioTracks, videoTracks);
     peerConnection.mediaStream = e.detail;
     if (peerConnection.rig) {
       peerConnection.rig.setMicrophoneMediaStream(peerConnection.mediaStream, {
