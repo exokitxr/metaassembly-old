@@ -189,15 +189,17 @@ const renderer = new THREE.WebGLRenderer({
   antialias: true,
   preserveDrawingBuffer: true,
 });
+renderer.autoClear = false;
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.sortObjects = false;
 renderer.physicallyCorrectLights = true;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFShadowMap;
+renderer.setClearColor(new THREE.Color(0xEEEEEE), 1);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xEEEEEE);
+// scene.background = new THREE.Color(0xEEEEEE);
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
 camera.position.set(0, 0.5, 2);
 camera.rotation.order = 'YXZ';
@@ -1696,6 +1698,7 @@ function animate() {
     image.ctx.drawImage(renderer.domElement, 0, 0, image.width, image.height);
     mirrorTextureMesh.updateTexture();
   }
+  renderer.clear(true, true, true);
   renderer.render(scene, camera);
   if (thirdperson) {
     camera.position.copy(oldCameraPosition);
