@@ -434,7 +434,7 @@ Array.from(tools).forEach((tool, i) => {
       if (tool.classList.contains('selected')) {
         videoMediaStream = mirrorTextureMesh.getTexture().image.captureStream();
       } else {
-        videoMediaStream && stream.getTracks().forEach(track => {
+        videoMediaStream && videoMediaStream.getTracks().forEach(track => {
           track.stop();
         });
         videoMediaStream = null;
