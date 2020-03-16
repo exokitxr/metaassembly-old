@@ -1396,8 +1396,8 @@ const mirrorTextureMesh = (() => {
     texture.image = image;
     uXs[0].value.set(0, 1);
     uXs[1].value.set(0, 1);
-    uYs[0].value.set(0, 0.5);
-    uYs[1].value.set(0.5, 0.5);
+    uYs[0].value.set(0.5, 0.5);
+    uYs[1].value.set(0, 0.5);
   };
   mesh.setTexture2W = image => {
     // console.log('set texture 2W', image, new Error().stack);
