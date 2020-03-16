@@ -97,7 +97,7 @@
       <div class=button id=lock-wallet-button>Lock</div>
     </div>
     <div class="xr">
-      <div class=button id=start-capture-button>Start Capture</div>
+      <!-- <div class=button id=start-capture-button>Start Capture</div> -->
       <div class=button id=enter-xr-button>Enter XR</div>
       <div class=button id=enter-ar-button>Enter AR</div>
     </div>
@@ -1484,14 +1484,14 @@ handleMirrorTexture = (() => {
 })();
 
 let capturing = false;
-document.getElementById('start-capture-button').addEventListener('click', async e => {
+/* document.getElementById('start-capture-button').addEventListener('click', async e => {
   await socket.request('startRenderer', []);
   console.log('render started');
 
   await socket.request('startMirrorTextures', []);
   console.log('mirror textures started');
   capturing = true;
-});
+}); */
 
 const enterXrButton = document.getElementById('enter-xr-button');
 const triggerDowns = [false, false];
