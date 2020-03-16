@@ -247,13 +247,13 @@ class XRChannelConnection extends EventTarget {
             dst: peerConnection.connectionId,
             src: this.connectionId,
             method: 'offer',
-            offer,
+            offer: offer.toJSON(),
           });
           this.rtcWs.send(peerConnection.connectionId, {
             dst: peerConnection.connectionId,
             src: this.connectionId,
             method: 'offer',
-            offer,
+            offer: offer.toJSON(),
           });
         });
     };
@@ -286,7 +286,7 @@ class XRChannelConnection extends EventTarget {
               dst: peerConnectionId,
               src: this.connectionId,
               method: 'answer',
-              answer,
+              answer: answer.toJSON(),
             });
           }).then(() => new Promise((accept, reject) => {
             const _recurse = () => {
