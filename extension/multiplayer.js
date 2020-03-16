@@ -110,6 +110,7 @@ class XRChannelConnection extends EventTarget {
     this.rtcWs = new DbSocket(roomId, connectionId);
     this.peerConnections = [];
     this.microphoneMediaStream = options.microphoneMediaStream;
+    this.videoMediaStream = options.videoMediaStream;
     this.pollInterval = 0;
 
     this.rtcWs.onopen = () => {
@@ -208,6 +209,14 @@ class XRChannelConnection extends EventTarget {
         if (this.microphoneMediaStream) {
           // peerConnection.peerConnection.addStream(this.microphoneMediaStream);
           const tracks = this.microphoneMediaStream.getAudioTracks();
+          for (let i = 0; i < tracks.length; i++) {
+            // console.log('add track for remote', tracks[i]);
+            peerConnection.peerConnection.addTrack(tracks[i]);
+          }
+        }
+        if (this.videoMediaStream) {
+          // peerConnection.peerConnection.addStream(this.microphoneMediaStream);
+          const tracks = this.videoMediaStream.getVideoTracks();
           for (let i = 0; i < tracks.length; i++) {
             // console.log('add track for remote', tracks[i]);
             peerConnection.peerConnection.addTrack(tracks[i]);
@@ -410,6 +419,33 @@ class XRChannelConnection extends EventTarget {
 
     if (microphoneMediaStream) {
       const tracks = microphoneMediaStream.getAudioTracks();
+      for (let i = 0; i < this.peerConnections.length; i++) {
+        const peerConnection = this.peerConnections[i];
+        for (let j = 0; j < tracks.length; j++) {
+          peerConnection.peerConnection.addTrack(tracks[j]);
+        }
+      }
+    }
+  }
+  
+  setVideoMediaStream(videoMediaStream) {
+    const {videoMediaStream: oldVideoMediaStream} = this;
+    if (oldVideoMediaStream) {
+      const oldTracks = oldVideoMediaStream.getVideoTracks();
+      for (let i = 0; i < this.peerConnections.length; i++) {
+        const peerConnection = this.peerConnections[i];
+        const senders = peerConnection.peerConnection.getSenders();
+        const oldTrackSenders = oldTracks.map(track => senders.find(sender => sender.track === track));
+        for (let j = 0; j < oldTrackSenders.length; j++) {
+          peerConnection.peerConnection.removeTrack(oldTrackSenders[j]);
+        }
+      }
+    }
+
+    this.videoMediaStream = videoMediaStream;
+
+    if (videoMediaStream) {
+      const tracks = videoMediaStream.getVideoTracks();
       for (let i = 0; i < this.peerConnections.length; i++) {
         const peerConnection = this.peerConnections[i];
         for (let j = 0; j < tracks.length; j++) {
