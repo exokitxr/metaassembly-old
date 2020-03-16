@@ -254,6 +254,7 @@ const _loadDefaultGltf = () => {
 _loadDefaultGltf();
 
 let rig = null;
+let videoMediaStream = null;
 let currentSession = null;
 initLocalRig()
   .then(newRig => {
@@ -429,7 +430,16 @@ Array.from(tools).forEach((tool, i) => {
       console.log('start mic');
     } else if (newTool === 'screenshare') {
       tool.classList.toggle('selected');
-      console.log('start screenshare');
+
+      if (tool.classList.contains('selected')) {
+        videoMediaStream = mirrorTextureMesh.getTexture().image.captureStream();
+      } else {
+        videoMediaStream && stream.getTracks().forEach(track => {
+          track.stop();
+        });
+        videoMediaStream = null;
+      }
+      channelConnection && channelConnection.setVideoMediaStream(videoMediaStream);
     } else {
       document.pointerLockElement && document.exitPointerLock();
       orbitControls.enabled = false;
@@ -895,7 +905,9 @@ const peerConnections = [];
 const _connectMultiplayer = async rid => {
   const roomId = rid || makeId();
 
-  channelConnection = new XRChannelConnection(roomId);
+  channelConnection = new XRChannelConnection(roomId, {
+    videoMediaStream,
+  });
   channelConnection.addEventListener('peerconnection', e => {
     const peerConnection = e.detail;
 
@@ -908,6 +920,10 @@ const _connectMultiplayer = async rid => {
     peerConnection.addEventListener('close', () => {
       peerConnections.splice(peerConnections.indexOf(peerConnection), 1);
       document.getElementById('user-count-text').innerText = peerConnections.length + 1;
+    });
+    peerConnection.addEventListener('mediastream', e => {
+      const mediaStream = e.data;
+      console.log('got peer media stream', mediaStream);
     });
   });
 
