@@ -96,11 +96,13 @@
       <div class=button id=download-key-button>D/L key</div>
       <div class=button id=lock-wallet-button>Lock</div>
     </div>
-    <div class="xr">
+    <div class="xr desktop">
       <!-- <div class=button id=start-capture-button>Start Capture</div> -->
-      <div class=button id=enter-xr-button>Enter XR</div>
-      <div class=button id=enter-ar-button>Enter AR</div>
+      <div class=button id=enter-vr-button>Enter VR</div>
+      <div class=button id=enter-overlay-button>Enter Overlay</div>
     </div>
+    <div class="xr vr">VR running</div>
+    <div class="xr overlay">Overlay running</div>
   </header>
   <canvas id=canvas></canvas>
 <script type=module>
@@ -1493,7 +1495,7 @@ let capturing = false;
   capturing = true;
 }); */
 
-const enterXrButton = document.getElementById('enter-xr-button');
+const enterVrButton = document.getElementById('enter-vr-button');
 const triggerDowns = [false, false];
 const gripDowns = [false, false];
 let scaleState = null;
@@ -1582,27 +1584,22 @@ function onSessionEnded() {
 
   currentSession = null;
 }
-enterXrButton.addEventListener('click', e => {
+enterVrButton.addEventListener('click', e => {
   e.preventDefault();
   e.stopPropagation();
   
   if (currentSession === null) {
-    // WebXR's requestReferenceSpace only works if the corresponding feature
-    // was requested at session creation time. For simplicity, just ask for
-    // the interesting ones as optional features, but be aware that the
-    // requestReferenceSpace call will fail if it turns out to be unavailable.
-    // ('local' is always available for immersive sessions and doesn't need to
-    // be requested separately.)
-    var sessionInit = {
+    navigator.xr.requestSession('immersive-vr', {
       optionalFeatures: [
         'local-floor',
         'bounded-floor',
       ],
-    };
-    navigator.xr.requestSession('immersive-vr', sessionInit).then(onSessionStarted);
+    }).then(onSessionStarted);
   } else {
     currentSession.end();
   }
+
+  header.classList.add('vr');
 });
 
 const localRaycaster = new THREE.Raycaster();
@@ -1800,7 +1797,7 @@ window.addEventListener('mousedown', e => {
 navigator.xr && navigator.xr.isSessionSupported('immersive-vr').then(supported => {
   if (supported) {
     renderer.xr.enabled = true;
-    enterXrButton.classList.remove('disabled');
+    enterVrButton.classList.remove('disabled');
   } else {
     // nothing
   }
@@ -1816,7 +1813,7 @@ let avatarObject = null;
 // const controllerObjects = [null, null];
 let tradeObject = null;
 let wristObject = null;
-document.getElementById('enter-ar-button').addEventListener('click', async e => {
+document.getElementById('enter-overlay-button').addEventListener('click', async e => {
   await socket.request('startRenderer', []);
   console.log('render started');
 
@@ -1879,6 +1876,8 @@ document.getElementById('enter-ar-button').addEventListener('click', async e => 
   console.log('model added');
   
   rig && rig.decapitate();
+
+  header.classList.add('overlay');
 });
 handlePose = (hmd, left, right) => {
   poseData.hmd = new Float32Array(hmd);

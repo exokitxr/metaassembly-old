@@ -356,20 +356,25 @@ header .xr
 header .roomer.disconnected,
 header .roomer.list,
 header .roomer.dialog,
-header .roomer.connected {
+header .roomer.connected
+{
   display: none;
 }
 header.connected .roomer.connected,
 header.list .roomer.list,
 header.dialog .roomer.dialog,
-header:not(.list):not(.dialog):not(.connected) .roomer.disconnected {
+header:not(.list):not(.dialog):not(.connected) .roomer.disconnected
+{
   display: flex;
 }
 header .addressbook,
 header .wallet.none,
 header .wallet.import,
 header .wallet.locked,
-header .wallet.unlocked
+header .wallet.unlocked,
+header .xr.desktop,
+header .xr.vr,
+header .xr.overlay
 {
   display: none;
 }
@@ -377,7 +382,11 @@ header.unlocked .addressbook,
 header.import .wallet.import,
 header.locked .wallet.locked,
 header.unlocked .wallet.unlocked,
-header:not(.import):not(.locked):not(.unlocked) .wallet.none {
+header:not(.import):not(.locked):not(.unlocked) .wallet.none,
+header:not(.vr):not(.overlay) .xr.desktop,
+header.vr .xr.vr,
+header.overlay .xr.overlay
+{
   display: flex;
 }
 header .tools {
