@@ -1733,7 +1733,7 @@ function animate() {
         const ctx = canvas.getContext('2d');
         canvas.ctx = ctx;
         image = canvas;
-        mirrorTextureMesh.setTexture1(image);
+        mirrorTextureMesh.setTexture2W(image);
       }
       image.ctx.drawImage(renderer.domElement, 0, 0, image.width, image.height);
       mirrorTextureMesh.updateTexture();
