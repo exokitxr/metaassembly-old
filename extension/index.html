@@ -1265,12 +1265,7 @@ socket.onmessage = m => {
         binaryMode = null;
       }
     } else if (binaryMode === 'mirrorTexture') {
-      socketData.push(m.data);
-      if (socketData.length >= 2) {
-        handlePose && handleMirrorTexture.apply(null, socketData);
-        socketData.length = 0;
-        binaryMode = null;
-      }
+      handleMirrorTexture && handleMirrorTexture(m.data);
     } else {
       console.warn('got unexpected binary message');
     }
@@ -1310,17 +1305,10 @@ socket.request = async (method, args) => {
 
 const mirrorTextureMesh = (() => {
   const geometry = new THREE.PlaneBufferGeometry(1, 1);
-  const _makeTexture = () => {
-    const texture = new THREE.Texture();
-    texture.generateMipmaps = false;
-    texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
-    texture.minFilter = THREE.LinearFilter;
-    return texture;
-  };
-  const textures = [
-    _makeTexture(),
-    _makeTexture(),
-  ];
+  const texture = new THREE.Texture();
+  texture.generateMipmaps = false;
+  texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
+  texture.minFilter = THREE.LinearFilter;
   const targetVsh = `
     varying vec2 vUv;
     void main() {
@@ -1332,6 +1320,7 @@ const mirrorTextureMesh = (() => {
     uniform float uWidth;
     uniform float uHeight;
     uniform float uX;
+    uniform vec2 uY;
     uniform sampler2D uTex1;
     varying vec2 vUv;
     void main() {
@@ -1339,6 +1328,8 @@ const mirrorTextureMesh = (() => {
       // uv = uv / vec2(uWidth, uHeight);
       vec2 uv = vUv;
       uv.x += uX;
+      uv.y *= uY.y;
+      uv.y += uY.x;
       if (uv.x < 0.0 || uv.x > 1.0) {
         discard;
       } else {
@@ -1354,15 +1345,26 @@ const mirrorTextureMesh = (() => {
     type: 'f',
     value: 2000,
   };
-  const _makeMesh = (texture, uX, layers) => {
+  const uYs = [
+    {
+      type: 'v2',
+      value: new THREE.Vector2(0, 1),
+    },
+    {
+      type: 'v2',
+      value: new THREE.Vector2(0, 1),
+    },
+  ];
+  const _makeMesh = (uXValue, uY, layers) => {
     const material = new THREE.ShaderMaterial({
       uniforms: {
         uWidth,
         uHeight,
         uX: {
           type: 'f',
-          value: uX,
+          value: uXValue,
         },
+        uY,
         uTex1: {
           type: 't',
           value: texture,
@@ -1381,19 +1383,28 @@ const mirrorTextureMesh = (() => {
     return mesh;
   };
   const mesh = new THREE.Object3D();
-  mesh.add(_makeMesh(textures[0], 0.1, [0, 1]));
-  mesh.add(_makeMesh(textures[1], -0.1, [2]));
+  mesh.add(_makeMesh(0.1, uYs[0], [0, 1]));
+  mesh.add(_makeMesh(-0.1, uYs[1], [2]));
   /* mesh.uWidth = uWidth;
   mesh.uHeight = uHeight;
   mesh.textures = textures; */
-  mesh.getTexture = i => textures[i].image;
-  mesh.setTexture = (i, image) => {
-    textures[i].image = image;
+  mesh.getTexture = texture;
+  mesh.setTexture2 = image => {
+    texture.image = image;
     uWidth.value = image.width;
-    uHeight.value = image.hight;
+    uHeight.value = image.height/2;
+    uYs[0].value.set(0, 0.5);
+    uYs[1].value.set(0.5, 0.5);
+  };
+  mesh.setTexture1 = image => {
+    texture.image = image;
+    uWidth.value = image.width;
+    uHeight.value = image.height;
+    uYs[0].value.set(0, 1);
+    uYs[1].value.set(0, 1);
   };
   mesh.updateTexture = i => {
-    textures[i].needsUpdate = true;
+    texture.needsUpdate = true;
   };
   return mesh;
 })();
@@ -1420,20 +1431,12 @@ handleMirrorTexture = (() => {
     img.src = u;
     return p;
   };
-  return async (left, right) => {
+  return async d => {
     if (!running) {
       running = true;
-      await Promise.all(
-        [left, right].map((d, i) =>
-          _getImg(d)
-            .then(img => {
-              mirrorTextureMesh.setTexture(i, img);
-            })
-        )
-      );
-      for (let i = 0; i < 2; i++) {
-        mirrorTextureMesh.updateTexture(i);
-      }
+      const img = await _getImg(d);
+      mirrorTextureMesh.setTexture2(img);
+      mirrorTextureMesh.updateTexture();
       requestAnimationFrame(() => {
         running = false;
       });
@@ -1680,7 +1683,7 @@ function animate() {
     camera.position.add(new THREE.Vector3(0, 0, 2).applyQuaternion(camera.quaternion));
   }
   if (!currentSession && !avatarObject) {
-    let image = mirrorTextureMesh.getTexture(0);
+    let image = mirrorTextureMesh.getTexture();
     if (!image || image.tagName !== 'CANVAS') {
       const captureSize = 256;
       const canvas = document.createElement('canvas');
@@ -1689,10 +1692,10 @@ function animate() {
       const ctx = canvas.getContext('2d');
       canvas.ctx = ctx;
       image = canvas;
-      mirrorTextureMesh.setTexture(0, image);
+      mirrorTextureMesh.setTexture1(image);
     }
     image.ctx.drawImage(renderer.domElement, 0, 0, image.width, image.height);
-    mirrorTextureMesh.updateTexture(0);
+    mirrorTextureMesh.updateTexture();
   }
   renderer.render(scene, camera);
   if (thirdperson) {
