@@ -929,6 +929,7 @@ const _connectMultiplayer = async rid => {
       video.srcObject = mediaStream;
 
       const screenshareMesh = _makeScreenshareMesh();
+      screenshareMesh.setTexture2W(video);
       screenshareMesh.position.set(-0.5 + 1/4/2 + 1/4, 0, 0.001);
       screenshareMesh.scale.set(1/4, (512-50*2)/512, 1);
       hudUiMesh.add(screenshareMesh);
@@ -1770,9 +1771,9 @@ function animate() {
   }
   hudUiMesh.children.forEach(o => {
     if (o.isScreenshareMesh) {
-      const texture = o.getTexture();
-      if (texture.image.tagName === 'VIDEO') {
-        texture.needsUpdate = true;
+      const image = o.getTexture();
+      if (image.tagName === 'VIDEO') {
+        o.updateTexture();
       }
     }
   });
