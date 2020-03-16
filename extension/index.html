@@ -1699,50 +1699,48 @@ function animate() {
     oldCameraPosition = camera.position.clone();
     camera.position.add(new THREE.Vector3(0, 0, 2).applyQuaternion(camera.quaternion));
   }
-  if (!currentSession && !capturing) {
-    let image = mirrorTextureMesh.getTexture();
-    if (!image || image.tagName !== 'CANVAS') {
-      const canvas = document.createElement('canvas');
-      canvas.width = captureSize;
-      canvas.height = captureSize;
-      const ctx = canvas.getContext('2d');
-      canvas.ctx = ctx;
-      image = canvas;
-      mirrorTextureMesh.setTexture1(image);
+  if (!capturing) {
+    if (!currentSession) {
+      let image = mirrorTextureMesh.getTexture();
+      if (!image || image.tagName !== 'CANVAS') {
+        const canvas = document.createElement('canvas');
+        canvas.width = captureSize;
+        canvas.height = captureSize;
+        const ctx = canvas.getContext('2d');
+        canvas.ctx = ctx;
+        image = canvas;
+        mirrorTextureMesh.setTexture1(image);
+      }
+      image.ctx.drawImage(renderer.domElement, 0, 0, image.width, image.height);
+      mirrorTextureMesh.updateTexture();
+    } else {
+      renderer.xr.enabled = false;
+      const framebuffer = renderer.getFramebuffer();
+      renderer.setFramebuffer(null);
+      const {cameras} = renderer.xr.getCamera(camera);
+      renderer.clear(true, true, true);
+      for (let i = 0; i < cameras.length && i < 2; i++) {
+        renderer.setViewport(renderer.domElement.width * (i === 0 ? 0 : 0.5), 0, renderer.domElement.width*0.5, renderer.domElement.height);
+        renderer.viewportEnabled = false;
+        renderer.render(scene, cameras[i]);
+        renderer.viewportEnabled = true;
+      }
+      renderer.setFramebuffer(framebuffer);
+      renderer.xr.enabled = true;
+    
+      let image = mirrorTextureMesh.getTexture();
+      if (!image || image.tagName !== 'CANVAS') {
+        const canvas = document.createElement('canvas');
+        canvas.width = captureSize;
+        canvas.height = captureSize;
+        const ctx = canvas.getContext('2d');
+        canvas.ctx = ctx;
+        image = canvas;
+        mirrorTextureMesh.setTexture2W(image);
+      }
+      image.ctx.drawImage(renderer.domElement, 0, 0, image.width, image.height);
+      mirrorTextureMesh.updateTexture();
     }
-    image.ctx.drawImage(renderer.domElement, 0, 0, image.width, image.height);
-    mirrorTextureMesh.updateTexture();
-  } else if (currentSession) {
-    let image = mirrorTextureMesh.getTexture();
-    if (!image || image.tagName !== 'CANVAS') {
-      const canvas = document.createElement('canvas');
-      canvas.width = captureSize;
-      canvas.height = captureSize;
-      const ctx = canvas.getContext('2d');
-      canvas.ctx = ctx;
-      image = canvas;
-      mirrorTextureMesh.setTexture2W(image);
-    }
-    image.ctx.drawImage(renderer.domElement, 0, 0, image.width, image.height);
-    mirrorTextureMesh.updateTexture();
-  }
-  if (currentSession) {
-    renderer.xr.enabled = false;
-    const framebuffer = renderer.getFramebuffer();
-    renderer.setFramebuffer(null);
-    // renderer.render(scene, camera);
-    const {cameras} = renderer.xr.getCamera(camera);
-    // window.cameras = cameras;
-    // renderer.render(scene, cameras[0]);
-    renderer.clear(true, true, true);
-    for (let i = 0; i < cameras.length && i < 2; i++) {
-      renderer.setViewport(renderer.domElement.width * (i === 0 ? 0 : 0.5), 0, renderer.domElement.width*0.5, renderer.domElement.height);
-      renderer.viewportEnabled = false;
-      renderer.render(scene, cameras[i]);
-      renderer.viewportEnabled = true;
-    }
-    renderer.setFramebuffer(framebuffer);
-    renderer.xr.enabled = true;
   }
   renderer.clear(true, true, true);
   renderer.render(scene, camera);
