@@ -106,7 +106,8 @@ export function bindPeerConnection(peerConnection, container) {
 
   peerConnection.username = 'Anonymous';
   peerConnection.rig = null;
-  peerConnection.mediaStream = null;
+  peerConnection.microphoneMediaStream = null;
+  peerConnection.screenshareMediaStream = null;
   let updateInterval = 0;
   peerConnection.addEventListener('open', () => {
     console.log('peer connection open', peerConnection);
@@ -186,13 +187,24 @@ export function bindPeerConnection(peerConnection, container) {
   });
   peerConnection.addEventListener('mediastream', e => {
     const audioTracks = e.detail.getAudioTracks();
+    if (audioTracks.length > 0) {
+      peerConnection.microphoneMediaStream = e.detail;
+    }
     const videoTracks = e.detail.getVideoTracks();
-    console.log('got media stream', e.detail, audioTracks, videoTracks);
-    peerConnection.mediaStream = e.detail;
+    if (videoTracks.length > 0) {
+      peerConnection.screenshareMediaStream = e.detail;
+    }
     if (peerConnection.rig) {
-      peerConnection.rig.setMicrophoneMediaStream(peerConnection.mediaStream, {
-        muted: false,
-      });
+      if (audioTracks.length > 0) {
+        peerConnection.rig.setMicrophoneMediaStream(peerConnection.microphoneMediaStream, {
+          muted: false,
+        });
+      }
+      if (videoTracks.length > 0) {
+        peerConnection.dispatchEvent(new CustomEvent('screenshare', {
+          detail: peerConnection.screenshareMediaStream,
+        }));
+      }
     }
   });
   peerConnection.addEventListener('message', async e => {
@@ -222,7 +234,7 @@ export function bindPeerConnection(peerConnection, container) {
         fingers: true,
         hair: true,
         visemes: true,
-        microphoneMediaStream: peerConnection.mediaStream,
+        microphoneMediaStream: peerConnection.microphoneMediaStream,
         muted: false,
         debug: !model,
       });
