@@ -243,6 +243,12 @@ class XRChannelConnection extends EventTarget {
           return peerConnection.peerConnection.setLocalDescription(offer).then(() => offer);
         })
         .then(offer => {
+          console.log('send message', {
+            dst: peerConnection.connectionId,
+            src: this.connectionId,
+            method: 'offer',
+            offer,
+          });
           this.rtcWs.send(peerConnection.connectionId, {
             dst: peerConnection.connectionId,
             src: this.connectionId,
@@ -256,6 +262,7 @@ class XRChannelConnection extends EventTarget {
 
       const {data} = e;
       const {method} = data;
+      console.log('got message', data);
       if (method === 'join') {
         const {src: peerConnectionId} = data;
         _addPeerConnection(peerConnectionId);
@@ -267,6 +274,7 @@ class XRChannelConnection extends EventTarget {
           _addPeerConnection(peerConnectionId);
           peerConnection = this.peerConnections.find(peerConnection => peerConnection.connectionId === peerConnectionId);
         }
+        console.log('got offer', offer);
         peerConnection.peerConnection.setRemoteDescription(offer)
           .then(() => {
             // console.log('create answer');
