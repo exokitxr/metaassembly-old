@@ -432,7 +432,7 @@ Array.from(tools).forEach((tool, i) => {
       tool.classList.toggle('selected');
 
       if (tool.classList.contains('selected')) {
-        videoMediaStream = mirrorTextureMesh.getTexture().image.captureStream();
+        videoMediaStream = mirrorTextureMesh.getTexture().captureStream();
       } else {
         videoMediaStream && videoMediaStream.getTracks().forEach(track => {
           track.stop();
@@ -1417,7 +1417,7 @@ const _makeScreenshareMesh = () => {
   mesh.add(_makeMesh(0.1, uXs[0], uYs[0], [0, 1]));
   mesh.add(_makeMesh(-0.1, uXs[1], uYs[1], [2]));
   mesh.isScreenshareMesh = true;
-  mesh.getTexture = () => texture;
+  mesh.getTexture = () => texture.image;
   mesh.setTexture2H = image => {
     texture.image = image;
     uXs[0].value.set(0, 1);
