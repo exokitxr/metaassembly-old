@@ -141,6 +141,8 @@ server.once('listening', () => {
       '--disable-xr-device-consent-prompt-for-testing',
       '--load-extension="..\..\extension"'
       '--whitelisted-extension-id="glmgcjligejadkfhgebnplablaggjbmm"', */
+      '--test-type',
+      '--disable-xr-device-consent-prompt-for-testing',
       `--app=http://localhost:${port}/extension/`,
     ]);
     cp.once('exit', () => {
