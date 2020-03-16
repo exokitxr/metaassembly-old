@@ -857,14 +857,14 @@ const hudUiMesh = (() => {
       users: ['You'].concat(users),
     });
     p.then(result => {
-      /* if (tradeObject) {
+      if (hudObject) {
         socket.request('updateObjectTexture', [
-          tradeObject.id,
+          hudObject.id,
           result.width,
           result.height,
           result.data,
         ]);
-      } */
+      }
     });
     return p;
   };
@@ -1810,6 +1810,7 @@ const poseData = {
 let avatarObject = null;
 // let hmdObject = null;
 // const controllerObjects = [null, null];
+let hudObject = null;
 let tradeObject = null;
 let wristObject = null;
 document.getElementById('enter-overlay-button').addEventListener('click', async e => {
@@ -1849,6 +1850,13 @@ document.getElementById('enter-overlay-button').addEventListener('click', async 
     geometry.attributes.uv.array,
     geometry.index.array,
   ]); */
+  hudObject = await socket.request('addPlane', []);
+  await socket.request('updateObjectTexture', [
+    hudObject.id,
+    hudUiMesh.material.map.image.width,
+    hudUiMesh.material.map.image.height,
+    hudUiMesh.material.map.image.imageData.data,
+  ]);
   tradeObject = await socket.request('addPlane', []);
   await socket.request('updateObjectTexture', [
     tradeObject.id,
@@ -1863,7 +1871,7 @@ document.getElementById('enter-overlay-button').addEventListener('click', async 
     wristUiMesh.material.map.image.height,
     wristUiMesh.material.map.image.imageData.data,
   ]);
-  console.log('got objects', /* hmdObject, controllerObjects[0], controllerObjects[1],*/ tradeObject, wristObject);
+  console.log('got objects', /* hmdObject, controllerObjects[0], controllerObjects[1],*/ hudObject, tradeObject, wristObject);
   
   const res = await fetch('../data/avatar.glb');
   const arrayBuffer = await res.arrayBuffer();
@@ -1911,6 +1919,12 @@ handlePose = (hmd, left, right) => {
       right,
     ]);
   } */
+  if (hudObject) {
+    socket.request('updateObjectMatrix', [
+      hudObject.id,
+      hudUiMesh.matrixWorld.toArray(new Float32Array(16)),
+    ]);
+  }
   if (tradeObject) {
     socket.request('updateObjectMatrix', [
       tradeObject.id,
