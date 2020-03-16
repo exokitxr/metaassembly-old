@@ -367,9 +367,6 @@ const tools = document.querySelectorAll('.tool');
 const cameraToolNames = ['orbit', 'firstperson', 'thirdperson'];
 const hudToolNames = ['hud', 'trade'];
 Array.from(tools).forEach((tool, i) => {
-  /* tool.addEventListener('mousedown', e => {
-    e.stopPropagation();
-  }); */
   tool.addEventListener('click', e => {
     e.preventDefault();
     e.stopPropagation();
@@ -1260,7 +1257,6 @@ socket.onmessage = m => {
       cb && cb(m);
     }
   } else {
-    // console.log('got message', m.data);
     if (binaryMode === 'pose') {
       socketData.push(m.data);
       if (socketData.length >= 3) {
