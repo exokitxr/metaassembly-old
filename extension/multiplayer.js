@@ -243,12 +243,6 @@ class XRChannelConnection extends EventTarget {
           return peerConnection.peerConnection.setLocalDescription(offer).then(() => offer);
         })
         .then(offer => {
-          console.log('send message', {
-            dst: peerConnection.connectionId,
-            src: this.connectionId,
-            method: 'offer',
-            offer: offer.toJSON(),
-          });
           this.rtcWs.send(peerConnection.connectionId, {
             dst: peerConnection.connectionId,
             src: this.connectionId,
@@ -262,7 +256,6 @@ class XRChannelConnection extends EventTarget {
 
       const {data} = e;
       const {method} = data;
-      console.log('got message', data);
       if (method === 'join') {
         const {src: peerConnectionId} = data;
         _addPeerConnection(peerConnectionId);
