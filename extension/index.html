@@ -1329,14 +1329,14 @@ const mirrorTextureMesh = (() => {
     varying vec2 vUv;
     void main() {
       vec2 uv = vUv;
-      uv.x += uXOffset;
-      uv.x *= uX.y;
-      uv.x += uX.x;
-      uv.y *= uY.y;
-      uv.y += uY.x;
-      if (uv.x < 0.0 || uv.x > 1.0) {
+      if (uv.x < 0.1 || uv.x > 0.9) {
         discard;
       } else {
+        uv.x += uXOffset;
+        uv.x *= uX.y;
+        uv.x += uX.x;
+        uv.y *= uY.y;
+        uv.y += uY.x;
         gl_FragColor = texture2D(uTex1, uv);
       }
     }
