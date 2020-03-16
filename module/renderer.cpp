@@ -63,8 +63,8 @@ public:
 
 class MirrorTextureMessageStruct {
 public:
-  uint8_t *datas[2];
-  size_t sizes[2];
+  uint8_t *data;
+  size_t size;
 };
 uv_async_t eventAsync;
 std::mutex mutex;
@@ -111,24 +111,20 @@ void RunAsync(uv_async_t *handle) {
       for (size_t i = 0; i < mirrorTextureMessages.size(); i++) {
         const auto &message = mirrorTextureMessages[i];
 
-        Local<ArrayBuffer> leftArrayBuffer = ArrayBuffer::New(Isolate::GetCurrent(), message.datas[0], message.sizes[0]);
-        Local<ArrayBuffer> rightArrayBuffer = ArrayBuffer::New(Isolate::GetCurrent(), message.datas[1], message.sizes[1]);
+        Local<ArrayBuffer> dataArrayBuffer = ArrayBuffer::New(Isolate::GetCurrent(), message.data, message.size);
         
         Local<Object> event = Nan::New<Object>();
         event->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("type").ToLocalChecked(), Nan::New<String>("mirrorTexture").ToLocalChecked());
-        event->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("left").ToLocalChecked(), leftArrayBuffer);
-        event->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("right").ToLocalChecked(), rightArrayBuffer);
+        event->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("data").ToLocalChecked(), dataArrayBuffer);
 
         Local<Value> argv[] = {
           event,
         };
         localEventCbFn->Call(Isolate::GetCurrent()->GetCurrentContext(), Nan::Null(), sizeof(argv)/sizeof(argv[0]), argv);
 
-        leftArrayBuffer->Neuter();
-        rightArrayBuffer->Neuter();
+        dataArrayBuffer->Neuter();
 
-        SjpegFreeBuffer(message.datas[0]);
-        SjpegFreeBuffer(message.datas[1]);
+        SjpegFreeBuffer(message.data);
       }
       mirrorTextureMessages.clear();
     }
@@ -441,7 +437,8 @@ NAN_METHOD(handleMessage) {
             if (SUCCEEDED(hrs[0]) && SUCCEEDED(hrs[1])) {
               // getOut() << "map ok" << std::endl;
 
-              MirrorTextureMessageStruct message;
+              const size_t size = 256;
+              std::vector<uint8_t> scaledRgb(size * size * 3 * 2);
 
               const UINT lBmpRowPitch = desc.Width * 3;
               for (size_t i = 0; i < 2; i++) {
@@ -460,17 +457,16 @@ NAN_METHOD(handleMessage) {
                   resources[i],
                   0
                 );
-
-                const size_t size = 256;
-                std::vector<uint8_t> scaledRgb(size * size * 3);
-                std::string errors;
-                base::ResampleImage24(rgb.data(), desc.Width, desc.Height, scaledRgb.data(), size, size, base::KernelType::KernelTypeBilinear, &errors);
-                if (errors.size() > 0) {
-                  std::cout << "scale errors: " << errors << std::endl;
-                }
-
-                message.sizes[i] = SjpegCompress(scaledRgb.data(), size, size, 50, &message.datas[i]);
               }
+
+              std::string errors;
+              base::ResampleImage24(rgb.data(), desc.Width, desc.Height, scaledRgb.data() + (size * size * 3), size, size, base::KernelType::KernelTypeBilinear, &errors);
+              if (errors.size() > 0) {
+                std::cout << "resample image errors: " << errors << std::endl;
+              }
+
+              MirrorTextureMessageStruct message;
+              message.size = SjpegCompress(scaledRgb.data(), size, size * 2, 50, &message.data);
 
               // getOut() << "emit event" << hmd[0] << " " << hmd[1] << " " << hmd[2] << " " << hmd[3] << std::endl;
 
