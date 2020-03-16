@@ -1325,8 +1325,6 @@ const mirrorTextureMesh = (() => {
     uniform sampler2D uTex1;
     varying vec2 vUv;
     void main() {
-      // vec2 uv = gl_FragCoord.xy;
-      // uv = uv / vec2(uWidth, uHeight);
       vec2 uv = vUv;
       uv.x += uX;
       uv.y *= uY.y;
