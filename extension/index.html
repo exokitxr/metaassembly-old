@@ -923,7 +923,15 @@ const _connectMultiplayer = async rid => {
     });
     peerConnection.addEventListener('screenshare', e => {
       const mediaStream = e.detail;
-      console.log('got screne share media stream', mediaStream);
+      console.log('got screen share media stream', mediaStream);
+
+      const video = document.createElement('video');
+      video.srcObject = mediaStream;
+
+      const screenshareMesh = _makeScreenshareMesh();
+      screenshareMesh.position.set(-0.5 + 1/4/2 + 1/4, 0, 0.001);
+      screenshareMesh.scale.set(1/4, (512-50*2)/512, 1);
+      hudUiMesh.add(screenshareMesh);
     });
   });
 
@@ -1324,7 +1332,7 @@ socket.request = async (method, args) => {
   return await p;
 };
 
-const mirrorTextureMesh = (() => {
+const _makeScreenshareMesh = () => {
   const geometry = new THREE.PlaneBufferGeometry(1, 1);
   const texture = new THREE.Texture();
   texture.generateMipmaps = false;
@@ -1406,6 +1414,7 @@ const mirrorTextureMesh = (() => {
   const mesh = new THREE.Object3D();
   mesh.add(_makeMesh(0.1, uXs[0], uYs[0], [0, 1]));
   mesh.add(_makeMesh(-0.1, uXs[1], uYs[1], [2]));
+  mesh.isScreenshareMesh = true;
   mesh.getTexture = () => texture;
   mesh.setTexture2H = image => {
     texture.image = image;
@@ -1432,7 +1441,9 @@ const mirrorTextureMesh = (() => {
     texture.needsUpdate = true;
   };
   return mesh;
-})();
+};
+console.log('children pre', hudUiMesh.children.slice());
+const mirrorTextureMesh = _makeScreenshareMesh();
 mirrorTextureMesh.position.set(-0.5 + 1/4/2, 0, 0.001);
 mirrorTextureMesh.scale.set(1/4, (512-50*2)/512, 1);
 hudUiMesh.add(mirrorTextureMesh);
@@ -1757,6 +1768,14 @@ function animate() {
       mirrorTextureMesh.updateTexture();
     }
   }
+  hudUiMesh.children.forEach(o => {
+    if (o.isScreenshareMesh) {
+      const texture = o.getTexture();
+      if (texture.image.tagName === 'VIDEO') {
+        texture.needsUpdate = true;
+      }
+    }
+  });
   renderer.clear(true, true, true);
   renderer.render(scene, camera);
   if (thirdperson) {
