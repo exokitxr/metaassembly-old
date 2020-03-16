@@ -698,6 +698,15 @@ NAN_METHOD(handleMessage) {
     res->Set(Isolate::GetCurrent()->GetCurrentContext(), Nan::New<String>("result").ToLocalChecked(), result);
     info.GetReturnValue().Set(res);
   } else if (
+    methodString == "removeObject" &&
+    args->Length() >= 1 &&
+    args->Get(Isolate::GetCurrent()->GetCurrentContext(), 0).ToLocalChecked()->IsString()
+  ) {
+    Nan::Utf8String nameUtf8(args->Get(Isolate::GetCurrent()->GetCurrentContext(), 0).ToLocalChecked());
+    std::string name = *nameUtf8;
+    app->renderer->m_renderer->removeFromRenderList(models[name].get());
+    models.erase(name);
+  } else if (
     methodString == "terminate"
   ) {
     getOut() << "call terminate 1" << std::endl;
