@@ -1336,6 +1336,16 @@ socket.request = async (method, args) => {
   return await p;
 };
 
+const _getImageData = (() => {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  return image => {
+    canvas.width = image.width;
+    canvas.height = image.height;
+    ctx.drawImage(image, 0, 0);
+    return ctx.getImageData(0, 0, image.width, image.height);
+  };
+})();
 const _makeScreenshareMesh = () => {
   const geometry = new THREE.PlaneBufferGeometry(1, 1);
   const texture = new THREE.Texture();
@@ -1420,6 +1430,7 @@ const _makeScreenshareMesh = () => {
   mesh.add(_makeMesh(-0.1, uXs[1], uYs[1], [2]));
   mesh.isScreenshareMesh = true;
   mesh.getTexture = () => texture.image;
+  mesh.getImageData = () => _getImageData(texture.image);
   mesh.setTexture2H = image => {
     texture.image = image;
     uXs[0].value.set(0, 1);
@@ -1766,14 +1777,15 @@ function animate() {
       mirrorTextureMesh.updateTexture();
     }
   }
-  hudUiMesh.children.forEach(o => {
+  for (let i = 0; i < hudUiMesh.children.length; i++) {
+    const o = hudUiMesh.children[i];
     if (o.isScreenshareMesh) {
       const image = o.getTexture();
       if (image.tagName === 'VIDEO') {
         o.updateTexture();
       }
     }
-  });
+  }
   renderer.clear(true, true, true);
   renderer.render(scene, camera);
   if (thirdperson) {
@@ -1811,6 +1823,7 @@ let avatarObject = null;
 // let hmdObject = null;
 // const controllerObjects = [null, null];
 let hudObject = null;
+const screenshareObjects = [];
 let tradeObject = null;
 let wristObject = null;
 document.getElementById('enter-overlay-button').addEventListener('click', async e => {
@@ -1857,6 +1870,21 @@ document.getElementById('enter-overlay-button').addEventListener('click', async 
     hudUiMesh.material.map.image.height,
     hudUiMesh.material.map.image.imageData.data,
   ]);
+  for (let i = 0; i < hudUiMesh.children.length; i++) {
+    const o = hudUiMesh.children[i];
+    if (o.isScreenshareMesh) { 
+      const screenshareObject = await socket.request('addPlane', []);
+      const image = o.getTexture();
+      const imageData = o.getImageData();
+      await socket.request('updateObjectTexture', [
+        screenshareObject.id,
+        image.width,
+        image.height,
+        imageData.data,
+      ]);
+      screenshareObjects.push(screenshareObject);
+    }
+  }
   tradeObject = await socket.request('addPlane', []);
   await socket.request('updateObjectTexture', [
     tradeObject.id,
