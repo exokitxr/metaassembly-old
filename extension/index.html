@@ -1874,6 +1874,7 @@ document.getElementById('enter-overlay-button').addEventListener('click', async 
     const o = hudUiMesh.children[i];
     if (o.isScreenshareMesh) { 
       const screenshareObject = await socket.request('addPlane', []);
+      screenshareObject.mesh = o;
       const image = o.getTexture();
       const imageData = o.getImageData();
       await socket.request('updateObjectTexture', [
@@ -1899,7 +1900,7 @@ document.getElementById('enter-overlay-button').addEventListener('click', async 
     wristUiMesh.material.map.image.height,
     wristUiMesh.material.map.image.imageData.data,
   ]);
-  console.log('got objects', /* hmdObject, controllerObjects[0], controllerObjects[1],*/ hudObject, tradeObject, wristObject);
+  console.log('got objects', /* hmdObject, controllerObjects[0], controllerObjects[1],*/ hudObject, screenshareObjects, tradeObject, wristObject);
   
   const res = await fetch('../data/avatar.glb');
   const arrayBuffer = await res.arrayBuffer();
@@ -1951,6 +1952,14 @@ handlePose = (hmd, left, right) => {
     socket.request('updateObjectMatrix', [
       hudObject.id,
       hudUiMesh.matrixWorld.toArray(new Float32Array(16)),
+    ]);
+  }
+  for (let i = 0; i < screenshareObjects.length; i++) {
+    const screenshareObject = screenshareObjects[i];
+    const {mesh} = screenshareObject;
+    socket.request('updateObjectMatrix', [
+      hudObject.id,
+      mesh.matrixWorld.toArray(new Float32Array(16)),
     ]);
   }
   if (tradeObject) {
