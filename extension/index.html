@@ -407,7 +407,9 @@ Array.from(tools).forEach((tool, i) => {
       });
       hudUiMesh.visible = !hudUiMesh.visible;
       tradeUiMesh.visible = false;
-      tradeUiModels.visible = tradeUiMesh.visible;
+      tradeUiModels.forEach(m => {
+        m.visible = tradeUiMesh.visible;
+      });
 
       if (hudUiMesh.visible) {
         const xrCamera = (() => {
@@ -435,7 +437,9 @@ Array.from(tools).forEach((tool, i) => {
       });
       hudUiMesh.visible = false;
       tradeUiMesh.visible = !tradeUiMesh.visible;
-      tradeUiModels.visible = tradeUiMesh.visible;
+      tradeUiModels.forEach(m => {
+        m.visible = tradeUiMesh.visible;
+      });
 
       if (tradeUiMesh.visible) {
         const xrCamera = (() => {
@@ -450,9 +454,10 @@ Array.from(tools).forEach((tool, i) => {
           .add(new THREE.Vector3(0, 0, -0.5).applyQuaternion(xrCamera.quaternion));
         tradeUiMesh.quaternion.copy(xrCamera.quaternion)
           // .multiply(new THREE.Quaternion().setFromAxisAngle(new  THREE.Vector3(0, 1, 0), Math.PI));
-          
-        tradeUiModels.position.copy(tradeUiMesh.position);
-        tradeUiModels.quaternion.copy(tradeUiMesh.quaternion);
+      
+        tradeUiModels.forEach(m => {
+          m.bound && m.alignToMenu();
+        });
       
         tool.classList.add('selected');
       } else {
@@ -866,47 +871,89 @@ const tradeUiModels = (() => {
   const uiHeight = 1024;
   const uiWorldWidth = 2;
   const uiWorldHeight = uiWorldWidth * uiHeight/uiWidth;
-
-  const mesh = new THREE.Object3D();
-
   const modelSize = 0.2;
+  
+  const meshes = [];
+
   [
     'sketch.gltf',
     'models/SM_Wep_MachinePistol_Gen1_01.glb',
     'models/parcel-223.gltf',
     'models/model10.vrm',
   ].forEach((name, i) => {
-    console.log('loading', name);
+    // console.log('loading', name);
     const loader = new GLTFLoader();
-    loader.load(name, object => {
-      console.log('load ok', object);
-      object = object.scene;
-
+    loader.load(name, o => {
+      // console.log('load ok', object);
+      
+      const model = o.scene;
       const box = new THREE.Box3();
-      box.setFromObject(object);
+      box.setFromObject(model);
       const size = box.getSize(new THREE.Vector3());
-      object.scale.divideScalar(Math.max(size.x, size.y, size.z)).multiplyScalar(modelSize);
-      object.updateMatrixWorld();
+      const scaleFactor = modelSize / Math.max(size.x, size.y, size.z);
+      model.scale.multiplyScalar(scaleFactor);
+      model.updateMatrixWorld();
+      box.setFromObject(model);
+      const positionOffset = box.getCenter(new THREE.Vector3()).multiplyScalar(-1);
+      model.position.add(positionOffset);
+      
+      const object = new THREE.Object3D();
+      object.add(model);
 
-      box.setFromObject(object);
-      const center = box.getCenter(new THREE.Vector3());
-      object.position.sub(center);
-      object.position.y += uiWorldHeight*0.3 - i*modelSize;
-      object.position.z += modelSize/2;
+      object.visible = false;
+      object.bound = true;
+      object.alignToMenu = () => {
+        object.position.set(0, uiWorldHeight*0.3 - i*modelSize, modelSize/2);
+        object.quaternion.set(0, 0, 0, 1);
+        object.scale.set(1, 1, 1);
+        object.updateMatrix();
+        
+        object.matrix
+          .premultiply(
+            new THREE.Matrix4().compose(tradeUiMesh.position, tradeUiMesh.quaternion, new THREE.Vector3(1, 1, 1))
+          )
+          .decompose(object.position, object.quaternion, object.scale);
+        // object.updateMatrixWorld();
+      };
 
-      mesh.add(object);
+      let grabberIndex = -1;
+      const grabStartMatrix = new THREE.Matrix4();
+      const grabStartControllerMatrix = new THREE.Matrix4();
+      object.grab = gi => {
+        const controllerGrip = renderer.xr.getControllerGrip(gi);
+        if (controllerGrip.position.distanceTo(object.position) < modelSize/2) {
+          grabberIndex = gi;
+          grabStartMatrix.copy(object.matrix);
+          grabStartControllerMatrix.copy(controllerGrip.matrix);
+        }
+      };
+      object.ungrab = gi => {
+        if (grabberIndex === gi) {
+          grabberIndex = -1;
+        }
+      };
+      object.update = () => {
+        if (grabberIndex !== -1) {
+          const controllerGrip = renderer.xr.getControllerGrip(grabberIndex);
+          object.matrix
+            .copy(grabStartMatrix)
+            .premultiply(new THREE.Matrix4().getInverse(grabStartControllerMatrix))
+            .premultiply(controllerGrip.matrix)
+            .decompose(object.position, object.quaternion, object.scale);
+        }
+      };
+
+      scene.add(object);
+      meshes.push(object);
     }, xhr => {
       // console.log('progress');
     }, err => {
       console.warn('load error', err);
     });
   });
-
-  return mesh;
+  
+  return meshes;
 })();
-tradeUiModels.position.copy(tradeUiMesh.position);
-tradeUiModels.visible = false;
-scene.add(tradeUiModels);
 
 const hudUiMesh = (() => {
   const uiWidth = 2048;
@@ -1609,6 +1656,7 @@ function onSessionStarted(session) {
 
   // const controllerModelFactory = new XRControllerModelFactory();
   for (let i = 0; i < 2; i++) {
+    const index = i;
     const controller = renderer.xr.getController(i);
     controller.addEventListener('connected', e => {
       controller.userData.data = e.data;
@@ -1629,7 +1677,7 @@ function onSessionStarted(session) {
 
     const controllerGrip = renderer.xr.getControllerGrip(i);
     // controllerGrip.add(controllerModelFactory.createControllerModel(controllerGrip));
-    controllerGrip.addEventListener('squeezestart', e => {
+    const squeezestart = e => {
       /* if (controller.userData.data && controller.userData.data.handedness === 'right') {
         _beginTool(false, true, false);
       }
@@ -1654,8 +1702,14 @@ function onSessionStarted(session) {
           containerStartMatrix: container.matrix.clone(),
         };
       } */
-    });
-    controllerGrip.addEventListener('squeezeend', e => {
+      
+      tradeUiModels.forEach(m => {
+        m.grab(index);
+      });
+    };
+    controllerGrip.addEventListener('squeezestart', squeezestart);
+    controllerGrip.onsqueezestart = squeezestart;
+    const squeezeend = e => {
       /* if (controller.userData.data && controller.userData.data.handedness === 'right') {
         _endTool(false, true, false);
       } */
@@ -1664,7 +1718,14 @@ function onSessionStarted(session) {
       if (!newGripDownsAll) {
         scaleState = null;
       } */
-    });
+      
+      tradeUiModels.forEach(m => {
+        m.ungrab(index);
+      });
+    };
+    controllerGrip.onsqueeze = e => {};
+    controllerGrip.addEventListener('squeezeend', squeezeend);
+    controllerGrip.onsqueezeend = squeezeend;
     scene.add(controllerGrip);
   }
 
@@ -1783,6 +1844,33 @@ function animate() {
     updatePlayerFromCamera(camera);
   } else {
     updatePlayerDefault();
+  }
+  
+  if (currentSession) {
+    const {inputSources} = currentSession;
+    for (let i = 0; i < inputSources.length; i++) {
+      const inputSource = inputSources[i];
+      const controllerGrip = renderer.xr.getControllerGrip(i);
+
+      const {handedness, gamepad} = inputSource;
+      const {buttons} = gamepad;
+      const gripButton = buttons[1];
+      const {pressed: squeeze} = gripButton;
+      // const index = handedness === 'right' ? 1 : 0;
+      const lastSqueeze = lastSqueezes[i];
+
+      if (squeeze && !lastSqueeze) {
+        controllerGrip.onsqueezestart();
+        controllerGrip.onsqueeze();
+      } else if (lastSqueeze && !squeeze) {
+        controllerGrip.onsqueezeend();
+      }
+      lastSqueezes[i] = squeeze;
+    }
+    
+    tradeUiModels.forEach(m => {
+      m.update();
+    });
   }
   
   _updateIntersections(localRaycaster);
