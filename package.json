@@ -23,6 +23,7 @@
     "ws": "^7.2.3"
   },
   "devDependencies": {
+    "jest-puppeteer": "^4.4.0",
     "node-gyp": "^6.1.0"
   }
 }
