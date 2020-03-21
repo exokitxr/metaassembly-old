@@ -871,15 +871,17 @@ const tradeUiModels = (() => {
   const uiHeight = 1024;
   const uiWorldWidth = 2;
   const uiWorldHeight = uiWorldWidth * uiHeight/uiWidth;
-  const modelSize = 0.2;
+  const modelSize = 0.15;
   
   const meshes = [];
 
   [
     'sketch.gltf',
-    'models/SM_Wep_MachinePistol_Gen1_01.glb',
+    'models/scifi/SM_Wep_MachinePistol_Gen1_01.glb',
+    'models/scifi/SM_Wep_Sword_01.glb',
     'models/parcel-223.gltf',
     'models/model10.vrm',
+    'models/dungeon/SM_Item_Coins_04.glb',
   ].forEach((name, i) => {
     // console.log('loading', name);
     const loader = new GLTFLoader();
@@ -905,7 +907,7 @@ const tradeUiModels = (() => {
       object.bound = true;
       const menuPosition = new THREE.Vector3();
       object.alignToMenu = () => {
-        menuPosition.set(0, uiWorldHeight*0.3 - i*modelSize, modelSize/2);
+        menuPosition.set(0, uiWorldHeight/2 - i*modelSize, modelSize/2);
 
         if (object.bound) {
           object.position.copy(menuPosition);
