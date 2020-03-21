@@ -408,7 +408,7 @@ Array.from(tools).forEach((tool, i) => {
       hudUiMesh.visible = !hudUiMesh.visible;
       tradeUiMesh.visible = false;
       tradeUiModels.forEach(m => {
-        m.visible = tradeUiMesh.visible;
+        m.visible = !m.bound || tradeUiMesh.visible;
       });
 
       if (hudUiMesh.visible) {
@@ -438,7 +438,7 @@ Array.from(tools).forEach((tool, i) => {
       hudUiMesh.visible = false;
       tradeUiMesh.visible = !tradeUiMesh.visible;
       tradeUiModels.forEach(m => {
-        m.visible = tradeUiMesh.visible;
+        m.visible = !m.bound || tradeUiMesh.visible;
       });
 
       if (tradeUiMesh.visible) {
@@ -453,7 +453,7 @@ Array.from(tools).forEach((tool, i) => {
           .copy(xrCamera.position)
           .add(new THREE.Vector3(0, 0, -0.5).applyQuaternion(xrCamera.quaternion));
         tradeUiMesh.quaternion.copy(xrCamera.quaternion)
-          // .multiply(new THREE.Quaternion().setFromAxisAngle(new  THREE.Vector3(0, 1, 0), Math.PI));
+        tradeUiMesh.updateMatrixWorld();
       
         tradeUiModels.forEach(m => {
           m.bound && m.alignToMenu();
@@ -889,6 +889,7 @@ const tradeUiModels = (() => {
       const model = o.scene;
       const box = new THREE.Box3();
       box.setFromObject(model);
+      const originalScale = model.scale.clone();
       const size = box.getSize(new THREE.Vector3());
       const scaleFactor = modelSize / Math.max(size.x, size.y, size.z);
       model.scale.multiplyScalar(scaleFactor);
@@ -902,18 +903,24 @@ const tradeUiModels = (() => {
 
       object.visible = false;
       object.bound = true;
+      const menuPosition = new THREE.Vector3();
       object.alignToMenu = () => {
-        object.position.set(0, uiWorldHeight*0.3 - i*modelSize, modelSize/2);
-        object.quaternion.set(0, 0, 0, 1);
-        object.scale.set(1, 1, 1);
-        object.updateMatrix();
+        menuPosition.set(0, uiWorldHeight*0.3 - i*modelSize, modelSize/2);
+
+        if (object.bound) {
+          object.position.copy(menuPosition);
+          object.quaternion.set(0, 0, 0, 1);
+          object.scale.set(1, 1, 1);
+          object.updateMatrix();
+          
+          object.matrix
+            .premultiply(
+              new THREE.Matrix4().compose(tradeUiMesh.position, tradeUiMesh.quaternion, new THREE.Vector3(1, 1, 1))
+            )
+            .decompose(object.position, object.quaternion, object.scale);
+        }
         
-        object.matrix
-          .premultiply(
-            new THREE.Matrix4().compose(tradeUiMesh.position, tradeUiMesh.quaternion, new THREE.Vector3(1, 1, 1))
-          )
-          .decompose(object.position, object.quaternion, object.scale);
-        // object.updateMatrixWorld();
+        menuPosition.applyMatrix4(tradeUiMesh.matrix);
       };
 
       let grabberIndex = -1;
@@ -940,6 +947,13 @@ const tradeUiModels = (() => {
             .premultiply(new THREE.Matrix4().getInverse(grabStartControllerMatrix))
             .premultiply(controllerGrip.matrix)
             .decompose(object.position, object.quaternion, object.scale);
+
+          console.log('distance', object.position.distanceTo(menuPosition), modelSize);
+          object.bound = object.position.distanceTo(menuPosition) < modelSize;
+          model.scale.copy(originalScale);
+          if (object.bound) {
+            model.scale.multiplyScalar(scaleFactor);
+          }
         }
       };
 
