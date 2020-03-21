@@ -99,7 +99,7 @@
     <div class="xr desktop">
       <!-- <div class=button id=start-capture-button>Start Capture</div> -->
       <div class=button id=enter-vr-button>Enter VR</div>
-      <div class=button id=enter-overlay-button>Enter Overlay</div>
+      <!-- <div class=button id=enter-overlay-button>Enter Overlay</div> -->
     </div>
     <div class="xr vr">VR running</div>
     <div class="xr overlay">Overlay running</div>
@@ -113,7 +113,7 @@ window.THREE = THREE;
 import {OrbitControls} from './OrbitControls.js';
 import {GLTFLoader} from './GLTFLoader.js';
 // import {GLTFExporter} from './GLTFExporter.js';
-import {XRControllerModelFactory} from './XRControllerModelFactory.js';
+// import {XRControllerModelFactory} from './XRControllerModelFactory.js';
 import {makeId, listRooms, XRChannelConnection} from './multiplayer.js';
 import {initLocalRig, updatePlayerFromCamera, updatePlayerFromXr, updatePlayerFromArrays, updatePlayerDefault, getRigBoneTexture, bindPeerConnection} from './peerconnection.js';
 
@@ -236,7 +236,7 @@ orbitControls.screenSpacePanning = true;
 orbitControls.enableMiddleZoom = false;
 orbitControls.update();
 
-const defaultGltf = new THREE.Object3D();
+/* const defaultGltf = new THREE.Object3D();
 container.add(defaultGltf);
 const _loadDefaultGltf = () => {
   const loader = new GLTFLoader();
@@ -253,7 +253,7 @@ const _loadDefaultGltf = () => {
     console.warn(err);
   });
 };
-_loadDefaultGltf();
+_loadDefaultGltf(); */
 
 let rig = null;
 let videoMediaStream = null;
@@ -262,7 +262,7 @@ initLocalRig()
   .then(newRig => {
     rig = newRig;
 
-    if (cameraMode === 'firstperson' || currentSession || avatarObject) {
+    if (cameraMode === 'firstperson' || currentSession) {
       rig.decapitate();
     }
     container.add(rig.model);
@@ -407,8 +407,22 @@ Array.from(tools).forEach((tool, i) => {
       });
       hudUiMesh.visible = !hudUiMesh.visible;
       tradeUiMesh.visible = false;
+      tradeUiModels.visible = tradeUiMesh.visible;
 
       if (hudUiMesh.visible) {
+        const xrCamera = (() => {
+          if (currentSession) {
+            return renderer.xr.getCamera(camera).cameras[0];
+          } else {
+            return camera;
+          }
+        })();
+        hudUiMesh.position
+          .copy(xrCamera.position)
+          .add(new THREE.Vector3(0, 0, -0.5).applyQuaternion(xrCamera.quaternion));
+        hudUiMesh.quaternion.copy(xrCamera.quaternion)
+          // .multiply(new THREE.Quaternion().setFromAxisAngle(new  THREE.Vector3(0, 1, 0), Math.PI));
+
         tool.classList.add('selected');
       } else {
         tool.classList.remove('selected');
@@ -421,8 +435,25 @@ Array.from(tools).forEach((tool, i) => {
       });
       hudUiMesh.visible = false;
       tradeUiMesh.visible = !tradeUiMesh.visible;
+      tradeUiModels.visible = tradeUiMesh.visible;
 
       if (tradeUiMesh.visible) {
+        const xrCamera = (() => {
+          if (currentSession) {
+            return renderer.xr.getCamera(camera).cameras[0];
+          } else {
+            return camera;
+          }
+        })();
+        tradeUiMesh.position
+          .copy(xrCamera.position)
+          .add(new THREE.Vector3(0, 0, -0.5).applyQuaternion(xrCamera.quaternion));
+        tradeUiMesh.quaternion.copy(xrCamera.quaternion)
+          // .multiply(new THREE.Quaternion().setFromAxisAngle(new  THREE.Vector3(0, 1, 0), Math.PI));
+          
+        tradeUiModels.position.copy(tradeUiMesh.position);
+        tradeUiModels.quaternion.copy(tradeUiMesh.quaternion);
+      
         tool.classList.add('selected');
       } else {
         tool.classList.remove('selected');
@@ -447,7 +478,7 @@ Array.from(tools).forEach((tool, i) => {
       orbitControls.enabled = false;
     }
     if (rig) {
-      if (newTool === 'firstperson' || currentSession || avatarObject) {
+      if (newTool === 'firstperson' || currentSession) {
         rig.decapitate();
       } else {
         rig.undecapitate();
@@ -665,7 +696,7 @@ const wristUiMesh = (() => {
       hudEnabled,
       tradeEnabled,
     });
-    p.then(result => {
+    /* p.then(result => {
       if (wristObject) {
         socket.request('updateObjectTexture', [
           wristObject.id,
@@ -674,7 +705,7 @@ const wristUiMesh = (() => {
           result.data,
         ]);
       }
-    });
+    }); */
     return p;
   };
   mesh.onpress = hoveredAnchor => {
@@ -758,7 +789,7 @@ const tradeUiMesh = (() => {
       allLockedIn: srcLockedIn && dstLockedIn,
       addresses,
     });
-    p.then(result => {
+    /* p.then(result => {
       if (tradeObject) {
         socket.request('updateObjectTexture', [
           tradeObject.id,
@@ -767,7 +798,7 @@ const tradeUiMesh = (() => {
           result.data,
         ]);
       }
-    });
+    }); */
     return p;
   };
   mesh.onpress = async hoveredAnchor => {
@@ -823,16 +854,64 @@ const tradeUiMesh = (() => {
       return false;
     }
   };
+
   return mesh;
 })();
 tradeUiMesh.position.set(0, 1, 0);
 tradeUiMesh.visible = false;
 scene.add(tradeUiMesh);
 
+const tradeUiModels = (() => {
+  const uiWidth = 2048;
+  const uiHeight = 1024;
+  const uiWorldWidth = 2;
+  const uiWorldHeight = uiWorldWidth * uiHeight/uiWidth;
+
+  const mesh = new THREE.Object3D();
+
+  const modelSize = 0.2;
+  [
+    'sketch.gltf',
+    'models/SM_Wep_MachinePistol_Gen1_01.glb',
+    'models/parcel-223.gltf',
+    'models/model10.vrm',
+  ].forEach((name, i) => {
+    console.log('loading', name);
+    const loader = new GLTFLoader();
+    loader.load(name, object => {
+      console.log('load ok', object);
+      object = object.scene;
+
+      const box = new THREE.Box3();
+      box.setFromObject(object);
+      const size = box.getSize(new THREE.Vector3());
+      object.scale.divideScalar(Math.max(size.x, size.y, size.z)).multiplyScalar(modelSize);
+      object.updateMatrixWorld();
+
+      box.setFromObject(object);
+      const center = box.getCenter(new THREE.Vector3());
+      object.position.sub(center);
+      object.position.y += uiWorldHeight*0.3 - i*modelSize;
+      object.position.z += modelSize/2;
+
+      mesh.add(object);
+    }, xhr => {
+      // console.log('progress');
+    }, err => {
+      console.warn('load error', err);
+    });
+  });
+
+  return mesh;
+})();
+tradeUiModels.position.copy(tradeUiMesh.position);
+tradeUiModels.visible = false;
+scene.add(tradeUiModels);
+
 const hudUiMesh = (() => {
   const uiWidth = 2048;
   const uiHeight = 512 + 50;
-  const uiWorldWidth = 0.5;
+  const uiWorldWidth = 1;
   const uiWorldHeight = uiWorldWidth * uiHeight/uiWidth;
 
   const mesh = _makeUiMesh({
@@ -856,7 +935,7 @@ const hudUiMesh = (() => {
     const p = renderer.render({
       users: ['You'].concat(users),
     });
-    p.then(result => {
+    /* p.then(result => {
       if (hudObject) {
         socket.request('updateObjectTexture', [
           hudObject.id,
@@ -865,7 +944,7 @@ const hudUiMesh = (() => {
           result.data,
         ]);
       }
-    });
+    }); */
     return p;
   };
   mesh.onpress = async hoveredAnchor => {
@@ -1520,13 +1599,15 @@ function onSessionStarted(session) {
   renderer.xr.setSession(session);
 
   currentSession = session;
+  
+  renderer.setClearColor(new THREE.Color(0xFFFFFF), 0);
 
   const xrCamera = renderer.xr.getCamera(camera);
   const {cameras} = xrCamera;
   cameras[0].name = 'left';
   cameras[1].name = 'right';
 
-  const controllerModelFactory = new XRControllerModelFactory();
+  // const controllerModelFactory = new XRControllerModelFactory();
   for (let i = 0; i < 2; i++) {
     const controller = renderer.xr.getController(i);
     controller.addEventListener('connected', e => {
@@ -1547,7 +1628,7 @@ function onSessionStarted(session) {
     });
 
     const controllerGrip = renderer.xr.getControllerGrip(i);
-    controllerGrip.add(controllerModelFactory.createControllerModel(controllerGrip));
+    // controllerGrip.add(controllerModelFactory.createControllerModel(controllerGrip));
     controllerGrip.addEventListener('squeezestart', e => {
       /* if (controller.userData.data && controller.userData.data.handedness === 'right') {
         _beginTool(false, true, false);
@@ -1604,6 +1685,7 @@ enterVrButton.addEventListener('click', e => {
         'local-floor',
         'bounded-floor',
       ],
+      alpha: true,
     }).then(onSessionStarted);
   } else {
     currentSession.end();
@@ -1671,16 +1753,6 @@ function animate() {
     }
 
     updatePlayerFromXr(renderer.xr, camera);
-  } else if (avatarObject) {
-    new THREE.Matrix4()
-      .fromArray(poseData.left)
-      .decompose(wristUiMesh.position, wristUiMesh.quaternion, new THREE.Vector3());
-    wristUiMesh.quaternion
-      .multiply(wristUiQuaternion);
-    wristUiMesh.position
-      .add(new THREE.Vector3(0, 0, 0.05).applyQuaternion(wristUiMesh.quaternion));
-
-    updatePlayerDefault(); // XXX
   } else if (cameraMode !== 'orbit') {
     const speed = 0.015 * (keys.shift ? 3 : 1);
     const cameraEuler = camera.rotation.clone();
@@ -1814,206 +1886,11 @@ navigator.xr && navigator.xr.isSessionSupported('immersive-vr').then(supported =
   }
 });
 
-const poseData = {
-  hmd: null,
-  left: null,
-  right: null,
-};
-let avatarObject = null;
-// let hmdObject = null;
-// const controllerObjects = [null, null];
-let hudObject = null;
-const screenshareObjects = [];
-let tradeObject = null;
-let wristObject = null;
-document.getElementById('enter-overlay-button').addEventListener('click', async e => {
-  await socket.request('startRenderer', []);
-  console.log('render started');
-
-  await socket.request('startPoses', []);
-  console.log('poses started');
-
-  await socket.request('startMirrorTextures', []);
-  console.log('mirror textures started');
-  capturing = true;
-
-  const geometry = new THREE.CylinderBufferGeometry(0, 0.1, 0.1, 3, 1);
-  const colors = new Float32Array(geometry.attributes.position.array.length);
-  for (let i = 0; i < colors.length; i += 3) {
-    colors[i+2] = 1;
-  }
-  /* hmdObject = await socket.request('addObject', [
-    geometry.attributes.position.array,
-    geometry.attributes.normal.array,
-    colors,
-    geometry.attributes.uv.array,
-    geometry.index.array,
-  ]);
-  controllerObjects[0] = await socket.request('addObject', [
-    geometry.attributes.position.array,
-    geometry.attributes.normal.array,
-    colors,
-    geometry.attributes.uv.array,
-    geometry.index.array,
-  ]);
-  controllerObjects[1] = await socket.request('addObject', [
-    geometry.attributes.position.array,
-    geometry.attributes.normal.array,
-    colors,
-    geometry.attributes.uv.array,
-    geometry.index.array,
-  ]); */
-  hudObject = await socket.request('addPlane', []);
-  await socket.request('updateObjectTexture', [
-    hudObject.id,
-    hudUiMesh.material.map.image.width,
-    hudUiMesh.material.map.image.height,
-    hudUiMesh.material.map.image.imageData.data,
-  ]);
-  for (let i = 0; i < hudUiMesh.children.length; i++) {
-    const o = hudUiMesh.children[i];
-    if (o.isScreenshareMesh) { 
-      const screenshareObject = await socket.request('addPlane', []);
-      screenshareObject.mesh = o;
-      const image = o.getTexture();
-      const imageData = o.getImageData();
-      await socket.request('updateObjectTexture', [
-        screenshareObject.id,
-        image.width,
-        image.height,
-        imageData.data,
-      ]);
-      screenshareObjects.push(screenshareObject);
-    }
-  }
-  tradeObject = await socket.request('addPlane', []);
-  await socket.request('updateObjectTexture', [
-    tradeObject.id,
-    tradeUiMesh.material.map.image.width,
-    tradeUiMesh.material.map.image.height,
-    tradeUiMesh.material.map.image.imageData.data,
-  ]);
-  wristObject = await socket.request('addPlane', []);
-  await socket.request('updateObjectTexture', [
-    wristObject.id,
-    wristUiMesh.material.map.image.width,
-    wristUiMesh.material.map.image.height,
-    wristUiMesh.material.map.image.imageData.data,
-  ]);
-  console.log('got objects', /* hmdObject, controllerObjects[0], controllerObjects[1],*/ hudObject, screenshareObjects, tradeObject, wristObject);
-  
-  const res = await fetch('../data/avatar.glb');
-  const arrayBuffer = await res.arrayBuffer();
-  console.log('model fetched');
-  avatarObject = await socket.request('addModel', [
-    'model',
-    arrayBuffer,
-  ]);
-  console.log('model added');
-  
-  rig && rig.decapitate();
-
-  header.classList.add('overlay');
-});
-handlePose = (hmd, left, right) => {
-  poseData.hmd = new Float32Array(hmd);
-  poseData.left = new Float32Array(left);
-  poseData.right = new Float32Array(right);
-
-  if (avatarObject) {
-    updatePlayerFromArrays(renderer.xr, poseData.hmd, poseData.left, poseData.right);
-    const boneTexture = getRigBoneTexture();
-    if (boneTexture) {
-      socket.request('updateObjectBoneTexture', [
-        avatarObject.id,
-        boneTexture.buffer,
-      ]);
-    }
-  }
-  /* if (hmdObject) {
-    socket.request('updateObjectMatrix', [
-      hmdObject.id,
-      hmd,
-    ]);
-  }
-  if (controllerObjects[0]) {
-    socket.request('updateObjectMatrix', [
-      controllerObjects[0].id,
-      left,
-    ]);
-  }
-  if (controllerObjects[1]) {
-    socket.request('updateObjectMatrix', [
-      controllerObjects[1].id,
-      right,
-    ]);
-  } */
-  if (hudObject) {
-    socket.request('updateObjectMatrix', [
-      hudObject.id,
-      hudUiMesh.matrixWorld.toArray(new Float32Array(16)),
-    ]);
-  }
-  for (let i = 0; i < screenshareObjects.length; i++) {
-    const screenshareObject = screenshareObjects[i];
-    const {mesh} = screenshareObject;
-    socket.request('updateObjectMatrix', [
-      hudObject.id,
-      mesh.matrixWorld.toArray(new Float32Array(16)),
-    ]);
-  }
-  if (tradeObject) {
-    socket.request('updateObjectMatrix', [
-      tradeObject.id,
-      tradeUiMesh.matrixWorld.toArray(new Float32Array(16)),
-    ]);
-  }
-  if (wristObject) {
-    socket.request('updateObjectMatrix', [
-      wristObject.id,
-      wristUiMesh.matrixWorld.toArray(new Float32Array(16)),
-    ]);
-  }
-};
-
 window.addEventListener('resize', e => {
   renderer.setSize(window.innerWidth, window.innerHeight);
   camera.aspect = window.innerWidth/window.innerHeight;
   camera.updateProjectionMatrix();
 });
-
-/* window.downloadPlaneMesh = async () => {
-  const p = makePromise();
-  const planeMesh = (() => {
-    const geometry = new THREE.PlaneBufferGeometry(1, 1);
-    const canvas = document.createElement('canvas');
-    canvas.width = 1;
-    canvas.height = 1;
-    const texture = new THREE.Texture(canvas, THREE.UVMapping, THREE.ClampToEdgeWrapping, THREE.ClampToEdgeWrapping, THREE.LinearFilter, THREE.LinearMipMapFilter, THREE.RGBAFormat, THREE.UnsignedByteType, 16, THREE.LinearEncoding);
-    const material = new THREE.MeshStandardMaterial({
-      map: texture,
-      transparent: true,
-    });
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.frustumCulled = false;
-    return mesh;
-  })();
-  const exportScene = new THREE.Scene();
-  exportScene.add(planeMesh);
-  new THREE.GLTFExporter().parse(exportScene, p.accept, {
-    binary: true,
-  });
-  const d = await p;
-  const b = new Blob([d], {
-    type: 'text/plain',
-  });
-  const u = URL.createObjectURL(b);
-  const a = document.createElement('a');
-  a.href = u;
-  a.download = 'plane.glb';
-  a.click();
-  URL.revokeObjectURL(u);
-}; */
 
 </script>
 </body>
