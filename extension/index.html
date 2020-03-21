@@ -1657,6 +1657,7 @@ function onSessionStarted(session) {
   canvas.width = captureSize;
   canvas.height = captureSize;
 
+  renderer.xr.setReferenceSpaceType('local');
   renderer.xr.setSession(session);
 
   currentSession = session;
