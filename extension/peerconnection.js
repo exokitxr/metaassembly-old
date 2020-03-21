@@ -60,12 +60,22 @@ export function updatePlayerFromXr(xr, camera) {
 
     for (let i = 0; i < 2; i++) {
       const controller = xr.getController(i);
+      const controllerGrip = xr.getControllerGrip(i);
       if (controller.userData.data && controller.userData.data.handedness === 'left') {
-        rig.inputs.rightGamepad.position.copy(controller.position);
-        rig.inputs.rightGamepad.quaternion.copy(controller.quaternion);
+        rig.inputs.rightGamepad.position.copy(controllerGrip.position);
+        rig.inputs.rightGamepad.quaternion.copy(controllerGrip.quaternion);
+        
+        const {gamepad} = controller.userData.data;
+        window.userData = {data: controller.userData.data};
+        rig.inputs.rightGamepad.pointer = gamepad.buttons[0].value;
+        rig.inputs.rightGamepad.grip = gamepad.buttons[1].value;
       } else if (controller.userData.data && controller.userData.data.handedness === 'right') {
-        rig.inputs.leftGamepad.position.copy(controller.position);
-        rig.inputs.leftGamepad.quaternion.copy(controller.quaternion);
+        rig.inputs.leftGamepad.position.copy(controllerGrip.position);
+        rig.inputs.leftGamepad.quaternion.copy(controllerGrip.quaternion);
+        
+        const {gamepad} = controller.userData.data;
+        rig.inputs.leftGamepad.pointer = gamepad.buttons[0].value;
+        rig.inputs.leftGamepad.grip = gamepad.buttons[1].value;
       }
     }
 
