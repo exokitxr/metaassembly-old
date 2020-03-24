@@ -408,7 +408,7 @@ Array.from(tools).forEach((tool, i) => {
       hudUiMesh.visible = !hudUiMesh.visible;
       tradeUiMesh.visible = false;
       tradeUiModels.forEach(m => {
-        m.visible = !m.bound || tradeUiMesh.visible;
+        m.visible = !m.bound || hudUiMesh.visible;
       });
 
       if (hudUiMesh.visible) {
@@ -423,7 +423,11 @@ Array.from(tools).forEach((tool, i) => {
           .copy(xrCamera.position)
           .add(new THREE.Vector3(0, 0, -0.5).applyQuaternion(xrCamera.quaternion));
         hudUiMesh.quaternion.copy(xrCamera.quaternion)
-          // .multiply(new THREE.Quaternion().setFromAxisAngle(new  THREE.Vector3(0, 1, 0), Math.PI));
+        hudUiMesh.updateMatrixWorld();
+        
+        tradeUiModels.forEach(m => {
+          m.bound && m.alignToMenu();
+        });
 
         tool.classList.add('selected');
       } else {
@@ -438,7 +442,7 @@ Array.from(tools).forEach((tool, i) => {
       hudUiMesh.visible = false;
       tradeUiMesh.visible = !tradeUiMesh.visible;
       tradeUiModels.forEach(m => {
-        m.visible = !m.bound || tradeUiMesh.visible;
+        m.visible = !m.bound || hudUiMesh.visible;
       });
 
       if (tradeUiMesh.visible) {
@@ -454,11 +458,7 @@ Array.from(tools).forEach((tool, i) => {
           .add(new THREE.Vector3(0, 0, -0.5).applyQuaternion(xrCamera.quaternion));
         tradeUiMesh.quaternion.copy(xrCamera.quaternion)
         tradeUiMesh.updateMatrixWorld();
-      
-        tradeUiModels.forEach(m => {
-          m.bound && m.alignToMenu();
-        });
-      
+
         tool.classList.add('selected');
       } else {
         tool.classList.remove('selected');
@@ -748,7 +748,7 @@ const wristUiMesh = (() => {
   };
   return mesh;
 })();
-wristUiMesh.position.set(0.5, 0.5, 1);
+wristUiMesh.position.set(0, 0.5, 1);
 scene.add(wristUiMesh);
 
 const tradeUiMesh = (() => {
@@ -868,8 +868,8 @@ scene.add(tradeUiMesh);
 
 const tradeUiModels = (() => {
   const uiWidth = 2048;
-  const uiHeight = 1024;
-  const uiWorldWidth = 2;
+  const uiHeight = 512 + 50;
+  const uiWorldWidth = 1;
   const uiWorldHeight = uiWorldWidth * uiHeight/uiWidth;
   const modelSize = 0.15;
   
@@ -910,7 +910,7 @@ const tradeUiModels = (() => {
       object.bound = true;
       const menuPosition = new THREE.Vector3();
       object.alignToMenu = () => {
-        menuPosition.set(0, uiWorldHeight/2 - i*modelSize, modelSize/2);
+        menuPosition.set(-uiWorldWidth/2 + modelSize/2 + i*modelSize, -uiWorldHeight/2 - modelSize/2, modelSize/2);
 
         if (object.bound) {
           object.position.copy(menuPosition);
@@ -920,20 +920,37 @@ const tradeUiModels = (() => {
           
           object.matrix
             .premultiply(
-              new THREE.Matrix4().compose(tradeUiMesh.position, tradeUiMesh.quaternion, new THREE.Vector3(1, 1, 1))
+              new THREE.Matrix4().compose(hudUiMesh.position, hudUiMesh.quaternion, new THREE.Vector3(1, 1, 1))
             )
             .decompose(object.position, object.quaternion, object.scale);
         }
         
-        menuPosition.applyMatrix4(tradeUiMesh.matrix);
+        menuPosition.applyMatrix4(new THREE.Matrix4().compose(hudUiMesh.position, hudUiMesh.quaternion, new THREE.Vector3(1, 1, 1)));
       };
 
       let grabberIndex = -1;
       const grabStartMatrix = new THREE.Matrix4();
       const grabStartControllerMatrix = new THREE.Matrix4();
+      object.use = async () => {
+        if (grabberIndex !== -1) {
+          if (/vrm/.test(name)) {
+            await setLocalRig(name)
+              .then(newRig => {
+                rig.model.parent && rig.model.parent.remove(rig.model);
+
+                rig = newRig;
+                if (cameraMode === 'firstperson' || currentSession) {
+                  rig.decapitate();
+                }
+                container.add(rig.model);
+              });
+          }
+          object.parent.remove(object);
+        }
+      };
       object.grab = gi => {
         const controllerGrip = renderer.xr.getControllerGrip(gi);
-        if (controllerGrip.position.distanceTo(object.position) < modelSize/2) {
+        if (controllerGrip.position.distanceTo(object.position) < (object.bound ? modelSize/2 : modelSize)) {
           grabberIndex = gi;
           grabStartMatrix.copy(object.matrix);
           grabStartControllerMatrix.copy(controllerGrip.matrix);
@@ -953,8 +970,7 @@ const tradeUiModels = (() => {
             .premultiply(controllerGrip.matrix)
             .decompose(object.position, object.quaternion, object.scale);
 
-          console.log('distance', object.position.distanceTo(menuPosition), modelSize);
-          object.bound = object.position.distanceTo(menuPosition) < modelSize;
+          object.bound = hudUiMesh.visible && object.position.distanceTo(menuPosition) < modelSize;
           model.scale.copy(originalScale);
           if (object.bound) {
             model.scale.multiplyScalar(scaleFactor);
@@ -1687,6 +1703,10 @@ function onSessionStarted(session) {
         // _beginTool(true, false, false);
       }
       triggerDowns[i] = true;
+      
+      tradeUiModels.forEach(m => {
+        m.use(index);
+      });
     });
     controller.addEventListener('selectend', e => {
       /* if (controller.userData.data && controller.userData.data.handedness === 'right') {
@@ -1826,7 +1846,7 @@ function animate() {
           wristUiMesh.quaternion.copy(controller.quaternion)
             .multiply(wristUiQuaternion);
           wristUiMesh.position.copy(controller.position)
-            .add(new THREE.Vector3(0, 0, 0.05).applyQuaternion(wristUiMesh.quaternion));
+            .add(new THREE.Vector3(0, 0, 0.1).applyQuaternion(wristUiMesh.quaternion));
         } else if (controller.userData.data.handedness === 'right') {
           _updateRaycasterFromObject(localRaycaster, controller);
         }
