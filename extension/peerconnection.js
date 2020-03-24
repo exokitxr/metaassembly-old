@@ -1,4 +1,4 @@
-import Avatar from 'https://avatars.exokit.org/avatars.js';
+import Avatar from './avatars/avatars.js';
 import avatarModels from 'https://avatar-models.exokit.org/avatar-models.js';
 import ModelLoader from 'https://model-loader.exokit.org/model-loader.js';
 
@@ -7,15 +7,8 @@ const localVector = new THREE.Vector3();
 
 let rig = null;
 let modelUrl = null;
-const _alignRigHandsToHead = rig => {
-  rig.inputs.leftGamepad.position.copy(rig.inputs.hmd.position).add(localVector.set(0.3, -0.15, -0.5).applyQuaternion(rig.inputs.hmd.quaternion));
-  rig.inputs.leftGamepad.quaternion.copy(rig.inputs.hmd.quaternion);
-  rig.inputs.rightGamepad.position.copy(rig.inputs.hmd.position).add(localVector.set(-0.3, -0.15, -0.5).applyQuaternion(rig.inputs.hmd.quaternion));
-  rig.inputs.rightGamepad.quaternion.copy(rig.inputs.hmd.quaternion);
-};
 export async function initLocalRig() {
-  const {url} = avatarModels[0];
-  modelUrl = `https://avatar-models.exokit.org/${url}`;
+  modelUrl = `https://avatar-models.exokit.org/${avatarModels[0].url}`;
   const model = await ModelLoader.loadModelUrl(modelUrl);
   model.scene.traverse(o => {
     o.frustumCulled = false;
@@ -28,17 +21,41 @@ export async function initLocalRig() {
     microphoneMediaStream: null,
     // debug: !newModel,
   });
-  rig.inputs.hmd.position.set(-2 + Math.random()*4, 1.2, Math.random()*-1);
-  rig.inputs.hmd.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
-  _alignRigHandsToHead(rig);
-  rig.update();
   return rig;
+}
+export async function setLocalRig(url) {
+  if (rig) {
+    rig.destroy();
+    rig = null;
+  }
+
+  modelUrl = url;
+  const model = await ModelLoader.loadModelUrl(modelUrl);
+  model.scene.traverse(o => {
+    o.frustumCulled = false;
+  });
+
+  rig = new Avatar(model, {
+    fingers: true,
+    hair: true,
+    visemes: true,
+    decapitate: false,
+    microphoneMediaStream: null,
+    // debug: !newModel,
+  });
+  return rig;
+}
+export function alignRigHandsToHead(rig) {
+  rig.inputs.leftGamepad.position.copy(rig.inputs.hmd.position).add(localVector.set(0.3, -0.15, -0.5).applyQuaternion(rig.inputs.hmd.quaternion));
+  rig.inputs.leftGamepad.quaternion.copy(rig.inputs.hmd.quaternion);
+  rig.inputs.rightGamepad.position.copy(rig.inputs.hmd.position).add(localVector.set(-0.3, -0.15, -0.5).applyQuaternion(rig.inputs.hmd.quaternion));
+  rig.inputs.rightGamepad.quaternion.copy(rig.inputs.hmd.quaternion);
 }
 export function updatePlayerFromCamera(camera) {
   if (rig) {
     rig.inputs.hmd.position.copy(camera.position);
     rig.inputs.hmd.quaternion.copy(camera.quaternion);
-    _alignRigHandsToHead(rig);
+    alignRigHandsToHead(rig);
 
     rig.update();
   }
@@ -84,7 +101,7 @@ export function updatePlayerFromXr(xr, camera) {
 }
 export function updatePlayerFromArrays(xr, hmd, left, right) {
   if (rig) {
-    window.rig = rig;
+    // window.rig = rig;
     const localMatrix = new THREE.Matrix4();
     const localScale = new THREE.Vector3();
 
@@ -124,7 +141,8 @@ export function bindPeerConnection(peerConnection, container) {
 
     peerConnection.send(JSON.stringify({
       method: 'model',
-      url: modelUrl,
+      // url: modelUrl,
+      url: `https://avatar-models.exokit.org/${avatarModels[10].url}`,
     }));
 
     updateInterval = setInterval(() => {

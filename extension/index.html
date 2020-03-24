@@ -115,7 +115,7 @@ import {GLTFLoader} from './GLTFLoader.js';
 // import {GLTFExporter} from './GLTFExporter.js';
 // import {XRControllerModelFactory} from './XRControllerModelFactory.js';
 import {makeId, listRooms, XRChannelConnection} from './multiplayer.js';
-import {initLocalRig, updatePlayerFromCamera, updatePlayerFromXr, updatePlayerFromArrays, updatePlayerDefault, getRigBoneTexture, bindPeerConnection} from './peerconnection.js';
+import {initLocalRig, setLocalRig, alignRigHandsToHead, updatePlayerFromCamera, updatePlayerFromXr, updatePlayerFromArrays, updatePlayerDefault, getRigBoneTexture, bindPeerConnection} from './peerconnection.js';
 
 const network = 'rinkeby';
 const infuraApiKey = '4fb939301ec543a0969f3019d74f80c2';
@@ -262,10 +262,15 @@ initLocalRig()
   .then(newRig => {
     rig = newRig;
 
+    // rig.inputs.hmd.position.set(-2 + Math.random()*4, 1.2, Math.random()*-1);
+    rig.inputs.hmd.position.set(0, 1.2, 0);
+    rig.inputs.hmd.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI);
+    alignRigHandsToHead(rig);
     if (cameraMode === 'firstperson' || currentSession) {
       rig.decapitate();
     }
-    container.add(rig.model);
+    rig.update();
+    // container.add(rig.model);
   });
 
 // tools
