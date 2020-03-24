@@ -1,0 +1,385 @@
+{
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 14296,
+      "type": "VEC3",
+      "max": [
+        39.0,
+        14.0,
+        29.0
+      ],
+      "min": [
+        1.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 14296,
+      "type": "VEC3",
+      "max": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "min": [
+        -1.0,
+        -1.0,
+        -1.0
+      ]
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 14296,
+      "type": "VEC4",
+      "max": [
+        1.0,
+        0.0,
+        1.0,
+        1.0
+      ],
+      "min": [
+        0.0,
+        0.0,
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5126,
+      "count": 14296,
+      "type": "VEC2",
+      "max": [
+        1.0,
+        1.0
+      ],
+      "min": [
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "bufferView": 4,
+      "componentType": 5126,
+      "count": 14296,
+      "type": "VEC4",
+      "max": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "min": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "bufferView": 5,
+      "componentType": 5125,
+      "count": 21444,
+      "type": "SCALAR",
+      "max": [
+        14295.0
+      ],
+      "min": [
+        0.0
+      ]
+    },
+    {
+      "bufferView": 6,
+      "componentType": 5126,
+      "count": 32592,
+      "type": "VEC3",
+      "max": [
+        44.0,
+        14.0,
+        30.0
+      ],
+      "min": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "bufferView": 7,
+      "componentType": 5126,
+      "count": 32592,
+      "type": "VEC3",
+      "max": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "min": [
+        -1.0,
+        -1.0,
+        -1.0
+      ]
+    },
+    {
+      "bufferView": 8,
+      "componentType": 5126,
+      "count": 32592,
+      "type": "VEC4",
+      "max": [
+        1.0,
+        0.0,
+        1.0,
+        1.0
+      ],
+      "min": [
+        0.0,
+        0.0,
+        0.0,
+        -1.0
+      ]
+    },
+    {
+      "bufferView": 9,
+      "componentType": 5126,
+      "count": 32592,
+      "type": "VEC2",
+      "max": [
+        0.9375,
+        0.9375
+      ],
+      "min": [
+        0.3125,
+        0.8125
+      ]
+    },
+    {
+      "bufferView": 10,
+      "componentType": 5126,
+      "count": 32592,
+      "type": "VEC4",
+      "max": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "min": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "bufferView": 11,
+      "componentType": 5125,
+      "count": 48888,
+      "type": "SCALAR",
+      "max": [
+        32591.0
+      ],
+      "min": [
+        0.0
+      ]
+    }
+  ],
+  "asset": {
+    "generator": "Plattar UnityGLTF (2017.4.28f1)",
+    "version": "2.0"
+  },
+  "buffers": [
+    {
+      "uri": "parcel-223.bin",
+      "byteLength": 3282160
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 171552
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 171552,
+      "byteLength": 171552
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 343104,
+      "byteLength": 228736
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 571840,
+      "byteLength": 114368
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 686208,
+      "byteLength": 228736
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 914944,
+      "byteLength": 85776
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 1000720,
+      "byteLength": 391104
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 1391824,
+      "byteLength": 391104
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 1782928,
+      "byteLength": 521472
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 2304400,
+      "byteLength": 260736
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 2565136,
+      "byteLength": 521472
+    },
+    {
+      "buffer": 0,
+      "byteOffset": 3086608,
+      "byteLength": 195552
+    }
+  ],
+  "materials": [
+    {
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.426470548,
+          0.426470548,
+          0.426470548,
+          0.284
+        ],
+        "metallicFactor": 0.0,
+        "roughnessFactor": 0.23299998044967651
+      },
+      "alphaMode": "BLEND",
+      "name": "Glass"
+    },
+    {
+      "name": "default_atlas"
+    }
+  ],
+  "meshes": [
+    {
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TANGENT": 2,
+            "TEXCOORD_0": 3,
+            "COLOR_0": 4
+          },
+          "indices": 5,
+          "material": 0
+        }
+      ],
+      "name": "glass-voxels_26"
+    },
+    {
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 6,
+            "NORMAL": 7,
+            "TANGENT": 8,
+            "TEXCOORD_0": 9,
+            "COLOR_0": 10
+          },
+          "indices": 11,
+          "material": 1
+        }
+      ],
+      "name": "solid-voxels_73"
+    }
+  ],
+  "nodes": [
+    {
+      "children": [
+        1,
+        2
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "translation": [
+        144.999969,
+        -0.999023438,
+        -28.5
+      ],
+      "name": "parcel-223"
+    },
+    {
+      "mesh": 0,
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "translation": [
+        -10.5,
+        0.0,
+        7.375
+      ],
+      "name": "glass-voxels_26"
+    },
+    {
+      "mesh": 1,
+      "rotation": [
+        0.0,
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "translation": [
+        -10.5,
+        0.0,
+        7.375
+      ],
+      "name": "solid-voxels_73"
+    }
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "nodes": [
+        0
+      ],
+      "name": "parcel-223"
+    }
+  ]
+}
