@@ -771,7 +771,7 @@ const tradeUiMesh = (() => {
 
   let srcAddress = '';
   let dstAddress = '';
-  let srcValue = 0;
+  let srcValue = 18.529731;
   let dstValue = 0;
   let srcLockedIn = false;
   let dstLockedIn = true;
@@ -833,7 +833,7 @@ const tradeUiMesh = (() => {
         const gasPrice = await web3.eth.getGasPrice();
         const rawTx = {
           to: dstAddress,
-          value: srcValue * 1e18,
+          srcValue: srcValue * 1e18,
           gasPrice,
           gas: 0,
           nonce,
